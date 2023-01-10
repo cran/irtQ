@@ -1,0 +1,43 @@
+Package: irtQ
+Type: Package
+Title: Unidimensional Item Response Theory Modeling
+Version: 0.1.0
+Description: Fit unidimensional item response theory (IRT) models to a mixture 
+    of dichotomous and polytomous data, calibrate online item parameters 
+    (i.e., pretest and operational items), estimate examinees' abilities, 
+    and examine the IRT model-data fit on item-level in different ways 
+    as well as provide useful functions related to IRT analyses such as 
+    IRT model-data fit evaluation and differential item functioning analysis.
+    The bring.flexmirt() and write.flexmirt() functions were written by modifying 
+    the read.flexmirt() function (Pritikin & Falk (2022) <doi:10.1177/0146621620929431>).
+    The bring.bilog() and bring.parscale() functions were written by modifying the read.bilog() 
+    and read.parscale() functions, respectively (Weeks (2010) <doi:10.18637/jss.v035.i12>).
+    The bisection() function was written by modifying the bisection() function 
+    (Howard (2017, ISBN:9780367657918)). The code of the inverse test characteristic curve 
+    scoring in the est_score() function was written by modifying the irt.eq.tse() function 
+    (González (2014) <doi:10.18637/jss.v059.i07>).
+Depends: R (>= 4.2)
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+Imports: stats, statmod, utils, tibble, dplyr, purrr, rlang, reshape2,
+        janitor, ggplot2, gridExtra, parallel, Matrix, Rfast, mirt
+Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", "cre")), 
+    person("Craig S.", "Wells", email="cswells@educ.umass.edu ", role="ctb"), 
+    person("James", "Howard", email="jh@jameshoward.us", role="ctb"),
+    person("Joshua", "Pritikin", email="jpritikin@pobox.com", role="ctb"), 
+    person("Jonathan P", "Weeks", email="weeksjp@gmail.com", role="ctb"), 
+    person("Jorge", "González", email="jgonzale@mat.puc.cl", role="ctb") 
+    ) 
+RoxygenNote: 7.2.0
+NeedsCompilation: no
+Packaged: 2023-01-09 17:55:57 UTC; hlim
+Author: Hwanggyu Lim [aut, cre],
+  Craig S. Wells [ctb],
+  James Howard [ctb],
+  Joshua Pritikin [ctb],
+  Jonathan P Weeks [ctb],
+  Jorge González [ctb]
+Maintainer: Hwanggyu Lim <hglim83@gmail.com>
+Repository: CRAN
+Date/Publication: 2023-01-10 18:50:07 UTC
