@@ -23,10 +23,12 @@ confirm_df <- function(x, g2na = FALSE) {
     }
   }
 
-  # remove the parameter columns with all NAs
-  col.na.lg <- Rfast::colAll(is.na(x[, -c(1:3)]))
+  # remove the parameter columns with all NAs except par.1
+  # col.na.lg <- Rfast::colAll(is.na(x[, -c(1:3)]))
+  col.na.lg <- Rfast::colAll(is.na(x[, -c(1:4)]))
   if(!all(col.na.lg)) {
-    x <- x[, c(!logical(3), !col.na.lg)]
+    # x <- x[, c(!logical(3), !col.na.lg)]
+    x <- x[, c(!logical(4), !col.na.lg)]
   }
 
   # re-assign column names

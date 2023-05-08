@@ -7,19 +7,19 @@
 #' the CATSIB statistic due to impact.
 #'
 #' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...).
-#' This metadata is required to estimate latent ability parameters when \code{score = NULL} or \code{purify = TRUE}. Default is NULL.
+#' \code{x} should to be provided to estimate latent ability parameters when \code{score = NULL} or \code{purify = TRUE}. Default is NULL.
 #' See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}} or \code{\link{simdat}} for more detail about the item metadata.
 #' @param data A matrix containing examinees' response data of the items in the argument \code{x}. A row and column indicate
 #' the examinees and items, respectively.
 #' @param score A vector of examinees' ability estimates. If the abilities are not provided (i.e., \code{score  = NULL}),
-#' \code{\link{catsib}} function computes the ability estimates before computing CATSIB statistics. See \code{\link{est_score}}
+#' \code{\link{catsib}} computes the ability estimates before computing the CATSIB statistics. See \code{\link{est_score}}
 #' for more detail about scoring methods. Default is NULL.
 #' @param se A vector of the standard errors of the ability estimates. The standard errors should be ordered in accordance with the order of
 #' the ability estimates specified in the \code{score} argument. Default is NULL.
-#' @param group A numeric or character vector indicating group membership of examinees. The length of vector should the same as the number of rows
+#' @param group A numeric or character vector indicating group membership of examinees. The length of vector should be the same with the number of rows
 #' in the response data matrix.
-#' @param focal.name A single numeric or character indicating the level of group which corresponds to the focal group.
-#' For example, if \code{group = c(0, 1, 0, 1, 1)} and '1' indicates the focal group, then \code{focal.name = 1}.
+#' @param focal.name A single numeric or character scalar representing the level associated with the focal group. For instance,
+#' given \code{group = c(0, 1, 0, 1, 1)} and '1' indicating the focal group, set \code{focal.name = 1}.
 #' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
 #' Default is 1.
 #' @param n.bin A vector of two positive integers to set the maximum and minimum numbers of bins (or intervals) on the ability scale.
@@ -32,13 +32,14 @@
 #' @param weight.group A single character string to specify a target ability distribution over which the expectation of DIF measure, called \eqn{\hat{\beta}},
 #' and the corresponding standard error are computed. Available options are "comb" for the combined ability distribution from both the reference and focal groups,
 #' "foc" for the ability distribution of the focal group, and "ref" for the ability distribution of the reference group. Defulat is "comb". See below for more detail.
-#' @param alpha A numeric value to specify significance \eqn{\alpha}-level of the hypothesis test using the RDIF fit statistics.
+#' @param alpha A numeric value to specify significance \eqn{\alpha}-level of the hypothesis test using the CATSIB statistics.
 #' Default is .05.
 #' @param missing A value indicating missing values in the response data set. Default is NA.
 #' @param purify A logical value indicating whether a purification process will be implemented or not. Default is FALSE. See below for more detail.
-#' @param max.iter An positive integer value specifying the maximum number of iterations for the purification process. Default is 10.
-#' @param min.resp An positive integer value specifying the minimum number of item responses for an examinee when scores are computed.
-#' Default is NULL. See below for more detail.
+#' @param max.iter A positive integer value specifying the maximum number of iterations for
+#' the purification process. Default is 10.
+#' @param min.resp A positive integer value specifying the minimum number of item responses for an examinee
+#' required to compute the ability estimate. Default is NULL. See details below for more information.
 #' @param method A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
 #' "MAP" for the maximum a posteriori estimation, and "EAP" for the expected a posteriori estimation. Default method is "ML".
 #' @param range A numeric vector of two components to restrict the range of ability scale for the ML, MLF, and MAP scoring methods. Default is c(-5, 5).
@@ -80,13 +81,12 @@
 #' the process reaches a predetermined limit of iteration, which can be specified in the \code{max.iter} argument. See Lim et al. (2022)
 #' for more details about the purification procedure.
 #'
-#' Scoring with a few items entails large standard errors which in turn could compromise DIF detection with CATSIB procedure.
-#' The \code{min.resp} argument can be used to avoid using scores with large standard errors when computing \eqn{\hat{\beta}}, especially
-#' during the purification process. For example, if \code{min.resp} is not NULL (e.g., \code{min.resp=5}), item responses of examinees
-#' whose tally of item responses are less than the specified minimum number are treated as missing values (i.e., NA). Accordingly,
-#' their ability estimates become missing values and are not used for computing \eqn{\hat{\beta}}. If \code{min.resp=NULL},
-#' an examinee's score will be computed as long as there exists, at least, 1 item response for the examinee.
-#'
+#' Scoring with a limited number of items can result in large standard errors, which may impact the effectiveness of DIF detection within
+#' the CATSIB procedure. The \code{min.resp} argument can be employed to avoid using scores with significant standard errors when calculating
+#' the CATSIB statistic, particularly during the purification process. For instance, if \code{min.resp} is not NULL (e.g., \code{min.resp=5}),
+#' item responses from examinees whose total item responses fall below the specified minimum number are treated as missing values (i.e., NA).
+#' Consequently, their ability estimates become missing values and are not utilized in computing the CATSIB statistic. If \code{min.resp=NULL},
+#' an examinee's score will be computed as long as there is at least one item response for the examinee.
 #'
 #' @return This function returns a list of four internal objects. The four objects are:
 #' \item{no_purify}{A list of several sub-objects containing the results of DIF analysis without a purification procedure. The sub-objects are:
@@ -441,7 +441,7 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
       # if the iteration reached out the maximum number of iteration but the purification was incomplete,
       # then, return a warning message
       if(max.iter == n_iter & !is.null(dif_item_tmp)) {
-        warning("The iteration reached out the maximum number of iteration before purification is complete.", call.=FALSE)
+        warning("The iteration reached out the maximum number of iteration before purification is completed.", call.=FALSE)
         complete <- FALSE
 
         # add flagged DIF item at the last iteration

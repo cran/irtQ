@@ -135,7 +135,7 @@ info.default <- function(x, theta, D=1, tif = TRUE, ...) {
   if(!is.null(idx.drm)) {
 
     # compute the item information
-    iif_drm <- info.drm(theta=theta, a=elm_item$pars[idx.drm, 1],
+    iif_drm <- info_drm(theta=theta, a=elm_item$pars[idx.drm, 1],
                         b=elm_item$par[idx.drm, 2], g=elm_item$par[idx.drm, 3], D=D)
 
   } else {
@@ -152,7 +152,7 @@ info.default <- function(x, theta, D=1, tif = TRUE, ...) {
     # compute the item information
     for(k in 1:n.prm) {
       par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      iif_prm[[k]] <- info.prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
+      iif_prm[[k]] <- info_prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
                                D=D, pr.model=elm_item$model[idx.prm[k]])
     }
     iif_prm <- do.call(what='rbind', iif_prm)
@@ -212,7 +212,7 @@ info.est_item <- function(x, theta, tif = TRUE, ...) {
   if(!is.null(idx.drm)) {
 
     # compute the item information
-    iif_drm <- info.drm(theta=theta, a=elm_item$pars[idx.drm, 1],
+    iif_drm <- info_drm(theta=theta, a=elm_item$pars[idx.drm, 1],
                         b=elm_item$par[idx.drm, 2], g=elm_item$par[idx.drm, 3], D=D)
 
   } else {
@@ -229,7 +229,7 @@ info.est_item <- function(x, theta, tif = TRUE, ...) {
     # compute the item information
     for(k in 1:n.prm) {
       par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      iif_prm[[k]] <- info.prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
+      iif_prm[[k]] <- info_prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
                                D=D, pr.model=elm_item$model[idx.prm[k]])
     }
     iif_prm <- do.call(what='rbind', iif_prm)
@@ -289,7 +289,7 @@ info.est_irt <- function(x, theta, tif = TRUE, ...) {
   if(!is.null(idx.drm)) {
 
     # compute the item information
-    iif_drm <- info.drm(theta=theta, a=elm_item$pars[idx.drm, 1],
+    iif_drm <- info_drm(theta=theta, a=elm_item$pars[idx.drm, 1],
                         b=elm_item$par[idx.drm, 2], g=elm_item$par[idx.drm, 3], D=D)
 
   } else {
@@ -306,7 +306,7 @@ info.est_irt <- function(x, theta, tif = TRUE, ...) {
     # compute the item information
     for(k in 1:n.prm) {
       par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      iif_prm[[k]] <- info.prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
+      iif_prm[[k]] <- info_prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
                                D=D, pr.model=elm_item$model[idx.prm[k]])
     }
     iif_prm <- do.call(what='rbind', iif_prm)
@@ -341,7 +341,7 @@ info.est_irt <- function(x, theta, tif = TRUE, ...) {
 
 # a function to compute the expected fisher item information for DRM items
 #' @importFrom Rfast Outer
-info.drm <- function(theta, a, b, g, D=1, one.theta = FALSE) {
+info_drm <- function(theta, a, b, g, D=1, one.theta = FALSE) {
 
   # calculate probability of correct answers
   if(!one.theta) {
@@ -366,7 +366,7 @@ info.drm <- function(theta, a, b, g, D=1, one.theta = FALSE) {
 
 # a function to compute the expected fisher item information for PRM items
 #' @importFrom Rfast rowsums
-info.prm <- function(theta, a, d, D=1, pr.model) {
+info_prm <- function(theta, a, d, D=1, pr.model) {
 
   if(pr.model == "GRM") {
 
@@ -450,7 +450,7 @@ info_score <- function(theta, elm_item, idx.drm, idx.prm,
 
     # compute the fisher information
     finfo_drm <-
-      sum(info.drm(theta=theta, a=elm_item$pars[idx.drm, 1],
+      sum(info_drm(theta=theta, a=elm_item$pars[idx.drm, 1],
                    b=elm_item$par[idx.drm, 2], g=elm_item$par[idx.drm, 3],
                    D=D, one.theta=TRUE))
 
@@ -472,7 +472,7 @@ info_score <- function(theta, elm_item, idx.drm, idx.prm,
     for(i in 1:n.prm) {
       par.tmp <- stats::na.exclude(elm_item$par[idx.prm[i], ])
       finfo_prm[i] <-
-        info.prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
+        info_prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
                  D=D, pr.model=elm_item$model[idx.prm[i]])
     }
 

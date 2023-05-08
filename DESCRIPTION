@@ -1,7 +1,7 @@
 Package: irtQ
 Type: Package
 Title: Unidimensional Item Response Theory Modeling
-Version: 0.1.0
+Version: 0.1.1
 Description: Fit unidimensional item response theory (IRT) models to a mixture 
     of dichotomous and polytomous data, calibrate online item parameters 
     (i.e., pretest and operational items), estimate examinees' abilities, 
@@ -31,7 +31,7 @@ Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", 
     ) 
 RoxygenNote: 7.2.0
 NeedsCompilation: no
-Packaged: 2023-01-09 17:55:57 UTC; hlim
+Packaged: 2023-05-08 14:05:17 UTC; hlim
 Author: Hwanggyu Lim [aut, cre],
   Craig S. Wells [ctb],
   James Howard [ctb],
@@ -40,4 +40,4 @@ Author: Hwanggyu Lim [aut, cre],
   Jorge González [ctb]
 Maintainer: Hwanggyu Lim <hglim83@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-01-10 18:50:07 UTC
+Date/Publication: 2023-05-08 14:30:15 UTC

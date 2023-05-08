@@ -1,27 +1,27 @@
 #' @export
-print.rdif_mg <- function(x, digits = max(2L, getOption("digits") - 5L), ...) {
+print.grdif <- function(x, digits = max(2L, getOption("digits") - 5L), ...) {
 
   call.expr <- deparse(x$call)
   cat("\nCall:\n", paste(call.expr, sep = "\n", collapse = "\n"),
       "\n\n", sep = "")
 
-  # re-organize the dif stats data.frame
+  # re-organize the dif stats data frame
   n.col <- ncol(x$no_purify$dif_stat) - 1
   dif_stat_nopurify <-
     x$no_purify$dif_stat %>%
-    dplyr::select("id", "n.ref", dplyr::contains("n.foc"), "rdifr_mg",
-                  "p.rdifr_mg", "rdifs_mg", "p.rdifs_mg",
-                  "rdifrs_mg", "p.rdifrs_mg") %>%
+    dplyr::select("id", "n.ref", dplyr::contains("n.foc"), "grdifr",
+                  "p.grdifr", "grdifs", "p.grdifs",
+                  "grdifrs", "p.grdifrs") %>%
     dplyr::mutate_at(.vars = (n.col - 5):n.col, "round", digits = 3) %>%
-    dplyr::mutate(" "=stats::symnum(.data$p.rdifr_mg, c(0, 0.001, 0.01, 0.05, 0.1, 1),
+    dplyr::mutate(" "=stats::symnum(.data$p.grdifr, c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                     symbols = c("***", "**", "*", ".", "")),
-                  "  "=stats::symnum(.data$p.rdifs_mg, c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                  "  "=stats::symnum(.data$p.grdifs, c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                      symbols = c("***", "**", "*", ".", "")),
-                  "   "=stats::symnum(.data$p.rdifrs_mg, c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                  "   "=stats::symnum(.data$p.grdifrs, c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                       symbols = c("***", "**", "*", ".", ""))) %>%
-    dplyr::relocate(" ", .after="p.rdifr_mg") %>%
-    dplyr::relocate("  ", .after="p.rdifs_mg") %>%
-    dplyr::relocate("   ", .after="p.rdifrs_mg")
+    dplyr::relocate(" ", .after="p.grdifr") %>%
+    dplyr::relocate("  ", .after="p.grdifs") %>%
+    dplyr::relocate("   ", .after="p.grdifrs")
 
   # check if purification is used
   purify <- x$purify
@@ -29,46 +29,46 @@ print.rdif_mg <- function(x, digits = max(2L, getOption("digits") - 5L), ...) {
     purify.by <- x$with_purify$purify.by
     complete <- x$with_purify$complete
     n.iter <- x$with_purify$n.iter
-    if(purify.by == "rdifr_mg") {
-      purify.stat <- "RDIF(R)-MG"
+    if(purify.by == "grdifr") {
+      purify.stat <- "GRDIF(R)"
     }
-    if(purify.by == "rdifs_mg") {
-      purify.stat <- "RDIF(S)-MG"
+    if(purify.by == "grdifs") {
+      purify.stat <- "GRDIF(S)"
     }
-    if(purify.by == "rdifrs_mg") {
-      purify.stat <- "RDIF(RS)-MG"
+    if(purify.by == "grdifrs") {
+      purify.stat <- "GRDIF(RS)"
     }
 
     # re-organize the dif stats data.frame
     dif_stat_purify <-
       x$with_purify$dif_stat %>%
       dplyr::select("id", "n.iter", "n.ref", dplyr::contains("n.foc"),
-                    "rdifr_mg", "p.rdifr_mg", "rdifs_mg", "p.rdifs_mg",
-                    "rdifrs_mg", "p.rdifrs_mg") %>%
+                    "grdifr", "p.grdifr", "grdifs", "p.grdifs",
+                    "grdifrs", "p.grdifrs") %>%
       dplyr::mutate_at(.vars = (n.col - 6):(n.col + 1), "round", digits = 3) %>%
-      dplyr::mutate(" "=stats::symnum(.data$p.rdifr_mg, c(0, 0.001, 0.01, 0.05, 0.1, 1),
+      dplyr::mutate(" "=stats::symnum(.data$p.grdifr, c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                       symbols = c("***", "**", "*", ".", "")),
-                    "  "=stats::symnum(.data$p.rdifs_mg, c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                    "  "=stats::symnum(.data$p.grdifs, c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                        symbols = c("***", "**", "*", ".", "")),
-                    "   "=stats::symnum(.data$p.rdifrs_mg, c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                    "   "=stats::symnum(.data$p.grdifrs, c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                         symbols = c("***", "**", "*", ".", ""))) %>%
-      dplyr::relocate(" ", .after="p.rdifr_mg") %>%
-      dplyr::relocate("  ", .after="p.rdifs_mg") %>%
-      dplyr::relocate("   ", .after="p.rdifrs_mg")
+      dplyr::relocate(" ", .after="p.grdifr") %>%
+      dplyr::relocate("  ", .after="p.grdifs") %>%
+      dplyr::relocate("   ", .after="p.grdifrs")
 
   }
 
   ## print the results
-  cat("DIF analysis using three RDIF-MG statistics", "\n\n")
+  cat("DIF analysis using three GRDIF statistics", "\n\n")
 
   cat(" 1. Without purification \n\n")
-  cat("  - DIF Items identified by RDIF(R)-MG: \n")
-  cat("   ", paste(x$no_purify$dif_item$rdifr_mg, collapse=", "), "\n")
-  cat("  - DIF Items identified by RDIF(S): \n")
-  cat("   ", paste(x$no_purify$dif_item$rdifs_mg, collapse=", "), "\n")
-  cat("  - DIF Items identified by RDIF(RS): \n")
-  cat("   ", paste(x$no_purify$dif_item$rdifrs_mg, collapse=", "), "\n")
-  cat("  - RDIF-MG Statistics: \n\n")
+  cat("  - DIF Items identified by GRDIF(R): \n")
+  cat("   ", paste(x$no_purify$dif_item$grdifr, collapse=", "), "\n")
+  cat("  - DIF Items identified by GRDIF(S): \n")
+  cat("   ", paste(x$no_purify$dif_item$grdifs, collapse=", "), "\n")
+  cat("  - DIF Items identified by GRDIF(RS): \n")
+  cat("   ", paste(x$no_purify$dif_item$grdifrs, collapse=", "), "\n")
+  cat("  - GRDIF Statistics: \n\n")
   print(dif_stat_nopurify, digits=3, print.gap=NULL, quote=FALSE)
   cat("\n")
   cat("'***'p < 0.001 '**'p < 0.01 '*'p < 0.05 '.'p < 0.1 ' 'p < 1 ",
@@ -81,10 +81,10 @@ print.rdif_mg <- function(x, digits = max(2L, getOption("digits") - 5L), ...) {
   } else {
     cat("  - Completion of purification: ", complete,  "\n", sep="")
     cat("  - Number of iterations: ", n.iter,  "\n", sep="")
-    cat("  - RDIF-MG statistic used for purification: ", purify.stat, "\n", sep="")
+    cat("  - GRDIF statistic used for purification: ", purify.stat, "\n", sep="")
     cat("  - DIF Items identified by ", purify.stat, ": \n", sep="")
     cat("   ", paste(x$with_purify$dif_item , collapse=", "), "\n")
-    cat("  - RDIF-MG Statistics: \n\n")
+    cat("  - GRDIF Statistics: \n\n")
     print(dif_stat_purify, digits=3, print.gap=NULL, quote=FALSE)
     cat("\n")
     cat("'***'p < 0.001 '**'p < 0.01 '*'p < 0.05 '.'p < 0.1 ' 'p < 1 ",

@@ -1,6 +1,6 @@
 #' IRT residual-based differential item functioning (RDIF) detection framework
 #'
-#' @description This function computes three RDIF statistics (Lim, Choe, & Han, 2022; Lim, Choe, Han, Lee, & Hong, 2021),
+#' @description This function computes three RDIF statistics (Lim & Choe, In press; Lim, Choe, & Han, 2022),
 #' which are \eqn{RDIF_{R}}, \eqn{RDIF_{S}}, and \eqn{RDIF_{RS}}, for each item. \eqn{RDIF_{R}} primarily
 #' captures the typical contrast in raw residual pattern between two groups caused by uniform DIF whereas
 #' \eqn{RDIF_{S}} primarily captures the typical contrast in squared residual pattern between two groups caused
@@ -8,27 +8,28 @@
 #'
 #' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...), an object of class \code{\link{est_item}}
 #' obtained from the function \code{\link{est_item}}, or an object of class \code{\link{est_irt}} obtained from the function \code{\link{est_irt}}.
-#' The data frame of item metadata can be easily obtained using the function \code{\link{shape_df}}. See \code{\link{est_irt}}, \code{\link{irtfit}},
+#' The item metadata can be easily created using the function \code{\link{shape_df}}. See \code{\link{est_irt}}, \code{\link{irtfit}},
 #' \code{\link{info}} or \code{\link{simdat}} for more details about the item metadata.
 #' @param data A matrix containing examinees' response data for the items in the argument \code{x}. A row and column indicate
 #' the examinees and items, respectively.
-#' @param score A vector of examinees' ability estimates. If the abilities are not provided, \code{\link{rdif}} function estimates the abilities before
-#' computing RDIF statistics. See \code{\link{est_score}} for more details about scoring methods. Default is NULL.
-#' @param group A numeric or character vector indicating group membership of examinees. The length of the vector should the same with the number of rows
-#' in the response data matrix.
-#' @param focal.name A single numeric or character indicating the level of group which corresponds to the focal group.
-#' For example, if \code{group = c(0, 1, 0, 1, 1)} and '1' indicates the focal group, then \code{focal.name = 1}.
+#' @param score A vector of examinees' ability estimates. If the abilities are not provided, \code{\link{rdif}} estimates the abilities before
+#' computing the RDIF statistics. See \code{\link{est_score}} for more details about scoring methods. Default is NULL.
+#' @param group A numeric or character vector indicating group membership of examinees. The length of the vector should be the same
+#' with the number of rows in the response data matrix.
+#' @param focal.name A single numeric or character scalar representing the level associated with the focal group. For instance,
+#' given \code{group = c(0, 1, 0, 1, 1)} and '1' indicating the focal group, set \code{focal.name = 1}.
 #' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
 #' Default is 1.
-#' @param alpha A numeric value to specify significance \eqn{\alpha}-level of the hypothesis test using the RDIF fit statistics.
+#' @param alpha A numeric value to specify significance \eqn{\alpha}-level of the hypothesis test using the RDIF statistics.
 #' Default is .05.
 #' @param missing A value indicating missing values in the response data set. Default is NA.
 #' @param purify A logical value indicating whether a purification process will be implemented or not. Default is FALSE.
 #' @param purify.by A character string specifying a RDIF statistic with which the purification is implemented. Available statistics
 #' are "rdifrs" for \eqn{RDIF_{RS}}, "rdifr" for \eqn{RDIF_{R}}, and "rdifs" for \eqn{RDIF_{S}}.
-#' @param max.iter An positive integer value specifying the maximum number of iterations for the purification process. Default is 10.
-#' @param min.resp An positive integer value specifying the minimum number of item responses for an examinee when scores are computed.
-#' Default is NULL. See details below for more information.
+#' @param max.iter A positive integer value specifying the maximum number of iterations for
+#' the purification process. Default is 10.
+#' @param min.resp A positive integer value specifying the minimum number of item responses for an examinee
+#' required to compute the ability estimate. Default is NULL. See details below for more information.
 #' @param method A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
 #' "MAP" for the maximum a posteriori estimation, and "EAP" for the expected a posteriori estimation. Default method is "ML".
 #' @param range A numeric vector of two components to restrict the range of ability scale for the ML, EAP, and MAP scoring methods. Default is c(-5, 5).
@@ -45,7 +46,7 @@
 #' @param verbose A logical value. If TRUE, the progress messages of purification procedure are suppressed. Default is TRUE.
 #' @param ... additional arguments for further updates.
 #'
-#' @details The RDIF framework (Lim et al., 2022; Lim et al., 2021) consists of three IRT residual-based statistics: \eqn{RDIF_{R}}, \eqn{RDIF_{S}},
+#' @details The RDIF framework (Lim et al., 2022) consists of three IRT residual-based statistics: \eqn{RDIF_{R}}, \eqn{RDIF_{S}},
 #' and \eqn{RDIF_{RS}}. Under the null hypothesis that a test contains no DIF items, \eqn{RDIF_{R}} and \eqn{RDIF_{S}} follow
 #' normal distributions asymptotically. \eqn{RDIF_{RS}} is a based on a bivariate normal distribution of \eqn{RDIF_{R}} and
 #' \eqn{RDIF_{S}} statistics. Under the null hypothesis of no DIF items, it follows a \eqn{\chi^{2}} distribution asymptotically
@@ -73,12 +74,12 @@
 #' the process reaches a predetermined limit of iteration, which can be specified in the \code{max.iter} argument. See Lim et al. (2022)
 #' for more details about the purification procedure.
 #'
-#' Scoring with a few items entails large standard errors which in turn could compromise DIF detection with RDIF framework.
-#' The \code{min.resp} argument can be used to avoid using scores with large standard errors when computing the RDIF statistics, especially
-#' during the purification process. For example, if \code{min.resp} is not NULL (e.g., \code{min.resp=5}), item responses of examinees
-#' whose tally of item responses are less than the specified minimum number are treated as missing values (i.e., NA). Accordingly,
-#' their ability estimates become missing values and are not used for computing the RDIF statistics. If \code{min.resp=NULL},
-#' an examinee's score will be computed as long as there exists, at least, 1 item response for the examinee.
+#' Scoring with a limited number of items can result in large standard errors, which may impact the effectiveness of DIF detection within
+#' the RDIF framework. The \code{min.resp} argument can be employed to avoid using scores with significant standard errors when calculating
+#' the RDIF statistics, particularly during the purification process. For instance, if \code{min.resp} is not NULL (e.g., \code{min.resp=5}),
+#' item responses from examinees whose total item responses fall below the specified minimum number are treated as missing values (i.e., NA).
+#' Consequently, their ability estimates become missing values and are not utilized in computing the RDIF statistics. If \code{min.resp=NULL},
+#' an examinee's score will be computed as long as there is at least one item response for the examinee.
 #'
 #'
 #' @return This function returns a list of four internal objects. The four objects are:
@@ -126,12 +127,11 @@
 #' \code{\link{gen.weight}}, \code{\link{est_score}}
 #'
 #' @references
+#' Lim, H., & Choe, E. M. (In press). Detecting differential item functioning in CAT using IRT residual DIF approach.
+#' \emph{Journal of Educational Measurement}.
+#'
 #' Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential item functioning detection framework in
 #' item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi.org/10.1111/jedm.12313}.
-#'
-#' Lim, H., Choe, E. M., Han, K. T., Lee, S., & Hong, M. (2021, June). \emph{IRT residual approach
-#' to detecting DIF.} Paper presented at the Annual Meeting of the National Council on Measurement
-#' in Education. Online.
 #'
 #' @examples
 #' \donttest{
@@ -440,7 +440,7 @@ rdif.default <- function(x, data, score=NULL, group, focal.name, D=1, alpha=0.05
       # if the iteration reached out the maximum number of iteration but the purification is incomplete,
       # then, return a warning message
       if(max.iter == n_iter & !is.null(dif_item_tmp)) {
-        warning("The iteration reached out the maximum number of iteration before purification is complete.", call.=FALSE)
+        warning("The iteration reached out the maximum number of iteration before purification is completed.", call.=FALSE)
         complete <- FALSE
 
         # add flagged DIF item at the last iteration
@@ -707,7 +707,7 @@ rdif.est_irt <- function(x, score=NULL, group, focal.name, alpha=0.05, missing=N
       # if the iteration reached out the maximum number of iteration but the purification is incomplete,
       # then, return a warning message
       if(max.iter == n_iter & !is.null(dif_item_tmp)) {
-        warning("The iteration reached out the maximum number of iteration before purification is complete.", call.=FALSE)
+        warning("The iteration reached out the maximum number of iteration before purification is completed.", call.=FALSE)
         complete <- FALSE
 
         # add flagged DIF item at the last iteration
@@ -975,7 +975,7 @@ rdif.est_item <- function(x, group, focal.name, alpha=0.05, missing=NA, purify=F
       # if the iteration reached out the maximum number of iteration but the purification is incomplete,
       # then, return a warning message
       if(max.iter == n_iter & !is.null(dif_item_tmp)) {
-        warning("The iteration reached out the maximum number of iteration before purification is complete.", call.=FALSE)
+        warning("The iteration reached out the maximum number of iteration before purification is completed.", call.=FALSE)
         complete <- FALSE
 
         # add flagged DIF item at the last iteration

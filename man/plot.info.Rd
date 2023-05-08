@@ -92,7 +92,7 @@ plot(x, item.loc=2)
 # draw a plot of multiple item information functions across the multiple panels
 plot(x, item.loc=1:8, overlap=FALSE)
 
-# draw a plot of multiple item information functions across in one panel
+# draw a plot of multiple item information functions in one panel
 plot(x, item.loc=1:8, overlap=TRUE)
 
 # draw a plot of conditional standard error at a test level

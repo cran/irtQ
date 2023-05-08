@@ -295,7 +295,7 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
                                     "ll_score", "drm", "prm", "gpcm", "grm",
                                     "grad_score", "grad_score_drm", "grad_score_prm",
                                     "logprior_deriv", "esprior_norm",
-                                    "info_score", "info.drm", "info.prm",
+                                    "info_score", "info_drm", "info_prm",
                                     "gen.weight"), envir = environment())
       parallel::clusterEvalQ(cl, library(dplyr))
       # parallel::clusterEvalQ(cl, library(reshape2))
@@ -479,7 +479,7 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
                                     "ll_score", "drm", "prm", "gpcm", "grm",
                                     "grad_score", "grad_score_drm", "grad_score_prm",
                                     "logprior_deriv", "esprior_norm",
-                                    "info_score", "info.drm", "info.prm",
+                                    "info_score", "info_drm", "info_prm",
                                     "gen.weight"), envir = environment())
       parallel::clusterEvalQ(cl, library(dplyr))
       # parallel::clusterEvalQ(cl, library(reshape2))

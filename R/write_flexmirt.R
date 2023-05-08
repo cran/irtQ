@@ -35,6 +35,7 @@
 #' method development. \emph{Applied Psychological Measurement, 44}(7-8), 561-562.
 #'
 #' @examples
+#' \donttest{
 #' ## 1. Create "-prm.txt" file for a single group
 #' ##    using the simulated CAT data
 #' # 1-(1) extract the item metadata
@@ -45,7 +46,6 @@
 #'
 #' # 1-(3) write out the "-prm.txt" file
 #' write.flexmirt(x, file=temp_prm, norm.pop=c(0, 1), rePar=FALSE)
-#'
 #'
 #' ## 2. Create "-prm.txt" file for multiple groups
 #' ##    using the simulated three multiple group data
@@ -65,6 +65,8 @@
 #' temp_prm <- file.path(tempdir(), "mg_group_temp-prm2.txt")
 #' write.flexmirt(x, file=temp_prm, norm.pop=c(0, 1),
 #'                rePar=FALSE, mgroup=TRUE, group.name=NULL)
+#'
+#'}
 #'
 #' @export
 write.flexmirt <- function(x, file=NULL, norm.pop=c(0, 1), rePar=TRUE,

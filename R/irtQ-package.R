@@ -18,8 +18,8 @@
 #' using the Lord-Wingersky recursion formula, computing item and test information functions, computing item and test characteristic
 #' curve functions, and plotting item and test characteristic curves and item and test information functions.
 #'
-#' \tabular{ll}{ Package: \tab irtQ\cr Version: \tab 0.1.0\cr Date: \tab
-#' 2023-01-09\cr Depends: \tab R (>= 4.1)\cr License: \tab GPL (>= 2)\cr }
+#' \tabular{ll}{ Package: \tab irtQ\cr Version: \tab 0.1.1\cr Date: \tab
+#' 2023-05-08\cr Depends: \tab R (>= 4.1)\cr License: \tab GPL (>= 2)\cr }
 #'
 #' @details
 #' Following five sections describe a) how to implement the online item calibration using FIPC, a) how to implement the online item
@@ -347,12 +347,15 @@
 #' Li, Y. & Lissitz, R. (2004). Applications of the analytically derived asymptotic standard errors of item response theory
 #' item parameter estimates. \emph{Journal of educational measurement, 41}(2), 85-117.
 #'
+#' Lim, H., & Choe, E. M. (In press). Detecting differential item functioning in CAT using IRT residual DIF approach.
+#' \emph{Journal of Educational Measurement}.
+#'
 #' Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential item functioning detection framework in
 #' item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi.org/10.1111/jedm.12313}.
 #'
-#' Lim, H., Choe, E. M., Han, K. T., Lee, S., & Hong, M. (2021, June). \emph{IRT residual approach
-#' to detecting DIF.} Paper presented at the Annual Meeting of the National Council on Measurement
-#' in Education. Online.
+#' Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2023, April). \emph{Detecting differential item functioning among multiple groups
+#' using IRT residual DIF framework}. Paper presented at the Annual Meeting of the National Council on Measurement
+#' in Education. Chicago, IL.
 #'
 #' Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
 #' \emph{Journal of Educational Measurement}. DOI: 10.1111/jedm.12276.
