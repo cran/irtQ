@@ -112,61 +112,66 @@ lwrc <- function(x=NULL, theta, prob=NULL, cats, D=1) {
     # Possible observed score range for a first item
     obs.range <- 0:(cats[1]-1)
 
-    # Caculate probabilities to earn an observed score by accumulating over remaining items
-    for(j in 2:n.prob) {  # should start from a 2nd item
+    # proceed the further analysis when # of the items > 1
+    if(n.cats > 1) {
 
-      # Probability to earn zero score. This is a special case
-      tmp[1] <- p[1] * prob[j, 1]
+      # Calculate probabilities to earn an observed score by accumulating over remaining items
+      for(j in 2:n.prob) {  # should start from a 2nd item
 
-      # The range of category scores for an added item
-      cat.range <- 0:(cats[j]-1)
+        # Probability to earn zero score. This is a special case
+        tmp[1] <- p[1] * prob[j, 1]
 
-      # Possible minimum and maximum observed scores when the item is added
-      # but, except zero and perfect score
-      obs_rg <- range(obs.range)
-      cat_rg <- range(cat.range)
-      min.obs <- obs_rg[1]
-      max.obs <- obs_rg[2]
-      min.cat <- cat_rg[1]
-      max.cat <- cat_rg[2]
-      min.s <- min.obs + min.cat + 1
-      max.s <- max.obs + max.cat - 1
+        # The range of category scores for an added item
+        cat.range <- 0:(cats[j]-1)
 
-      # possible observed score range except zero and perfect score
-      poss.score <- min.s:max.s
-      length.score <- length(poss.score)
-      # score.mat <- matrix(poss.score, nrow=length(min.cat:max.cat), ncol=length.score, byrow=TRUE)
-      score.mat <- col(array(NA, c(cats[j], length.score)))
+        # Possible minimum and maximum observed scores when the item is added
+        # but, except zero and perfect score
+        obs_rg <- range(obs.range)
+        cat_rg <- range(cat.range)
+        min.obs <- obs_rg[1]
+        max.obs <- obs_rg[2]
+        min.cat <- cat_rg[1]
+        max.cat <- cat_rg[2]
+        min.s <- min.obs + min.cat + 1
+        max.s <- max.obs + max.cat - 1
 
-      # Difference between the possible observed score and each category score if the added item
-      poss.diff <- score.mat - min.cat:max.cat
+        # possible observed score range except zero and perfect score
+        poss.score <- min.s:max.s
+        length.score <- length(poss.score)
+        # score.mat <- matrix(poss.score, nrow=length(min.cat:max.cat), ncol=length.score, byrow=TRUE)
+        score.mat <- col(array(NA, c(cats[j], length.score)))
 
-      # The difference above should be greater than or equal to the minimum observed score
-      # where the item is added, and less than or equal to the maximum observed score where
-      # the item is added
-      cols <- poss.diff >= min.obs & poss.diff <= max.obs
+        # Difference between the possible observed score and each category score if the added item
+        poss.diff <- score.mat - min.cat:max.cat
 
-      # Final probability to earn the observed score
-      prob.score <- c()
-      for(k in 1:length.score) {
-        tmp.cols <- which(cols[, k])
-        tmp.diff <- poss.diff[tmp.cols, k]
-        prob.score[k] <- sum(p[(tmp.diff + 1)] * prob[j, tmp.cols])
+        # The difference above should be greater than or equal to the minimum observed score
+        # where the item is added, and less than or equal to the maximum observed score where
+        # the item is added
+        cols <- poss.diff >= min.obs & poss.diff <= max.obs
+
+        # Final probability to earn the observed score
+        prob.score <- c()
+        for(k in 1:length.score) {
+          tmp.cols <- which(cols[, k])
+          tmp.diff <- poss.diff[tmp.cols, k]
+          prob.score[k] <- sum(p[(tmp.diff + 1)] * prob[j, tmp.cols])
+        }
+        tmp[1+poss.score] <- prob.score
+
+        # Probability to earn perfect score. This is a special case.
+        tmp[max.s + 2] <- p[length(p)] * prob[j, cats[j]]
+
+        # Update probabilities
+        p <- tmp
+
+        # Update the range of possible observed scores
+        # obs.range <- (min.s-1):(max.s+1)
+        obs.range <- c((min.s-1), poss.score, (max.s+1))
+
+        # Reset the temporary vector
+        tmp <- c()
+
       }
-      tmp[1+poss.score] <- prob.score
-
-      # Probability to earn perfect score. This is a special case.
-      tmp[max.s + 2] <- p[length(p)] * prob[j, cats[j]]
-
-      # Update probabilities
-      p <- tmp
-
-      # Update the range of possible observed scores
-      # obs.range <- (min.s-1):(max.s+1)
-      obs.range <- c((min.s-1), poss.score, (max.s+1))
-
-      # Reset the temporary vector
-      tmp <- c()
 
     }
 
@@ -232,80 +237,85 @@ lwRecurive <- function(prob.cats, cats, n.theta) {
   # possible observed score range for a first item
   obs.range <- 0:(cats[1]-1)
 
-  # create a temporary matrix to contain all probabilities
-  tScore.range <- 0:sum(cats-1)
-  # tmp <- matrix(0, nrow=n.theta, ncol=length(tScore.range))
-  tmp <- array(0, c(n.theta, length(tScore.range)))
+  # proceed the further analysis when # of the items > 1
+  if(length(cats) > 1) {
 
-  # Calculate probabilities to earn an observed score by accumulating over remaining items
-  for(j in 2:length(cats)) {
+    # create a temporary matrix to contain all probabilities
+    tScore.range <- 0:sum(cats-1)
+    # tmp <- matrix(0, nrow=n.theta, ncol=length(tScore.range))
+    tmp <- array(0, c(n.theta, length(tScore.range)))
 
-    # Probability to earn zero score. This is a special case.
-    tmp[, 1] <- p[, 1] * prob.cats[[j]][, 1]
+    # Calculate probabilities to earn an observed score by accumulating over remaining items
+    for(j in 2:length(cats)) {
 
-    # The range of category scores for an added item
-    cat.range <- 0:(cats[j]-1)
+      # Probability to earn zero score. This is a special case.
+      tmp[, 1] <- p[, 1] * prob.cats[[j]][, 1]
 
-    # Possible minimum and maximum observed scores when the item is added
-    # but, except zero and perfect score
-    obs_rg <- range(obs.range)
-    cat_rg <- range(cat.range)
-    min.obs <- obs_rg[1]
-    max.obs <- obs_rg[2]
-    min.cat <- cat_rg[1]
-    max.cat <- cat_rg[2]
-    min.s <- min.obs + min.cat + 1
-    max.s <- max.obs + max.cat - 1
+      # The range of category scores for an added item
+      cat.range <- 0:(cats[j]-1)
 
-    # possible observed score range except zero and perfect score
-    poss.score <- min.s:max.s
-    length.score <- length(poss.score)
-    # score.mat <- matrix(poss.score, nrow=length(min.cat:max.cat), ncol=length.score, byrow=TRUE)
-    # score.mat <- matrix(poss.score, nrow=cats[j], ncol=length.score, byrow=TRUE)
-    score.mat <- col(array(NA, c(cats[j], length.score)))
+      # Possible minimum and maximum observed scores when the item is added
+      # but, except zero and perfect score
+      obs_rg <- range(obs.range)
+      cat_rg <- range(cat.range)
+      min.obs <- obs_rg[1]
+      max.obs <- obs_rg[2]
+      min.cat <- cat_rg[1]
+      max.cat <- cat_rg[2]
+      min.s <- min.obs + min.cat + 1
+      max.s <- max.obs + max.cat - 1
 
-    # Difference between the possible observed score and each category score if the added item
-    # poss.diff <- score.mat - min.cat:max.cat
-    poss.diff <- score.mat - cat.range
+      # possible observed score range except zero and perfect score
+      poss.score <- min.s:max.s
+      length.score <- length(poss.score)
+      # score.mat <- matrix(poss.score, nrow=length(min.cat:max.cat), ncol=length.score, byrow=TRUE)
+      # score.mat <- matrix(poss.score, nrow=cats[j], ncol=length.score, byrow=TRUE)
+      score.mat <- col(array(NA, c(cats[j], length.score)))
 
-    # The difference above should be greater than or equal to the minimum observed score
-    # where the item is added, and less than or equal to the maximum observed score where
-    # the item is added
-    cols <- poss.diff >= min.obs & poss.diff <= max.obs
+      # Difference between the possible observed score and each category score if the added item
+      # poss.diff <- score.mat - min.cat:max.cat
+      poss.diff <- score.mat - cat.range
 
-    # Final probability to earn the observed score
-    prob.score <- array(0, c(n.theta, length.score))
-    for(k in 1:length.score) {
-      tmp.cols <- cols[, k]
-      tmp.diff <- poss.diff[tmp.cols, k]
-      prob.score[, k] <- Rfast::rowsums(p[, (tmp.diff + 1), drop=FALSE] * prob.cats[[j]][, tmp.cols, drop=FALSE])
+      # The difference above should be greater than or equal to the minimum observed score
+      # where the item is added, and less than or equal to the maximum observed score where
+      # the item is added
+      cols <- poss.diff >= min.obs & poss.diff <= max.obs
+
+      # Final probability to earn the observed score
+      prob.score <- array(0, c(n.theta, length.score))
+      for(k in 1:length.score) {
+        tmp.cols <- cols[, k]
+        tmp.diff <- poss.diff[tmp.cols, k]
+        prob.score[, k] <- Rfast::rowsums(p[, (tmp.diff + 1), drop=FALSE] * prob.cats[[j]][, tmp.cols, drop=FALSE])
+      }
+      tmp[, 1 + poss.score] <- prob.score
+
+      # cols2 <- c(cols)
+      # diff2 <- poss.diff[cols2]
+      # cols3 <- rep(c(cat.range + 1), length.score)[cols2]
+      # prob.score2 <- p[, (diff2 + 1), drop=FALSE] * prob.cats[[j]][, cols3, drop=FALSE]
+      # length.col <- Rfast::colsums(cols)
+      # end.col <- cumsum(length.col)
+      # start.col <- end.col - length.col + 1
+      # prob.score2 <-
+      #   purrr::map2(.x=start.col, .y=end.col,
+      #               .f=function(x, y) Rfast::rowsums(prob.score2[, x:y])) %>%
+      # prob.score2 <- do.call(what="cbind", prob.score2)
+      # prob.score2 <-
+      #   mapply(FUN = function(x, y) {Rfast::rowsums(prob.score2[, x:y])}, x=start.col, y=end.col)
+
+      # Probability to earn perfect score. This is a special case.
+      tmp[, max.s + 2] <- p[, ncol(p)] * prob.cats[[j]][, cats[j]]
+
+      # Update the range of possible observed scores
+      # obs.range <- (min.s-1):(max.s+1)
+      obs.range <- c((min.s-1), poss.score, (max.s+1))
+
+      # Update probabilities
+      # p <- tmp[, 1:length(obs.range), drop=FALSE]
+      p <- tmp[, obs.range+1, drop=FALSE]
+
     }
-    tmp[, 1 + poss.score] <- prob.score
-
-    # cols2 <- c(cols)
-    # diff2 <- poss.diff[cols2]
-    # cols3 <- rep(c(cat.range + 1), length.score)[cols2]
-    # prob.score2 <- p[, (diff2 + 1), drop=FALSE] * prob.cats[[j]][, cols3, drop=FALSE]
-    # length.col <- Rfast::colsums(cols)
-    # end.col <- cumsum(length.col)
-    # start.col <- end.col - length.col + 1
-    # prob.score2 <-
-    #   purrr::map2(.x=start.col, .y=end.col,
-    #               .f=function(x, y) Rfast::rowsums(prob.score2[, x:y])) %>%
-    # prob.score2 <- do.call(what="cbind", prob.score2)
-    # prob.score2 <-
-    #   mapply(FUN = function(x, y) {Rfast::rowsums(prob.score2[, x:y])}, x=start.col, y=end.col)
-
-    # Probability to earn perfect score. This is a special case.
-    tmp[, max.s + 2] <- p[, ncol(p)] * prob.cats[[j]][, cats[j]]
-
-    # Update the range of possible observed scores
-    # obs.range <- (min.s-1):(max.s+1)
-    obs.range <- c((min.s-1), poss.score, (max.s+1))
-
-    # Update probabilities
-    # p <- tmp[, 1:length(obs.range), drop=FALSE]
-    p <- tmp[, obs.range+1, drop=FALSE]
 
   }
 

@@ -210,12 +210,15 @@ simdat_drm <- function(theta, a, b, g, D) {
   # Number of items
   nitem <- length(a)
 
-  # Calculate true probability for each category
-  sim <- drm(theta, a, b, g, D)
+  # check the item guessing parameters
+  if(is.null(g)) g <- rep(0, nitem)
+
+  # calculate probability of correct answer
+  z <- (D * a) * Rfast::Outer(x = theta, y = b, oper = "-")
+  sim <- t(g + (1 - g) / (1 + exp(-z)))
 
   # Sample random variables from uniform dist
   tmp <- stats::runif(nstd * nitem, 0, 1)
-  # rv_unif <- matrix(tmp, nrow=nstd, ncol=nitem)
   rv_unif <- array(tmp, c(nstd, nitem))
 
   # Simulated Response data for one item

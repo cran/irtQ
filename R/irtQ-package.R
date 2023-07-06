@@ -18,8 +18,8 @@
 #' using the Lord-Wingersky recursion formula, computing item and test information functions, computing item and test characteristic
 #' curve functions, and plotting item and test characteristic curves and item and test information functions.
 #'
-#' \tabular{ll}{ Package: \tab irtQ\cr Version: \tab 0.1.1\cr Date: \tab
-#' 2023-05-08\cr Depends: \tab R (>= 4.1)\cr License: \tab GPL (>= 2)\cr }
+#' \tabular{ll}{ Package: \tab irtQ\cr Version: \tab 0.2.0\cr Date: \tab
+#' 2023-07-05\cr Depends: \tab R (>= 4.1)\cr License: \tab GPL (>= 2)\cr }
 #'
 #' @details
 #' Following five sections describe a) how to implement the online item calibration using FIPC, a) how to implement the online item
@@ -261,7 +261,7 @@
 #'     \eqn{g = 0} is set to 0.
 #'   }
 #'   \item{GRM}{
-#'     For the GRM, the probability that an examinee with latent ability \eqn{\theta} responds to score category \eqn{k} (\eqn{k=0,1,...,K})
+#'     For the GRM, the probability that an examinee with latent ability \eqn{\theta} responds to score category \eqn{k} (\eqn{k=0,1,...,K-1})
 #'     of an item is a given by,
 #'     \deqn{P(Y = k | \theta) = P^{*}(Y \ge k | \theta) - P^{*}(Y \ge k + 1 | \theta),}
 #'     \deqn{P^{*}(Y \ge k | \theta) = \frac{1}{1 + exp(-Da(\theta - b_{k}))}, and}
@@ -273,7 +273,7 @@
 #'     and \eqn{P(Y = K-1 | \theta) = P^{*}(Y \ge K-1 | \theta)}.
 #'   }
 #'   \item{GPCM}{
-#'     For the GPCM, the probability that an examinee with latent ability \eqn{\theta} responds to score category \eqn{k} (\eqn{k=0,1,...,K})
+#'     For the GPCM, the probability that an examinee with latent ability \eqn{\theta} responds to score category \eqn{k} (\eqn{k=0,1,...,K-1})
 #'     of an item is a given by,
 #'      \deqn{P(Y = k | \theta) = \frac{exp(\sum_{v=0}^{k}{Da(\theta - b_{v})})}{\sum_{h=0}^{K-1}{exp(\sum_{v=0}^{h}{Da(\theta - b_{v})})}},}
 #'     where \eqn{b_{v}} is the difficulty parameter for category boundary \eqn{v} of an item. In other contexts, the difficulty parameter \eqn{b_{v}}
@@ -347,11 +347,11 @@
 #' Li, Y. & Lissitz, R. (2004). Applications of the analytically derived asymptotic standard errors of item response theory
 #' item parameter estimates. \emph{Journal of educational measurement, 41}(2), 85-117.
 #'
-#' Lim, H., & Choe, E. M. (In press). Detecting differential item functioning in CAT using IRT residual DIF approach.
-#' \emph{Journal of Educational Measurement}.
+#' Lim, H., & Choe, E. M. (2023). Detecting differential item functioning in CAT using IRT residual DIF approach.
+#' \emph{Journal of Educational Measurement}. \doi{doi:10.1111/jedm.12366}.
 #'
 #' Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential item functioning detection framework in
-#' item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi.org/10.1111/jedm.12313}.
+#' item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
 #'
 #' Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2023, April). \emph{Detecting differential item functioning among multiple groups
 #' using IRT residual DIF framework}. Paper presented at the Annual Meeting of the National Council on Measurement
@@ -362,6 +362,9 @@
 #'
 #' Lord, F. & Wingersky, M. (1984). Comparison of IRT true score and equipercentile observed score equatings.
 #' \emph{Applied Psychological Measurement, 8}(4), 453-461.
+#'
+#' Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
+#' \emph{Journal of Statistical Software, 76}, 1-19.
 #'
 #' McKinley, R., & Mills, C. (1985). A comparison of several goodness-of-fit statistics.
 #' \emph{Applied Psychological Measurement, 9}, 49-57.
@@ -407,6 +410,9 @@
 #'
 #' Wainer, H., & Mislevy, R. J. (1990). Item response theory, item calibration, and proficiency estimation. In H. Wainer (Ed.),
 #' \emph{Computer adaptive testing: A primer} (Chap. 4, pp.65-102). Hillsdale, NJ: Lawrence Erlbaum.
+#'
+#' Warm, T. A. (1989). Weighted likelihood estimation of ability in item response theory. \emph{Psychometrika, 54}(3),
+#' 427-450.
 #'
 #' Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests Using IRT-Based Methods.
 #' \emph{Journal of Statistical Software, 35}(12), 1-33. URL http://www.jstatsoft.org/v35/i12/.

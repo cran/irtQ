@@ -1,9 +1,10 @@
 #' Estimate examinees' ability (proficiency) parameters
 #'
 #' @description This function estimates examinees' latent ability parameters. Available scoring methods are maximum likelihood estimation (ML),
-#' maximum likelihood estimation with fences (MLF; Han, 2016), maximum a posteriori estimation (MAP; Hambleton et al., 1991),
-#' expected a posteriori estimation (EAP; Bock & Mislevy, 1982), EAP summed scoring (Thissen et al., 1995; Thissen & Orlando, 2001),
-#' and inverse test characteristic curve (TCC) scoring (e.g., Kolen & Brennan, 2004; Kolen & Tong, 2010; Stocking, 1996).
+#' maximum likelihood estimation with fences (MLF; Han, 2016), weighted likelihood estimation (Warm, 1989), maximum a posteriori estimation
+#' (MAP; Hambleton et al., 1991), expected a posteriori estimation (EAP; Bock & Mislevy, 1982), EAP summed scoring
+#' (Thissen et al., 1995; Thissen & Orlando, 2001), and inverse test characteristic curve (TCC) scoring
+#' (e.g., Kolen & Brennan, 2004; Kolen & Tong, 2010; Stocking, 1996).
 #'
 #' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...) or an object of
 #' class \code{\link{est_irt}} obtained from the function \code{\link{est_irt}}. See \code{\link{irtfit}}, \code{\link{info}},
@@ -13,28 +14,28 @@
 #' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
 #' Default is 1.
 #' @param method A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
-#' "MLF" for the maximum likelihood estimation with fences, "MAP" for the maximum a posteriori estimation,
+#' "MLF" for the maximum likelihood estimation with fences, "WL" for the weighted likelihood estimation, "MAP" for the maximum a posteriori estimation,
 #' "EAP" for the expected a posteriori estimation, "EAP.SUM" for the expected a posteriori summed scoring, and "INV.TCC" for the inverse TCC scoring.
 #' Default method is "ML".
-#' @param range A numeric vector of two components to restrict the range of ability scale for the ML, MLF, and MAP scoring methods. Default is c(-5, 5).
+#' @param range A numeric vector of two components to restrict the range of ability scale for the ML, MLF, WL, and MAP scoring methods. Default is c(-5, 5).
 #' @param norm.prior A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
 #' These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution. Default is
-#' c(0,1). Ignored if \code{method} is "ML", "MLF", or "INV.TCC".
+#' c(0,1). Ignored if \code{method} is "ML", "MLF", "WL", or "INV.TCC".
 #' @param nquad An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 41.
-#' Ignored if \code{method} is "ML", "MLF", "MAP", or "INV.TCC".
+#' Ignored if \code{method} is "ML", "MLF", "WL", "MAP", or "INV.TCC".
 #' @param weights A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
 #' (in the second column) of the latent variable prior distribution. The weights and quadrature points can be easily obtained
 #' using the function \code{\link{gen.weight}}. If NULL and \code{method} is "EAP" or "EAP.SUM", default values are used (see the arguments
-#' of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "MLF", "MAP", or "INV.TCC".
+#' of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "MLF", "WL", "MAP", or "INV.TCC".
 #' @param fence.a A numeric value specifying the item slope parameter (i.e., \emph{a}-parameter) for the two imaginary items in MLF. See below for details.
 #' Default is 3.0.
 #' @param fence.b A numeric vector of two components specifying the lower and upper fences of item difficulty parameters (i.e., \emph{b}-parameters)
 #' for the two imaginary items, respectively, in MLF. When \code{fence.b = NULL}, the \code{range} values were used to set the lower and upper fences of
 #' item difficulty parameters. Default is NULL.
-#' @param tol A numeric value of the convergent tolerance for the ML, MLF, MAP, and inverse TCC scoring methods. For the ML, MLF, and MAP,
+#' @param tol A numeric value of the convergent tolerance for the ML, MLF, WL, MAP, and inverse TCC scoring methods. For the ML, MLF, WL, and MAP,
 #' Newton Raphson method is implemented for optimization. For the inverse TCC scoring, the bisection method is used. Default is 1e-4.
 #' @param max.iter An positive integer value specifying the maximum number of iterations of Newton Raphson method. Default is 100.
-#' @param stval.opt An positive integer value specifying the starting value option for the ML, MLF, and MAP scoring methods.
+#' @param stval.opt An positive integer value specifying the starting value option for the ML, MLF, WL, and MAP scoring methods.
 #' Available options are 1 for the brute-force method, 2 for the observed sum score-based method, and 3 for setting to 0. Default is 1.
 #' See below for details.
 #' @param se A logical value. If TRUE, the standard errors of ability estimates are computed. However, if \code{method} is "EAP.SUM" or "INV.TCC", the standard
@@ -51,7 +52,7 @@
 #' @details For MAP scoring method, only the normal prior distribution is available for the population distribution.
 #'
 #' When there are missing data in the response data set, the missing value must be specified in \code{missing}. The missing data are taken into account
-#' when either of ML, MLF, MAP, and EAP is used. When "EAP.SUM" or "INV.TCC" is used, however, any missing responses are replaced with incorrect
+#' when either of ML, MLF, WL, MAP, and EAP is used. When "EAP.SUM" or "INV.TCC" is used, however, any missing responses are replaced with incorrect
 #' responses (i.e., 0s).
 #'
 #' In the maximum likelihood estimation with fences (MLF; Han, 2016), two 2PLM imaginary items are necessary. The first imaginary item serves as the lower
@@ -71,19 +72,22 @@
 #' estimates are computed using an approach suggested by Lim, Davey, and Wells (2020). The code for the inverse TCC scoring was written by modifying
 #' the function \code{irt.eq.tse} of the \pkg{SNSequate} R package (González, 2014).
 #'
-#' In terms of the starting value to be used for ML, MLF, and MAP scoring methods, the brute-force method is used when \code{stval.opt = 1}. With this option,
+#' In terms of the starting value to be used for ML, MLF, WL, and MAP scoring methods, the brute-force method is used when \code{stval.opt = 1}. With this option,
 #' the log-likelihood values were evaluated at the discrete theta values with increments of 0.1 given \code{range}. The theta node that has the largest
 #' log-likelihood is used as the starting value. when \code{stval.opt = 2}, the starting value is obtained based on the observed sum score. For example,
 #' if the maximum observed sum score (max.score) is 30 for a test and an examinee has an observed sum score of 20 (obs.score), then the starting value
 #' is "log(obs.score / (max.score - obs.score))". For all incorrect response, the starting value is "log(1 / max.score)" and for all correct responses,
 #' it is "log(max.score / 1)".
 #'
-#' To speed up the ability estimation for ML, MLF, MAP, and EAP methods, this function applies a parallel process using multiple logical CPU cores.
+#' To speed up the ability estimation for ML, MLF, WL, MAP, and EAP methods, this function applies a parallel process using multiple logical CPU cores.
 #' You can set the number of logical CPU cores by specifying a positive integer value in the argument \code{ncore}. Default value is 1.
 #'
-#' Note that the standard errors of ability estimates are computed using the Fisher expected information for ML, MLF, and MAP methods.
+#' Note that the standard errors of ability estimates are computed using the Fisher expected information for ML, MLF, WL, and MAP methods.
 #'
-#' @return When \code{method} is either of "ML", "MLF", "MAP", or "EAP", a two column data frame including the ability estimates (1st column)
+#' To implement WL method, the \code{Pi}, \code{Ji}, and \code{Ii} functions of \pkg{catR}
+#' (Magis & Barrada, 2017) were referred.
+#'
+#' @return When \code{method} is either of "ML", "MLF", "WL", "MAP", or "EAP", a two column data frame including the ability estimates (1st column)
 #' and the standard errors of ability estimates (2nd column) is returned. When \code{method} is "EAP.SUM" or "INV.TCC", a list of two internal
 #' objects are returned. The first object is a three column data frame including the observed sum scores (1st column), the ability estimates (2nd column),
 #' and the standard errors of ability estimates (3rd column). The second object is a score table including the possible raw sum scores
@@ -116,6 +120,9 @@
 #' Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
 #' \emph{Journal of Educational Measurement}. DOI: 10.1111/jedm.12276.
 #'
+#' Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
+#' \emph{Journal of Statistical Software, 76}, 1-19.
+#'
 #' Stocking, M. L. (1996). An alternative method for scoring adaptive tests.
 #' \emph{Journal of Educational and Behavioral Statistics, 21}(4), 365-389.
 #'
@@ -125,6 +132,9 @@
 #' Thissen, D., Pommerich, M., Billeaud, K., & Williams, V. S. (1995). Item Response Theory
 #' for Scores on Tests Including Polytomous Items with Ordered Responses. \emph{Applied Psychological
 #' Measurement, 19}(1), 39-49.
+#'
+#' Warm, T. A. (1989). Weighted likelihood estimation of ability in item response theory. \emph{Psychometrika, 54}(3),
+#' 427-450.
 #'
 #' @examples
 #' ## the use of a "-prm.txt" file obtained from a flexMIRT
@@ -143,6 +153,9 @@
 #' \donttest{
 #' # estimate the abilities using ML
 #' est_score(x, data, D=1, method="ML", range=c(-4, 4), se=TRUE)
+#'
+#' # estimate the abilities using WL
+#' est_score(x, data, D=1, method="WL", range=c(-4, 4), se=TRUE)
 #'
 #' # estimate the abilities using MLF with default fences of item difficulty parameters
 #' est_score(x, data, D=1, method="MLF", fence.a=3.0, fence.b=NULL, se=TRUE)
@@ -168,6 +181,7 @@
 est_score <- function(x, ...) UseMethod("est_score")
 
 #' @describeIn est_score Default method to estimate examinees' latent ability parameters using a data frame \code{x} containing the item metadata.
+#' @import dplyr
 #' @importFrom reshape2 melt
 #' @export
 est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), norm.prior = c(0, 1),
@@ -192,10 +206,14 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
   # confirm and correct all item metadata information
   x <- confirm_df(x)
 
-  # scoring of ML, MAP, and EAP
-  if(method %in% c("ML", "MAP", "EAP", "MLF")) {
+  # scoring of ML, WL, MLF, MAP, and EAP
+  if(method %in% c("ML", "MAP", "WL", "EAP", "MLF")) {
 
-    # add two more items and data responses when "ML" with Fences method is used
+    # check if the method is WL
+    # if TRUE, ji = TRUE
+    ji <- ifelse(method == "WL", TRUE, FALSE)
+
+    # add two more items and data responses when MLF is used
     if(method == "MLF") {
 
       # when fence.b = NULL, use the range argument as the fence.b argument
@@ -234,18 +252,26 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
     if(ncore == 1L) {
 
       # reshape the data
-      # data <-
-      #   data.frame(t(data), x, check.names = FALSE) %>%
-      #   tidyr::pivot_longer(cols = dplyr::num_range("", 1:nstd), names_to = "std", values_to = "resp",
-      #                       values_drop_na = TRUE)
-      data <-
-        data.frame(x, t(data), check.names = FALSE) %>%
-        reshape2::melt(id.vars = 1:max.col,
-                       variable.name = "std",
-                       value.name = "resp",
-                       na.rm = TRUE,
-                       factorsAsStrings = FALSE)
-      data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+      if(stval.opt == 2) {
+        data <-
+          data.frame(x, t(data), check.names = FALSE) %>%
+          reshape2::melt(id.vars = 1:max.col,
+                         variable.name = "std",
+                         value.name = "resp.num",
+                         na.rm = TRUE,
+                         factorsAsStrings = FALSE)
+        data$resp <- factor(data$resp.num, levels=(seq_len(max.cats) - 1))
+
+      } else {
+        data <-
+          data.frame(x, t(data), check.names = FALSE) %>%
+          reshape2::melt(id.vars = 1:max.col,
+                         variable.name = "std",
+                         value.name = "resp",
+                         na.rm = TRUE,
+                         factorsAsStrings = FALSE)
+        data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+      }
       data$std <- as.numeric(data$std)
 
       # create a score table to contain the scoring results
@@ -256,11 +282,11 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
         dplyr::group_by(data, .data$std) %>%
         dplyr::summarise(
           est_score_indiv(
-            exam_dat = dplyr::cur_data_all(), elm_item = elm_item,
+            exam_dat = dplyr::pick(dplyr::everything()), elm_item = elm_item,
             max.col = max.col, D = D, method = method,
             range = range, norm.prior = norm.prior, nquad = nquad,
             weights = weights, tol = tol, max.iter = max.iter, se = se,
-            stval.opt=stval.opt)
+            stval.opt=stval.opt, ji=ji)
         )
 
       # merge the scoring results
@@ -270,6 +296,7 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
     } else {
 
       # create a parallel processing cluster
+      # cl <- parallel::makeCluster(ncore)
       cl <- parallel::makeCluster(ncore, ...)
 
       # divide data into
@@ -290,10 +317,9 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
       # load some specific variable names into processing cluster
       parallel::clusterExport(cl, c("x", "elm_item", "D", "method",
                                     "max.cats", "max.col", "range", "norm.prior", "nquad",
-                                    "weights", "tol",  "max.iter", "se", "stval.opt",
+                                    "weights", "tol",  "max.iter", "se", "stval.opt", "ji",
                                     "est_score_1core", "est_score_indiv", "idxfinder",
                                     "ll_score", "drm", "prm", "gpcm", "grm",
-                                    "grad_score", "grad_score_drm", "grad_score_prm",
                                     "logprior_deriv", "esprior_norm",
                                     "info_score", "info_drm", "info_prm",
                                     "gen.weight"), envir = environment())
@@ -308,7 +334,7 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
                         method=method, max.cats = max.cats, max.col = max.col,
                         range=range, norm.prior=norm.prior, nquad=nquad,
                         weights=weights, tol=tol, max.iter=max.iter,
-                        se=se, stval.opt=stval.opt)
+                        se=se, stval.opt=stval.opt, ji=ji)
       }
 
       # parallel scoring
@@ -376,8 +402,12 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
   # confirm and correct all item metadata information
   x <- confirm_df(x)
 
-  # scoring of ML, MAP, and EAP
-  if(method %in% c("ML", "MAP", "EAP", "MLF")) {
+  # scoring of ML, WL, MLF, MAP, and EAP
+  if(method %in% c("ML", "MAP", "WL", "EAP", "MLF")) {
+
+    # check if the method is WL
+    # if TRUE, ji = TRUE
+    ji <- ifelse(method == "WL", TRUE, FALSE)
 
     # add two more items and data responses when "ML" with Fences method is used
     if(method == "MLF") {
@@ -418,18 +448,25 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
     if(ncore == 1L) {
 
       # reshape the data
-      # data <-
-      #   data.frame(t(data), x, check.names = FALSE) %>%
-      #   tidyr::pivot_longer(cols = dplyr::num_range("", 1:nstd), names_to = "std", values_to = "resp",
-      #                       values_drop_na = TRUE)
-      data <-
-        data.frame(x, t(data), check.names = FALSE) %>%
-        reshape2::melt(id.vars = 1:max.col,
-                       variable.name = "std",
-                       value.name = "resp",
-                       na.rm = TRUE,
-                       factorsAsStrings = FALSE)
-      data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+      if(stval.opt == 2) {
+        data <-
+          data.frame(x, t(data), check.names = FALSE) %>%
+          reshape2::melt(id.vars = 1:max.col,
+                         variable.name = "std",
+                         value.name = "resp.num",
+                         na.rm = TRUE,
+                         factorsAsStrings = FALSE)
+        data$resp <- factor(data$resp.num, levels=(seq_len(max.cats) - 1))
+      } else {
+        data <-
+          data.frame(x, t(data), check.names = FALSE) %>%
+          reshape2::melt(id.vars = 1:max.col,
+                         variable.name = "std",
+                         value.name = "resp",
+                         na.rm = TRUE,
+                         factorsAsStrings = FALSE)
+        data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+      }
       data$std <- as.numeric(data$std)
 
       # create a score table to contain the scoring results
@@ -440,11 +477,11 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
         dplyr::group_by(data, .data$std) %>%
         dplyr::summarise(
           est_score_indiv(
-            exam_dat = dplyr::cur_data_all(), elm_item = elm_item,
+            exam_dat = dplyr::pick(dplyr::everything()), elm_item = elm_item,
             max.col = max.col, D = D, method = method,
             range = range, norm.prior = norm.prior, nquad = nquad,
             weights = weights, tol = tol, max.iter = max.iter, se = se,
-            stval.opt=stval.opt)
+            stval.opt=stval.opt, ji=ji)
         )
 
       # merge the scoring results
@@ -474,10 +511,9 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
       # load some specific variable names into processing cluster
       parallel::clusterExport(cl, c("x", "elm_item", "D", "method",
                                     "max.cats", "max.col", "range", "norm.prior", "nquad",
-                                    "weights", "tol",  "max.iter", "se", "stval.opt",
+                                    "weights", "tol",  "max.iter", "se", "stval.opt", "ji",
                                     "est_score_1core", "est_score_indiv", "idxfinder",
                                     "ll_score", "drm", "prm", "gpcm", "grm",
-                                    "grad_score", "grad_score_drm", "grad_score_prm",
                                     "logprior_deriv", "esprior_norm",
                                     "info_score", "info_drm", "info_prm",
                                     "gen.weight"), envir = environment())
@@ -492,7 +528,7 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
                         method=method, max.cats = max.cats, max.col = max.col,
                         range=range, norm.prior=norm.prior, nquad=nquad,
                         weights=weights, tol=tol, max.iter=max.iter,
-                        se=se, stval.opt=stval.opt)
+                        se=se, stval.opt=stval.opt, ji=ji)
       }
 
       # parallel scoring
@@ -535,21 +571,33 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
 est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
                             max.cats, max.col, range = c(-4, 4), norm.prior = c(0, 1), nquad = 41,
                             weights = NULL, tol = 1e-4, max.iter = 30, se = TRUE,
-                            stval.opt=1) {
+                            stval.opt=1, ji=FALSE) {
 
 
   # check the number of examinees
   nstd <- nrow(data)
 
   # reshape the data
-  data <-
-    data.frame(x, t(data), check.names = FALSE) %>%
-    reshape2::melt(id.vars = 1:max.col,
-                   variable.name = "std",
-                   value.name = "resp",
-                   na.rm = TRUE,
-                   factorsAsStrings = FALSE)
-  data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+  if(stval.opt == 2) {
+    data <-
+      data.frame(x, t(data), check.names = FALSE) %>%
+      reshape2::melt(id.vars = 1:max.col,
+                     variable.name = "std",
+                     value.name = "resp.num",
+                     na.rm = TRUE,
+                     factorsAsStrings = FALSE)
+    data$resp <- factor(data$resp.num, levels=(seq_len(max.cats) - 1))
+
+  } else {
+    data <-
+      data.frame(x, t(data), check.names = FALSE) %>%
+      reshape2::melt(id.vars = 1:max.col,
+                     variable.name = "std",
+                     value.name = "resp",
+                     na.rm = TRUE,
+                     factorsAsStrings = FALSE)
+    data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+  }
   data$std <- as.numeric(data$std)
 
   # create a score table to contain the scoring results
@@ -560,11 +608,11 @@ est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
     dplyr::group_by(data, .data$std) %>%
     dplyr::summarise(
       est_score_indiv(
-        exam_dat = dplyr::cur_data_all(), elm_item = elm_item,
+        exam_dat = dplyr::pick(dplyr::everything()), elm_item = elm_item,
         max.col = max.col, D = D, method = method,
         range = range, norm.prior = norm.prior, nquad = nquad,
         weights = weights, tol = tol, max.iter = max.iter, se = se,
-        stval.opt=stval.opt)
+        stval.opt=stval.opt, ji=ji)
     )
 
   # merge the scoring results
@@ -577,9 +625,10 @@ est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
 }
 
 # This function computes an ability estimate for an examinee (ML, MLF, MAP, EAP)
+#' @importFrom stats xtabs
 est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
                             range = c(-4, 4), norm.prior = c(0, 1), nquad = 41, weights = NULL,
-                            tol = 1e-4, max.iter = 30, se = TRUE, stval.opt=1) {
+                            tol = 1e-4, max.iter = 30, se = TRUE, stval.opt=1, ji=FALSE) {
 
   # extract the required objects from the individual exam data
   elm_item$pars <- data.matrix(exam_dat[, 4:max.col])
@@ -603,7 +652,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
 
   ##----------------------------------------------------
   ## ML, MLF and MAP
-  if(method %in% c("ML",  "MLF", "MAP")) {
+  if(method %in% c("ML", "WL",  "MLF", "MAP")) {
 
     # set a starting value
     if(stval.opt == 1) {
@@ -613,9 +662,9 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       theta.nodes <- seq(from=range[1], to=range[2], by=0.1)
 
       # compute the negative log-likelihood values for all the discrete theta values
-      ll_tmp <- ll_score(theta=theta.nodes, elm_item=elm_item, freq.cat=freq.cat, method=method,
-                         idx.drm=idx.drm, idx.prm=idx.prm, D=D, norm.prior=norm.prior,
-                         one.theta = FALSE, logL=TRUE)
+      ll_tmp <- ll_score(theta=theta.nodes, elm_item=elm_item, freq.cat=freq.cat,
+                         method=method, idx.drm=idx.drm, idx.prm=idx.prm, D=D,
+                         norm.prior=norm.prior, logL=TRUE)
 
       # find the locations of thetas where the sign of slope changes
       # in the negative loglikelihood function
@@ -634,7 +683,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       total.nc <- sum(elm_item$cats - 1)
 
       # compute a starting value based on the observed sum score
-      obs.sum <- sum(resp)
+      obs.sum <- sum(exam_dat$resp.num)
       if(obs.sum == 0) {
         theta <- log(1 / total.nc)
       } else if(obs.sum == total.nc) {
@@ -659,17 +708,14 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       # update the iteration number
       i <- i + 1
 
-      # compute the gradient
-      grad <-
-        grad_score(theta=theta, elm_item=elm_item, freq.cat=freq.cat,
-                   idx.drm=idx.drm, idx.prm=idx.prm,
-                   method=method, D=D, norm.prior=norm.prior)
-
-      # compute the expected fisher information
-      finfo <-
-        info_score(theta=theta, elm_item=elm_item,
-                   idx.drm=idx.drm, idx.prm=idx.prm,
-                   method=method, D=D, norm.prior=norm.prior)
+      # compute the gradient (gradient of negative log-likelihood)
+      # and the fisher information (negative expectation of second derivative of log-likelihood)
+      gr_fi <-
+        info_score(theta=theta, elm_item=elm_item, freq.cat=freq.cat,
+                   idx.drm=idx.drm, idx.prm=idx.prm, method=method, D=D,
+                   norm.prior=norm.prior, grad=TRUE, ji=ji)
+      grad <- gr_fi$grad
+      finfo <- gr_fi$finfo
 
       # protect the fisher information having value close to 0
       finfo[finfo < 1e-5] <- 1e-5
@@ -699,9 +745,9 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
         se.theta <- 99.9999
       } else {
         finfo <-
-          info_score(theta=est.theta, elm_item=elm_item,
-                     idx.drm=idx.drm, idx.prm=idx.prm,
-                     method=method, D=D, norm.prior=norm.prior)
+          info_score(theta=est.theta, elm_item=elm_item, freq.cat=freq.cat,
+                     idx.drm=idx.drm, idx.prm=idx.prm, method=method, D=D,
+                     norm.prior=norm.prior, grad=FALSE, ji=FALSE)$finfo
         se.theta <- 1 / sqrt(finfo)
       }
     } else {
@@ -724,8 +770,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
     # compute the posterior distribution
     posterior <-
       ll_score(theta=popdist[, 1], elm_item=elm_item, freq.cat=freq.cat,
-               idx.drm=idx.drm, idx.prm=idx.prm, D=D, one.theta=FALSE,
-               logL=FALSE) * popdist[, 2]
+               idx.drm=idx.drm, idx.prm=idx.prm, D=D, logL=FALSE) * popdist[, 2]
 
     # Expected A Posterior
     posterior <- posterior / sum(posterior)

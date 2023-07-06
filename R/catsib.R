@@ -41,19 +41,21 @@
 #' @param min.resp A positive integer value specifying the minimum number of item responses for an examinee
 #' required to compute the ability estimate. Default is NULL. See details below for more information.
 #' @param method A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
-#' "MAP" for the maximum a posteriori estimation, and "EAP" for the expected a posteriori estimation. Default method is "ML".
-#' @param range A numeric vector of two components to restrict the range of ability scale for the ML, MLF, and MAP scoring methods. Default is c(-5, 5).
+#' "WL" for the weighted likelihood estimation, "MAP" for the maximum a posteriori estimation, and "EAP" for the expected a posteriori
+#' estimation. Default method is "ML".
+#' @param range A numeric vector of two components to restrict the range of ability scale for the ML, WL, MLF, and MAP scoring methods. Default is c(-5, 5).
 #' @param norm.prior A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
 #' These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution. Default is
-#' c(0,1). Ignored if \code{method} is "ML".
+#' c(0,1). Ignored if \code{method} is "ML" or "WL".
 #' @param nquad An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 41.
-#' Ignored if \code{method} is "ML" or "MAP".
+#' Ignored if \code{method} is "ML", "WL", or "MAP".
 #' @param weights A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
 #' (in the second column) of the latent variable prior distribution. The weights and quadrature points can be easily obtained
 #' using the function \code{\link{gen.weight}}. If NULL and \code{method} is "EAP", default values are used (see the arguments
-#' of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML" or "MAP".
+#' of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "WL", or "MAP".
 #' @param ncore The number of logical CPU cores to use. Default is 1. See \code{\link{est_score}} for details.
 #' @param verbose A logical value. If TRUE, the progress messages of purification procedure are suppressed. Default is TRUE.
+#' @param ... Additional arguments that will be forwarded to the \code{\link{est_score}} function.
 #'
 #' @details
 #'
@@ -216,7 +218,7 @@
 #' @export
 catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.bin=c(80, 10), min.binsize=3, max.del=0.075,
                    weight.group = c("comb", "foc", "ref"), alpha=0.05, missing=NA, purify=FALSE, max.iter=10, min.resp=NULL, method="ML",
-                   range=c(-5, 5), norm.prior=c(0, 1), nquad=41, weights=NULL, ncore=1, verbose=TRUE) {
+                   range=c(-5, 5), norm.prior=c(0, 1), nquad=41, weights=NULL, ncore=1, verbose=TRUE, ...) {
 
   # match.call
   cl <- match.call()
@@ -283,7 +285,7 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
       data[loc_less, ] <- NA
     }
     score_rst <- est_score(x=x, data=data, D=D, method=method, range=range, norm.prior=norm.prior,
-                           nquad=nquad, weights=weights, ncore=ncore)
+                           nquad=nquad, weights=weights, ncore=ncore, ...)
     score <- score_rst$est.theta
     se <- score_rst$se.theta
   }
@@ -397,7 +399,7 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
 
         # compute the updated ability estimates after deleting the detected DIF item data
         score_rst_puri <- est_score(x=x_puri, data=data_puri, D=D, method=method, range=range, norm.prior=norm.prior,
-                                    nquad=nquad, weights=weights, ncore=ncore)
+                                    nquad=nquad, weights=weights, ncore=ncore, ...)
         score_puri <- score_rst_puri$est.theta
         se_puri <- score_rst_puri$se.theta
 

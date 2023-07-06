@@ -41,7 +41,6 @@ traceline <- function(x, ...) UseMethod("traceline")
 
 #' @describeIn traceline Default method to compute the item category probabilities, item characteristic function, and
 #' test characteristic function for a data frame \code{x} containing the item metadata.
-#' @importFrom purrr map
 #' @importFrom Rfast rowsums
 #' @export
 traceline.default <- function(x, theta, D = 1, ...) {
@@ -96,23 +95,39 @@ traceline.default <- function(x, theta, D = 1, ...) {
   # For PRM items
   if(!is.null(idx.prm)) {
 
-    # compute the category probabilities of items
-    n.prm <- length(idx.prm)
-    prob.prm <- vector('list', n.prm)
-    for(k in 1:n.prm) {
-      par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      prob.prm[[k]] <- prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
-                           D=D, pr.model=elm_item$model[idx.prm[k]])
-      colnames(prob.prm[[k]]) <- paste0("resp.", 0:(length(par.tmp) - 1))
+    # check what poly models were used
+    pr.mod <- unique(elm_item$model[idx.prm])
+
+    # check the maximum score category
+    max.cats <- max(elm_item$cats) - 1
+    for(mod in pr.mod) {
+
+      # extract the response, model, and item parameters
+      lg.prm <- elm_item$model == mod
+      par.tmp <- elm_item$par[lg.prm, , drop = FALSE]
+      a <- par.tmp[, 1]
+      d <- par.tmp[, -1, drop = FALSE]
+      cat.tmp <- elm_item$cats[lg.prm]
+
+      # reorder the index of the PRMs
+      idx.tmp <- elm_item$item[[mod]]
+
+      # compute the probabilities of endorsing each score category
+      P.all <-
+        info_prm(theta=theta, a=a, d=d, D=D, pr.model=mod,
+                 grad=FALSE, info=FALSE)$P
+      colnames(P.all) <- paste0("resp.", 0:max.cats)
+      prob.cats[idx.tmp] <-
+        split.data.frame(P.all,
+                         rep(1:length(a), n.theta)) %>%
+        purrr::map2(.y = cat.tmp,
+                    .f = ~{.x[, 1:(.y)]})
+
+      # insert icc
+      icc_df[, idx.tmp] <-
+        matrix(P.all %*% c(0:max.cats), nrow = n.theta, byrow = TRUE)
+
     }
-
-    # fill the empty list
-    prob.cats[idx.prm] <- prob.prm
-
-    # insert icc
-    icc_df[, idx.prm] <-
-      purrr::map(.x = prob.prm, ~{.x %*% c(0:(ncol(.x)-1))}) %>%
-      do.call(what = "cbind")
 
   }
 
@@ -127,8 +142,8 @@ traceline.default <- function(x, theta, D = 1, ...) {
 }
 
 
+
 #' @describeIn traceline An object created by the function \code{\link{est_item}}.
-#' @importFrom purrr map
 #' @importFrom Rfast rowsums
 #' @export
 traceline.est_item <- function(x, theta, ...) {
@@ -186,23 +201,39 @@ traceline.est_item <- function(x, theta, ...) {
   # For PRM items
   if(!is.null(idx.prm)) {
 
-    # compute the category probabilities of items
-    n.prm <- length(idx.prm)
-    prob.prm <- vector('list', n.prm)
-    for(k in 1:n.prm) {
-      par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      prob.prm[[k]] <- prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
-                           D=D, pr.model=elm_item$model[idx.prm[k]])
-      colnames(prob.prm[[k]]) <- paste0("resp.", 0:(length(par.tmp) - 1))
+    # check what poly models were used
+    pr.mod <- unique(elm_item$model[idx.prm])
+
+    # check the maximum score category
+    max.cats <- max(elm_item$cats) - 1
+    for(mod in pr.mod) {
+
+      # extract the response, model, and item parameters
+      lg.prm <- elm_item$model == mod
+      par.tmp <- elm_item$par[lg.prm, , drop = FALSE]
+      a <- par.tmp[, 1]
+      d <- par.tmp[, -1, drop = FALSE]
+      cat.tmp <- elm_item$cats[lg.prm]
+
+      # reorder the index of the PRMs
+      idx.tmp <- elm_item$item[[mod]]
+
+      # compute the probabilities of endorsing each score category
+      P.all <-
+        info_prm(theta=theta, a=a, d=d, D=D, pr.model=mod,
+                 grad=FALSE, info=FALSE)$P
+      colnames(P.all) <- paste0("resp.", 0:max.cats)
+      prob.cats[idx.tmp] <-
+        split.data.frame(P.all,
+                         rep(1:length(a), n.theta)) %>%
+        purrr::map2(.y = cat.tmp,
+                    .f = ~{.x[, 1:(.y)]})
+
+      # insert icc
+      icc_df[, idx.tmp] <-
+        matrix(P.all %*% c(0:max.cats), nrow = n.theta, byrow = TRUE)
+
     }
-
-    # fill the empty list
-    prob.cats[idx.prm] <- prob.prm
-
-    # insert icc
-    icc_df[, idx.prm] <-
-      purrr::map(.x = prob.prm, ~{.x %*% c(0:(ncol(.x)-1))}) %>%
-      do.call(what = "cbind")
 
   }
 
@@ -218,7 +249,6 @@ traceline.est_item <- function(x, theta, ...) {
 
 
 #' @describeIn traceline An object created by the function \code{\link{est_irt}}.
-#' @importFrom purrr map
 #' @importFrom Rfast rowsums
 #' @export
 traceline.est_irt <- function(x, theta, ...) {
@@ -276,23 +306,39 @@ traceline.est_irt <- function(x, theta, ...) {
   # For PRM items
   if(!is.null(idx.prm)) {
 
-    # compute the category probabilities of items
-    n.prm <- length(idx.prm)
-    prob.prm <- vector('list', n.prm)
-    for(k in 1:n.prm) {
-      par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      prob.prm[[k]] <- prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
-                           D=D, pr.model=elm_item$model[idx.prm[k]])
-      colnames(prob.prm[[k]]) <- paste0("resp.", 0:(length(par.tmp) - 1))
+    # check what poly models were used
+    pr.mod <- unique(elm_item$model[idx.prm])
+
+    # check the maximum score category
+    max.cats <- max(elm_item$cats) - 1
+    for(mod in pr.mod) {
+
+      # extract the response, model, and item parameters
+      lg.prm <- elm_item$model == mod
+      par.tmp <- elm_item$par[lg.prm, , drop = FALSE]
+      a <- par.tmp[, 1]
+      d <- par.tmp[, -1, drop = FALSE]
+      cat.tmp <- elm_item$cats[lg.prm]
+
+      # reorder the index of the PRMs
+      idx.tmp <- elm_item$item[[mod]]
+
+      # compute the probabilities of endorsing each score category
+      P.all <-
+        info_prm(theta=theta, a=a, d=d, D=D, pr.model=mod,
+                 grad=FALSE, info=FALSE)$P
+      colnames(P.all) <- paste0("resp.", 0:max.cats)
+      prob.cats[idx.tmp] <-
+        split.data.frame(P.all,
+                         rep(1:length(a), n.theta)) %>%
+        purrr::map2(.y = cat.tmp,
+                    .f = ~{.x[, 1:(.y)]})
+
+      # insert icc
+      icc_df[, idx.tmp] <-
+        matrix(P.all %*% c(0:max.cats), nrow = n.theta, byrow = TRUE)
+
     }
-
-    # fill the empty list
-    prob.cats[idx.prm] <- prob.prm
-
-    # insert icc
-    icc_df[, idx.prm] <-
-      purrr::map(.x = prob.prm, ~{.x %*% c(0:(ncol(.x)-1))}) %>%
-      do.call(what = "cbind")
 
   }
 
@@ -309,7 +355,7 @@ traceline.est_irt <- function(x, theta, ...) {
 
 # This function computes item characteristic functions
 # This function is used in item parameter estimation
-#' @importFrom purrr map
+#' @importFrom purrr map2
 #' @importFrom Rfast rowsums
 trace <- function(elm_item, theta, D = 1, tcc=TRUE) {
 
@@ -365,24 +411,39 @@ trace <- function(elm_item, theta, D = 1, tcc=TRUE) {
   # For PRM items
   if(!is.null(idx.prm)) {
 
-    # compute the category probabilities of items
-    n.prm <- length(idx.prm)
-    prob.prm <- vector('list', n.prm)
-    for(k in 1:n.prm) {
-      par.tmp <- stats::na.exclude(elm_item$par[idx.prm[k], ])
-      prob.prm[[k]] <- prm(theta=theta, a=par.tmp[1], d=par.tmp[-1],
-                           D=D, pr.model=elm_item$model[idx.prm[k]])
-      # colnames(prob.prm[[k]]) <- paste0("resp.", 0:(length(par.tmp) - 1))
-    }
+    # check what poly models were used
+    pr.mod <- unique(elm_item$model[idx.prm])
 
-    # fill the empty list
-    prob.cats[idx.prm] <- prob.prm
+    # check the maximum score category
+    max.cats <- max(elm_item$cats) - 1
+    for(mod in pr.mod) {
 
-    # if tcc = TRUE
-    if(tcc) {
-      icc_df[, idx.prm] <-
-        purrr::map(.x = prob.prm, ~{.x %*% c(0:(ncol(.x)-1))}) %>%
-        do.call(what = "cbind")
+      # extract the response, model, and item parameters
+      lg.prm <- elm_item$model == mod
+      par.tmp <- elm_item$par[lg.prm, , drop = FALSE]
+      a <- par.tmp[, 1]
+      d <- par.tmp[, -1, drop = FALSE]
+      cat.tmp <- elm_item$cats[lg.prm]
+
+      # reorder the index of the PRMs
+      idx.tmp <- elm_item$item[[mod]]
+
+      # compute the probabilities of endorsing each score category
+      P.all <-
+        info_prm(theta=theta, a=a, d=d, D=D, pr.model=mod,
+                 grad=FALSE, info=FALSE)$P
+      prob.cats[idx.tmp] <-
+        split.data.frame(P.all,
+                         rep(1:length(a), n.theta)) %>%
+        purrr::map2(.y = cat.tmp,
+                    .f = ~{.x[, 1:(.y)]})
+
+      # if tcc = TRUE
+      if(tcc) {
+        icc_df[, idx.tmp] <-
+          matrix(P.all %*% c(0:max.cats), nrow = n.theta, byrow = TRUE)
+      }
+
     }
 
   }

@@ -64,23 +64,23 @@ the examinees and items, respectively. When a vector is used, it should contains
 Default is 1.}
 
 \item{method}{A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
-"MLF" for the maximum likelihood estimation with fences, "MAP" for the maximum a posteriori estimation,
+"MLF" for the maximum likelihood estimation with fences, "WL" for the weighted likelihood estimation, "MAP" for the maximum a posteriori estimation,
 "EAP" for the expected a posteriori estimation, "EAP.SUM" for the expected a posteriori summed scoring, and "INV.TCC" for the inverse TCC scoring.
 Default method is "ML".}
 
-\item{range}{A numeric vector of two components to restrict the range of ability scale for the ML, MLF, and MAP scoring methods. Default is c(-5, 5).}
+\item{range}{A numeric vector of two components to restrict the range of ability scale for the ML, MLF, WL, and MAP scoring methods. Default is c(-5, 5).}
 
 \item{norm.prior}{A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
 These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution. Default is
-c(0,1). Ignored if \code{method} is "ML", "MLF", or "INV.TCC".}
+c(0,1). Ignored if \code{method} is "ML", "MLF", "WL", or "INV.TCC".}
 
 \item{nquad}{An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 41.
-Ignored if \code{method} is "ML", "MLF", "MAP", or "INV.TCC".}
+Ignored if \code{method} is "ML", "MLF", "WL", "MAP", or "INV.TCC".}
 
 \item{weights}{A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
 (in the second column) of the latent variable prior distribution. The weights and quadrature points can be easily obtained
 using the function \code{\link{gen.weight}}. If NULL and \code{method} is "EAP" or "EAP.SUM", default values are used (see the arguments
-of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "MLF", "MAP", or "INV.TCC".}
+of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "MLF", "WL", "MAP", or "INV.TCC".}
 
 \item{fence.a}{A numeric value specifying the item slope parameter (i.e., \emph{a}-parameter) for the two imaginary items in MLF. See below for details.
 Default is 3.0.}
@@ -89,7 +89,7 @@ Default is 3.0.}
 for the two imaginary items, respectively, in MLF. When \code{fence.b = NULL}, the \code{range} values were used to set the lower and upper fences of
 item difficulty parameters. Default is NULL.}
 
-\item{tol}{A numeric value of the convergent tolerance for the ML, MLF, MAP, and inverse TCC scoring methods. For the ML, MLF, and MAP,
+\item{tol}{A numeric value of the convergent tolerance for the ML, MLF, WL, MAP, and inverse TCC scoring methods. For the ML, MLF, WL, and MAP,
 Newton Raphson method is implemented for optimization. For the inverse TCC scoring, the bisection method is used. Default is 1e-4.}
 
 \item{max.iter}{An positive integer value specifying the maximum number of iterations of Newton Raphson method. Default is 100.}
@@ -97,7 +97,7 @@ Newton Raphson method is implemented for optimization. For the inverse TCC scori
 \item{se}{A logical value. If TRUE, the standard errors of ability estimates are computed. However, if \code{method} is "EAP.SUM" or "INV.TCC", the standard
 errors are always returned. Default is TRUE.}
 
-\item{stval.opt}{An positive integer value specifying the starting value option for the ML, MLF, and MAP scoring methods.
+\item{stval.opt}{An positive integer value specifying the starting value option for the ML, MLF, WL, and MAP scoring methods.
 Available options are 1 for the brute-force method, 2 for the observed sum score-based method, and 3 for setting to 0. Default is 1.
 See below for details.}
 
@@ -113,7 +113,7 @@ Default is c(-7, 7).}
 \item{ncore}{The number of logical CPU cores to use. Default is 1. See below for details.}
 }
 \value{
-When \code{method} is either of "ML", "MLF", "MAP", or "EAP", a two column data frame including the ability estimates (1st column)
+When \code{method} is either of "ML", "MLF", "WL", "MAP", or "EAP", a two column data frame including the ability estimates (1st column)
 and the standard errors of ability estimates (2nd column) is returned. When \code{method} is "EAP.SUM" or "INV.TCC", a list of two internal
 objects are returned. The first object is a three column data frame including the observed sum scores (1st column), the ability estimates (2nd column),
 and the standard errors of ability estimates (3rd column). The second object is a score table including the possible raw sum scores
@@ -121,15 +121,16 @@ and corresponding ability and standard error estimates.
 }
 \description{
 This function estimates examinees' latent ability parameters. Available scoring methods are maximum likelihood estimation (ML),
-maximum likelihood estimation with fences (MLF; Han, 2016), maximum a posteriori estimation (MAP; Hambleton et al., 1991),
-expected a posteriori estimation (EAP; Bock & Mislevy, 1982), EAP summed scoring (Thissen et al., 1995; Thissen & Orlando, 2001),
-and inverse test characteristic curve (TCC) scoring (e.g., Kolen & Brennan, 2004; Kolen & Tong, 2010; Stocking, 1996).
+maximum likelihood estimation with fences (MLF; Han, 2016), weighted likelihood estimation (Warm, 1989), maximum a posteriori estimation
+(MAP; Hambleton et al., 1991), expected a posteriori estimation (EAP; Bock & Mislevy, 1982), EAP summed scoring
+(Thissen et al., 1995; Thissen & Orlando, 2001), and inverse test characteristic curve (TCC) scoring
+(e.g., Kolen & Brennan, 2004; Kolen & Tong, 2010; Stocking, 1996).
 }
 \details{
 For MAP scoring method, only the normal prior distribution is available for the population distribution.
 
 When there are missing data in the response data set, the missing value must be specified in \code{missing}. The missing data are taken into account
-when either of ML, MLF, MAP, and EAP is used. When "EAP.SUM" or "INV.TCC" is used, however, any missing responses are replaced with incorrect
+when either of ML, MLF, WL, MAP, and EAP is used. When "EAP.SUM" or "INV.TCC" is used, however, any missing responses are replaced with incorrect
 responses (i.e., 0s).
 
 In the maximum likelihood estimation with fences (MLF; Han, 2016), two 2PLM imaginary items are necessary. The first imaginary item serves as the lower
@@ -149,17 +150,20 @@ the ability estimates corresponding to the maximum observed sum score. When it c
 estimates are computed using an approach suggested by Lim, Davey, and Wells (2020). The code for the inverse TCC scoring was written by modifying
 the function \code{irt.eq.tse} of the \pkg{SNSequate} R package (González, 2014).
 
-In terms of the starting value to be used for ML, MLF, and MAP scoring methods, the brute-force method is used when \code{stval.opt = 1}. With this option,
+In terms of the starting value to be used for ML, MLF, WL, and MAP scoring methods, the brute-force method is used when \code{stval.opt = 1}. With this option,
 the log-likelihood values were evaluated at the discrete theta values with increments of 0.1 given \code{range}. The theta node that has the largest
 log-likelihood is used as the starting value. when \code{stval.opt = 2}, the starting value is obtained based on the observed sum score. For example,
 if the maximum observed sum score (max.score) is 30 for a test and an examinee has an observed sum score of 20 (obs.score), then the starting value
 is "log(obs.score / (max.score - obs.score))". For all incorrect response, the starting value is "log(1 / max.score)" and for all correct responses,
 it is "log(max.score / 1)".
 
-To speed up the ability estimation for ML, MLF, MAP, and EAP methods, this function applies a parallel process using multiple logical CPU cores.
+To speed up the ability estimation for ML, MLF, WL, MAP, and EAP methods, this function applies a parallel process using multiple logical CPU cores.
 You can set the number of logical CPU cores by specifying a positive integer value in the argument \code{ncore}. Default value is 1.
 
-Note that the standard errors of ability estimates are computed using the Fisher expected information for ML, MLF, and MAP methods.
+Note that the standard errors of ability estimates are computed using the Fisher expected information for ML, MLF, WL, and MAP methods.
+
+To implement WL method, the \code{Pi}, \code{Ji}, and \code{Ii} functions of \pkg{catR}
+(Magis & Barrada, 2017) were referred.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -185,6 +189,9 @@ data <- simdat(x, theta, D=1)
 \donttest{
 # estimate the abilities using ML
 est_score(x, data, D=1, method="ML", range=c(-4, 4), se=TRUE)
+
+# estimate the abilities using WL
+est_score(x, data, D=1, method="WL", range=c(-4, 4), se=TRUE)
 
 # estimate the abilities using MLF with default fences of item difficulty parameters
 est_score(x, data, D=1, method="MLF", fence.a=3.0, fence.b=NULL, se=TRUE)
@@ -230,6 +237,9 @@ Kolen, M. J. & Tong, Y. (2010). Psychometric properties of IRT proficiency estim
 Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
 \emph{Journal of Educational Measurement}. DOI: 10.1111/jedm.12276.
 
+Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
+\emph{Journal of Statistical Software, 76}, 1-19.
+
 Stocking, M. L. (1996). An alternative method for scoring adaptive tests.
 \emph{Journal of Educational and Behavioral Statistics, 21}(4), 365-389.
 
@@ -239,6 +249,9 @@ Thissen, D. & Orlando, M. (2001). Item response theory for items scored in two c
 Thissen, D., Pommerich, M., Billeaud, K., & Williams, V. S. (1995). Item Response Theory
 for Scores on Tests Including Polytomous Items with Ordered Responses. \emph{Applied Psychological
 Measurement, 19}(1), 39-49.
+
+Warm, T. A. (1989). Weighted likelihood estimation of ability in item response theory. \emph{Psychometrika, 54}(3),
+427-450.
 }
 \seealso{
 \code{\link{irtfit}}, \code{\link{info}}, \code{\link{simdat}}, \code{\link{shape_df}}, \code{\link{gen.weight}}

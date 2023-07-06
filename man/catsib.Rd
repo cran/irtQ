@@ -27,7 +27,8 @@ catsib(
   nquad = 41,
   weights = NULL,
   ncore = 1,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -82,25 +83,28 @@ the purification process. Default is 10.}
 required to compute the ability estimate. Default is NULL. See details below for more information.}
 
 \item{method}{A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
-"MAP" for the maximum a posteriori estimation, and "EAP" for the expected a posteriori estimation. Default method is "ML".}
+"WL" for the weighted likelihood estimation, "MAP" for the maximum a posteriori estimation, and "EAP" for the expected a posteriori
+estimation. Default method is "ML".}
 
-\item{range}{A numeric vector of two components to restrict the range of ability scale for the ML, MLF, and MAP scoring methods. Default is c(-5, 5).}
+\item{range}{A numeric vector of two components to restrict the range of ability scale for the ML, WL, MLF, and MAP scoring methods. Default is c(-5, 5).}
 
 \item{norm.prior}{A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
 These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution. Default is
-c(0,1). Ignored if \code{method} is "ML".}
+c(0,1). Ignored if \code{method} is "ML" or "WL".}
 
 \item{nquad}{An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 41.
-Ignored if \code{method} is "ML" or "MAP".}
+Ignored if \code{method} is "ML", "WL", or "MAP".}
 
 \item{weights}{A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
 (in the second column) of the latent variable prior distribution. The weights and quadrature points can be easily obtained
 using the function \code{\link{gen.weight}}. If NULL and \code{method} is "EAP", default values are used (see the arguments
-of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML" or "MAP".}
+of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "WL", or "MAP".}
 
 \item{ncore}{The number of logical CPU cores to use. Default is 1. See \code{\link{est_score}} for details.}
 
 \item{verbose}{A logical value. If TRUE, the progress messages of purification procedure are suppressed. Default is TRUE.}
+
+\item{...}{Additional arguments that will be forwarded to the \code{\link{est_score}} function.}
 }
 \value{
 This function returns a list of four internal objects. The four objects are:

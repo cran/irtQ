@@ -46,8 +46,9 @@ inv_tcc <- function(x, data, D=1, intpol=TRUE, range.tcc=c(-7, 7), tol=1e-4, max
   # \sum c_j < \tau < K, eq (6.19), Kolen & Brennan (2004, p.176)
   if(!is.null(idx.drm)) {
     g_sum <- sum(elm_item$pars[idx.drm, 3])
-    if(ceiling(g_sum) == g_sum) {
-
+    if(max.obs == 1){
+      idx.score <- NULL
+    } else if(ceiling(g_sum) == g_sum) {
       # when g_sum is an positive integer, the minimum observed sum score
       # whose theta can be found is ceiling(g_sum) + 1
       idx.score <- ((ceiling(g_sum) + 1):(max.obs - 1) + 1)
@@ -90,7 +91,11 @@ inv_tcc <- function(x, data, D=1, intpol=TRUE, range.tcc=c(-7, 7), tol=1e-4, max
   # less than or equal to g_sum using the lower and upper bounds
   if(intpol) {
 
-    if(range.tcc[1] > th4obs[1]) {
+    if(max.obs == 1) {
+      # in case that only 1 DRM item is used
+      thetas <- range.tcc
+      obs2theta.lg <- c(TRUE, TRUE)
+    } else if(range.tcc[1] > th4obs[1]) {
       memo <- paste0("A lower bound of theta must be less than ", round(th4obs[1], 3), "\n",
                      "Set the different lower bound in the 'range.tcc' argument. \n")
       warning(memo, call.=FALSE)
@@ -124,11 +129,13 @@ inv_tcc <- function(x, data, D=1, intpol=TRUE, range.tcc=c(-7, 7), tol=1e-4, max
 
   # estimate the conditional observed score function given the theta
   # using lord-wingersky algorithm
-  lkhd <- lwrc(x=x, theta=thetas.nona, D=D)
+  if(length(thetas.nona) > 1) {
+    lkhd <- lwrc(x=x, theta=thetas.nona, D=D)
 
-  # calculate the standard error of ability estimates
-  mu <- Rfast::colsums(lkhd * thetas.nona)
-  se.theta[obs2theta.lg] <- sqrt(Rfast::colsums(lkhd * thetas.nona^2) - mu^2)
+    # calculate the standard error of ability estimates
+    mu <- Rfast::colsums(lkhd * thetas.nona)
+    se.theta[obs2theta.lg] <- sqrt(Rfast::colsums(lkhd * thetas.nona^2) - mu^2)
+  }
 
   # assign the ability estimates and SEs to examinees
   names(thetas) <- obs.score
@@ -155,4 +162,3 @@ inv_tcc <- function(x, data, D=1, intpol=TRUE, range.tcc=c(-7, 7), tol=1e-4, max
 
 
 }
-

@@ -546,7 +546,7 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   cutscore <- unique(cutscore)
 
   # assign score group variable to each score
-  intv <- cut(score, breaks=cutscore, include.lowest=TRUE, dig.lab = 7)
+  intv <- cut(score, breaks=cutscore, right=FALSE, include.lowest=TRUE, dig.lab = 7)
 
   # create a contingency table for the frequencies of score points
   obs.freq <-

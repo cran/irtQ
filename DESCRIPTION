@@ -1,7 +1,7 @@
 Package: irtQ
 Type: Package
 Title: Unidimensional Item Response Theory Modeling
-Version: 0.1.1
+Version: 0.2.0
 Description: Fit unidimensional item response theory (IRT) models to a mixture 
     of dichotomous and polytomous data, calibrate online item parameters 
     (i.e., pretest and operational items), estimate examinees' abilities, 
@@ -15,7 +15,9 @@ Description: Fit unidimensional item response theory (IRT) models to a mixture
     The bisection() function was written by modifying the bisection() function 
     (Howard (2017, ISBN:9780367657918)). The code of the inverse test characteristic curve 
     scoring in the est_score() function was written by modifying the irt.eq.tse() function 
-    (González (2014) <doi:10.18637/jss.v059.i07>).
+    (González (2014) <doi:10.18637/jss.v059.i07>). In est_score() function, the code of weighted 
+    likelihood estimation method was written by referring to the Pi(), Ji(), and Ii() functions
+    of the catR package (Magis & Barrada (2017) <doi:10.18637/jss.v076.c01>).
 Depends: R (>= 4.2)
 License: GPL (>= 2)
 Encoding: UTF-8
@@ -27,17 +29,19 @@ Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", 
     person("James", "Howard", email="jh@jameshoward.us", role="ctb"),
     person("Joshua", "Pritikin", email="jpritikin@pobox.com", role="ctb"), 
     person("Jonathan P", "Weeks", email="weeksjp@gmail.com", role="ctb"), 
-    person("Jorge", "González", email="jgonzale@mat.puc.cl", role="ctb") 
+    person("Jorge", "González", email="jgonzale@mat.puc.cl", role="ctb"), 
+    person("David", "Magis", email="david.magis@uliege.be", role="ctb") 
     ) 
 RoxygenNote: 7.2.0
 NeedsCompilation: no
-Packaged: 2023-05-08 14:05:17 UTC; hlim
+Packaged: 2023-07-06 01:31:12 UTC; hlim
 Author: Hwanggyu Lim [aut, cre],
   Craig S. Wells [ctb],
   James Howard [ctb],
   Joshua Pritikin [ctb],
   Jonathan P Weeks [ctb],
-  Jorge González [ctb]
+  Jorge González [ctb],
+  David Magis [ctb]
 Maintainer: Hwanggyu Lim <hglim83@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-05-08 14:30:15 UTC
+Date/Publication: 2023-07-06 12:20:06 UTC

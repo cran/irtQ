@@ -35,7 +35,7 @@
 #' @export
 drm <- function(theta, a, b, g=NULL, D=1) {
 
-  # count the numbers of examinees
+  # count the numbers of items
   nitem <- length(a)
 
   # check the item guessing parameters
@@ -138,7 +138,7 @@ gpcm <- function (theta, a, d, D = 1) {
 grm <- function(theta, a, d, D = 1) {
 
   # count the number of d parameters
-  m <- length(d)
+  # m <- length(d)
 
   # calculate all the probabilities greater than equal to each threshold
   allP <- drm(theta=theta, a=a, b=d, g=0, D=D)

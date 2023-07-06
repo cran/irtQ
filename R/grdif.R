@@ -38,24 +38,25 @@
 #' all possible combinations of paired groups for statistically flagged items. The default is TRUE.
 #' See below for more details.
 #' @param method A character string indicating a scoring method. Available methods are "ML" for maximum
-#' likelihood estimation, "MAP" for maximum a posteriori estimation, and "EAP" for expected
-#' a posteriori estimation. The default method is "ML".
-#' @param range A numeric vector with two components to restrict the ability scale range for ML, EAP,
+#' likelihood estimation, "WL" for the weighted likelihood estimation, "MAP" for maximum a posteriori estimation,
+#' and "EAP" for expected a posteriori estimation. The default method is "ML".
+#' @param range A numeric vector with two components to restrict the ability scale range for ML, WL, EAP,
 #' and MAP scoring methods. The default is c(-5, 5).
 #' @param norm.prior A numeric vector with two components specifying the mean and standard deviation of
 #' the normal prior distribution. These parameters are used to obtain Gaussian quadrature points
-#' and their corresponding weights from the normal distribution. The default is c(0,1). Ignored if \code{method} is "ML".
+#' and their corresponding weights from the normal distribution. The default is c(0,1). Ignored if \code{method} is
+#' "ML" or "WL".
 #' @param nquad An integer value specifying the number of Gaussian quadrature points from the normal
-#' prior distribution. The default is 41. Ignored if \code{method} is "ML" or "MAP".
+#' prior distribution. The default is 41. Ignored if \code{method} is "ML", "WL", or "MAP".
 #' @param weights A two-column matrix or data frame containing the quadrature points (in the first column)
 #' and their corresponding weights (in the second column) for the latent variable prior distribution.
 #' The weights and quadrature points can be obtained using the \code{\link{gen.weight}} function.
 #' If NULL and \code{method} is "EAP", default values are used (see the \code{norm.prior}
-#' and \code{nquad} arguments). Ignored if \code{method} is "ML" or "MAP".
+#' and \code{nquad} arguments). Ignored if \code{method} is "ML", "WL", or "MAP".
 #' @param ncore The number of logical CPU cores to use. The default is 1. See \code{\link{est_score}} for details.
 #' @param verbose A logical value. If TRUE, progress messages for the purification procedure are suppressed.
 #' The default is TRUE.
-#' @param ... additional arguments for further updates.
+#' @param ... Additional arguments that will be forwarded to the \code{\link{est_score}} function.
 #'
 #' @details The GRDIF framework (Lim et al., 2023) is a generalized version of the RDIF detection framework,
 #' designed to assess DIF for multiple groups. The GRDIF framework comprises three statistics: \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}},
@@ -65,7 +66,7 @@
 #' where G represents the total number of groups being compared. For more information on the GRDIF framework, see Lim et al. (2023).
 #'
 #' The \code{\link{grdif}} function calculates all three GRDIF statistics: \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}. The current
-#' version of the \code{\link{grdif}} function supports only dichotomous item response data. To compute these statistics, the \code{\link{grdif}}
+#' version of the \code{\link{grdif}} function supports both dichotomous and polytomous item response data. To compute these statistics, the \code{\link{grdif}}
 #' function requires (1) item parameter estimates obtained from aggregate data, regardless of group membership, (2) examinees' ability estimates
 #' (e.g., MLE), and (3) examinees' item response data. Note that the ability estimates must be computed using the aggregate data-based
 #' item parameter estimates. The item parameter estimates should be provided in the \code{x} argument, the ability estimates in the
@@ -160,11 +161,11 @@
 #' \code{\link{gen.weight}}, \code{\link{est_score}}
 #'
 #' @references
-#' Lim, H., & Choe, E. M. (In press). Detecting differential item functioning in CAT using IRT residual DIF approach.
-#' \emph{Journal of Educational Measurement}.
+#' Lim, H., & Choe, E. M. (2023). Detecting differential item functioning in CAT using IRT residual DIF approach.
+#' \emph{Journal of Educational Measurement}. \doi{doi:10.1111/jedm.12366}.
 #'
 #' Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential item functioning detection framework in
-#' item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi.org/10.1111/jedm.12313}.
+#' item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
 #'
 #' Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2023, April). \emph{Detecting differential item functioning among multiple groups
 #' using IRT residual DIF framework}. Paper presented at the Annual Meeting of the National Council on Measurement
@@ -295,9 +296,9 @@ grdif.default <- function(x, data, score=NULL, group, focal.name, D=1, alpha=0.0
   x <- confirm_df(x)
 
   # stop when the model includes any polytomous model
-  if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
-  }
+  # if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
+  #   stop("The current version only supports dichotomous response data.", call.=FALSE)
+  # }
 
   # transform the response data to a matrix form
   data <- data.matrix(data)
@@ -308,9 +309,9 @@ grdif.default <- function(x, data, score=NULL, group, focal.name, D=1, alpha=0.0
   }
 
   # stop when the model includes any polytomous response data
-  if(any(data > 1, na.rm=TRUE)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
-  }
+  # if(any(data > 1, na.rm=TRUE)) {
+  #   stop("The current version only supports dichotomous response data.", call.=FALSE)
+  # }
 
   # compute the score if score = NULL
   if(!is.null(score)) {
@@ -335,7 +336,7 @@ grdif.default <- function(x, data, score=NULL, group, focal.name, D=1, alpha=0.0
 
     }
     score <- est_score(x=x, data=data, D=D, method=method, range=range, norm.prior=norm.prior,
-                       nquad=nquad, weights=weights, ncore=ncore)$est.theta
+                       nquad=nquad, weights=weights, ncore=ncore, ...)$est.theta
   }
 
   # a) when no purification is set
@@ -536,7 +537,7 @@ grdif.default <- function(x, data, score=NULL, group, focal.name, D=1, alpha=0.0
 
         # compute the updated ability estimates after deleting the detected DIF item data
         score_puri <- est_score(x=x_puri, data=data_puri, D=D, method=method, range=range, norm.prior=norm.prior,
-                                nquad=nquad, weights=weights, ncore=ncore)$est.theta
+                                nquad=nquad, weights=weights, ncore=ncore, ...)$est.theta
 
         # do DIF analysis using the updated ability estimates
         dif_rst_tmp <- grdif_one(x=x_puri, data=data_puri, score=score_puri, group=group,
@@ -743,9 +744,9 @@ grdif.est_irt <- function(x, score=NULL, group, focal.name, alpha=0.05, missing=
   x <- confirm_df(x)
 
   # stop when the model includes any polytomous model
-  if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
-  }
+  # if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
+  #   stop("The current version only supports dichotomous response data.", call.=FALSE)
+  # }
 
   # transform the response data to a matrix form
   data <- data.matrix(data)
@@ -756,9 +757,9 @@ grdif.est_irt <- function(x, score=NULL, group, focal.name, alpha=0.05, missing=
   }
 
   # stop when the model includes any polytomous response data
-  if(any(data > 1, na.rm=TRUE)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
-  }
+  # if(any(data > 1, na.rm=TRUE)) {
+  #   stop("The current version only supports dichotomous response data.", call.=FALSE)
+  # }
 
   # compute the score if score = NULL
   if(!is.null(score)) {
@@ -783,7 +784,7 @@ grdif.est_irt <- function(x, score=NULL, group, focal.name, alpha=0.05, missing=
 
     }
     score <- est_score(x=x, data=data, D=D, method=method, range=range, norm.prior=norm.prior,
-                       nquad=nquad, weights=weights, ncore=ncore)$est.theta
+                       nquad=nquad, weights=weights, ncore=ncore, ...)$est.theta
   }
 
   # a) when no purification is set
@@ -984,7 +985,7 @@ grdif.est_irt <- function(x, score=NULL, group, focal.name, alpha=0.05, missing=
 
         # compute the updated ability estimates after deleting the detected DIF item data
         score_puri <- est_score(x=x_puri, data=data_puri, D=D, method=method, range=range, norm.prior=norm.prior,
-                                nquad=nquad, weights=weights, ncore=ncore)$est.theta
+                                nquad=nquad, weights=weights, ncore=ncore, ...)$est.theta
 
         # do DIF analysis using the updated ability estimates
         dif_rst_tmp <- grdif_one(x=x_puri, data=data_puri, score=score_puri, group=group,
@@ -1193,9 +1194,9 @@ grdif.est_item <- function(x, group, focal.name, alpha=0.05, missing=NA, purify=
   x <- confirm_df(x)
 
   # stop when the model includes any polytomous model
-  if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
-  }
+  # if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
+  #   stop("The current version only supports dichotomous response data.", call.=FALSE)
+  # }
 
   # transform the response data to a matrix form
   data <- data.matrix(data)
@@ -1206,9 +1207,9 @@ grdif.est_item <- function(x, group, focal.name, alpha=0.05, missing=NA, purify=
   }
 
   # stop when the model includes any polytomous response data
-  if(any(data > 1, na.rm=TRUE)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
-  }
+  # if(any(data > 1, na.rm=TRUE)) {
+  #   stop("The current version only supports dichotomous response data.", call.=FALSE)
+  # }
 
   # compute the score if score = NULL
   if(!is.null(score)) {
@@ -1233,7 +1234,7 @@ grdif.est_item <- function(x, group, focal.name, alpha=0.05, missing=NA, purify=
 
     }
     score <- est_score(x=x, data=data, D=D, method=method, range=range, norm.prior=norm.prior,
-                       nquad=nquad, weights=weights, ncore=ncore)$est.theta
+                       nquad=nquad, weights=weights, ncore=ncore, ...)$est.theta
   }
 
   # a) when no purification is set
@@ -1434,7 +1435,7 @@ grdif.est_item <- function(x, group, focal.name, alpha=0.05, missing=NA, purify=
 
         # compute the updated ability estimates after deleting the detected DIF item data
         score_puri <- est_score(x=x_puri, data=data_puri, D=D, method=method, range=range, norm.prior=norm.prior,
-                                nquad=nquad, weights=weights, ncore=ncore)$est.theta
+                                nquad=nquad, weights=weights, ncore=ncore, ...)$est.theta
 
         # do DIF analysis using the updated ability estimates
         dif_rst_tmp <- grdif_one(x=x_puri, data=data_puri, score=score_puri, group=group,
@@ -1639,7 +1640,7 @@ grdif_one <- function(x, data, score, group, focal.name, D=1, alpha=0.05) {
   # find the location of examinees for the reference and the focal groups
   loc_ref <- which(!group %in% focal.name)
   loc_foc <-
-    purrr::map(.x = 1:n.fg, ~{which(group == .x)})
+    purrr::map(.x = focal.name, ~{which(group == .x)})
 
   # divide the response data into the multiple groups data
   resp_ref <- data[loc_ref, , drop=FALSE]
@@ -1970,9 +1971,11 @@ resid_moments_mg <- function(p_ref, p_foc, n_ref, n_foc, resp_ref, resp_foc, cat
   names(mu_rdif_ref) <- c("mrr", "msr")
   names(mu_rdif_foc) <- paste0("foc", 1:n.fg)
   mu_rdif_foc <-
-    purrr::map(.x = mu_rdif_foc, .f = function(x) {
-      stats::setNames(x, c("mrr", "msr"))
-    })
+    purrr::map(.x = mu_rdif_foc,
+               .f = function(x) {
+                 list(mrr = round(x[[1]], 10), msr = x[[2]])
+               })
+  mu_rdif_ref[[1]] <- round(mu_rdif_ref[[1]], 10)
 
   # compute the covariance between mrr and msr across all groups
   covar_ref <- colSums(mu_resid3_ref, na.rm=TRUE) * (1/n_ref^2)

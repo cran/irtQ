@@ -93,7 +93,7 @@ par.drm <- list(a=c(1.1, 1.2, 0.9, 1.8, 1.4),
 
 # create a list containing the polytomous item parameters
 par.prm <- list(a=c(1.4, 0.6),
-               d=list(c(0.0, -1.9, 1.2), c(0.4, -1.1, 1.5, 0.2)))
+               d=list(c(-1.9, 0.0, 1.2), c(0.4, -1.1, 1.5, 0.2)))
 
 # create a numeric vector of score categories for the items
 cats <- c(2, 4, 2, 2, 5, 2, 2)
@@ -126,6 +126,7 @@ theta <- seq(-2, 2, 0.1)
 
 # compute item and test information values given the theta values
 info(x=test_flex, theta=theta, D=1, tif=TRUE)
+
 
 }
 \references{

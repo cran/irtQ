@@ -83,7 +83,7 @@ an object of class \code{\link{est_item}} obtained from the function \code{\link
 using the function \code{\link{shape_df}}. See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}} or
 \code{\link{simdat}} for more details about the item metadata.}
 
-\item{...}{additional arguments for further updates.}
+\item{...}{Additional arguments that will be forwarded to the \code{\link{est_score}} function.}
 
 \item{data}{A matrix containing examinees' response data for items in \code{x}. Rows and columns represent
 examinees and items, respectively.}
@@ -125,24 +125,25 @@ all possible combinations of paired groups for statistically flagged items. The 
 See below for more details.}
 
 \item{method}{A character string indicating a scoring method. Available methods are "ML" for maximum
-likelihood estimation, "MAP" for maximum a posteriori estimation, and "EAP" for expected
-a posteriori estimation. The default method is "ML".}
+likelihood estimation, "WL" for the weighted likelihood estimation, "MAP" for maximum a posteriori estimation,
+and "EAP" for expected a posteriori estimation. The default method is "ML".}
 
-\item{range}{A numeric vector with two components to restrict the ability scale range for ML, EAP,
+\item{range}{A numeric vector with two components to restrict the ability scale range for ML, WL, EAP,
 and MAP scoring methods. The default is c(-5, 5).}
 
 \item{norm.prior}{A numeric vector with two components specifying the mean and standard deviation of
 the normal prior distribution. These parameters are used to obtain Gaussian quadrature points
-and their corresponding weights from the normal distribution. The default is c(0,1). Ignored if \code{method} is "ML".}
+and their corresponding weights from the normal distribution. The default is c(0,1). Ignored if \code{method} is
+"ML" or "WL".}
 
 \item{nquad}{An integer value specifying the number of Gaussian quadrature points from the normal
-prior distribution. The default is 41. Ignored if \code{method} is "ML" or "MAP".}
+prior distribution. The default is 41. Ignored if \code{method} is "ML", "WL", or "MAP".}
 
 \item{weights}{A two-column matrix or data frame containing the quadrature points (in the first column)
 and their corresponding weights (in the second column) for the latent variable prior distribution.
 The weights and quadrature points can be obtained using the \code{\link{gen.weight}} function.
 If NULL and \code{method} is "EAP", default values are used (see the \code{norm.prior}
-and \code{nquad} arguments). Ignored if \code{method} is "ML" or "MAP".}
+and \code{nquad} arguments). Ignored if \code{method} is "ML", "WL", or "MAP".}
 
 \item{ncore}{The number of logical CPU cores to use. The default is 1. See \code{\link{est_score}} for details.}
 
@@ -217,7 +218,7 @@ asymptotically follow the \eqn{\chi^{2}} distributions with G-1, G-1, and 2(G-1)
 where G represents the total number of groups being compared. For more information on the GRDIF framework, see Lim et al. (2023).
 
 The \code{\link{grdif}} function calculates all three GRDIF statistics: \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}. The current
-version of the \code{\link{grdif}} function supports only dichotomous item response data. To compute these statistics, the \code{\link{grdif}}
+version of the \code{\link{grdif}} function supports both dichotomous and polytomous item response data. To compute these statistics, the \code{\link{grdif}}
 function requires (1) item parameter estimates obtained from aggregate data, regardless of group membership, (2) examinees' ability estimates
 (e.g., MLE), and (3) examinees' item response data. Note that the ability estimates must be computed using the aggregate data-based
 item parameter estimates. The item parameter estimates should be provided in the \code{x} argument, the ability estimates in the
@@ -369,11 +370,11 @@ print(dif_puri_r$with_purify$post.hoc)
 
 }
 \references{
-Lim, H., & Choe, E. M. (In press). Detecting differential item functioning in CAT using IRT residual DIF approach.
-\emph{Journal of Educational Measurement}.
+Lim, H., & Choe, E. M. (2023). Detecting differential item functioning in CAT using IRT residual DIF approach.
+\emph{Journal of Educational Measurement}. \doi{doi:10.1111/jedm.12366}.
 
 Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential item functioning detection framework in
-item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi.org/10.1111/jedm.12313}.
+item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
 
 Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2023, April). \emph{Detecting differential item functioning among multiple groups
 using IRT residual DIF framework}. Paper presented at the Annual Meeting of the National Council on Measurement
