@@ -60,14 +60,20 @@ a step parameter for the first category does not affect the category probabiliti
 ## a mixed-item format test form
 ## with five dichotomous and two polytomous items
 # create a list containing the dichotomous item parameters
-par.drm <- list(a=c(1.1, 1.2, 0.9, 1.8, 1.4),
-                b=c(0.1, -1.6, -0.2, 1.0, 1.2),
-                g=rep(0.2, 5))
+par.drm <- list(
+  a = c(1.1, 1.2, 0.9, 1.8, 1.4),
+  b = c(0.1, -1.6, -0.2, 1.0, 1.2),
+  g = rep(0.2, 5)
+)
 
 # create a list containing the polytomous item parameters
-par.prm <- list(a=c(1.4, 0.6),
-                d=list(c(0.0, -1.9, 1.2),
-                       c(0.4, -1.1, 1.5, 0.2)))
+par.prm <- list(
+  a = c(1.4, 0.6),
+  d = list(
+    c(0.0, -1.9, 1.2),
+    c(0.4, -1.1, 1.5, 0.2)
+  )
+)
 
 # create a numeric vector of score categories for the items
 cats <- c(2, 4, 2, 2, 5, 2, 2)
@@ -76,7 +82,7 @@ cats <- c(2, 4, 2, 2, 5, 2, 2)
 model <- c("DRM", "GRM", "DRM", "DRM", "GPCM", "DRM", "DRM")
 
 # create an item meta set
-shape_df(par.drm=par.drm, par.prm=par.prm, cats=cats, model=model)
+shape_df(par.drm = par.drm, par.prm = par.prm, cats = cats, model = model)
 
 ## an empty item meta with five dichotomous and two polytomous items
 # create a numeric vector of score categories for the items
@@ -86,11 +92,10 @@ cats <- c(2, 4, 3, 2, 5, 2, 2)
 model <- c("1PLM", "GRM", "GRM", "2PLM", "GPCM", "DRM", "3PLM")
 
 # create an empty item meta set
-shape_df(cats=cats, model=model, default.par=TRUE)
+shape_df(cats = cats, model = model, default.par = TRUE)
 
 ## an item meta for a single-item format test form with five dichotomous
-shape_df(par.drm=par.drm, cats=rep(2, 5), model="DRM")
-
+shape_df(par.drm = par.drm, cats = rep(2, 5), model = "DRM")
 
 }
 \seealso{

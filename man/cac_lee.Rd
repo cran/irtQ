@@ -54,15 +54,15 @@ consistency indices, probabilities of being assigned to each level category, and
 }
 \examples{
 \donttest{
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 1. When the empirical ability distribution of the population is available
 #    (D method)
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 ## import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameter data and transform it to item metadata
-x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # set the cut scores on the observed-summed score metric
 cutscore <- c(10, 20, 30, 50)
@@ -73,12 +73,12 @@ node <- seq(-4, 4, 0.25)
 weights <- gen.weight(dist = "norm", mu = 0, sigma = 1, theta = node)
 
 # calculate the classification accuracy and consistency
-cac_1 <- cac_lee(x=x, cutscore=cutscore, weights=weights, D=1)
+cac_1 <- cac_lee(x = x, cutscore = cutscore, weights = weights, D = 1)
 print(cac_1)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 2. When individual ability estimates are available (P method)
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # randomly select the true abilities from N(0, 1)
 set.seed(12)
 theta <- rnorm(n = 1000, mean = 0, sd = 1)
@@ -87,25 +87,28 @@ theta <- rnorm(n = 1000, mean = 0, sd = 1)
 data <- simdat(x = x, theta = theta, D = 1)
 
 # estimate the ability parameters using the ML estimation
-est_th <- est_score(x = x, data = data, D = 1, method = "ML",
-                    range=c(-4, 4), se = FALSE)$est.theta
+est_th <- est_score(
+  x = x, data = data, D = 1, method = "ML",
+  range = c(-4, 4), se = FALSE
+)$est.theta
 
 # calculate the classification accuracy and consistency
 cac_2 <- cac_lee(x = x, cutscore = cutscore, theta = est_th, D = 1)
 print(cac_2)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 3. When individual ability estimates are available,
 #    but, the cutscores are on the IRT theta score metric
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # set the theta cut scures
 cutscore <- c(-2, -0.4, 0.2, 1.0)
 
 # calculate the classification accuracy and consistency
-cac_3 <- cac_lee(x = x, cutscore = cutscore, theta = est_th, D = 1,
-                 cut.obs = FALSE)
+cac_3 <- cac_lee(
+  x = x, cutscore = cutscore, theta = est_th, D = 1,
+  cut.obs = FALSE
+)
 print(cac_3)
-
 }
 
 }

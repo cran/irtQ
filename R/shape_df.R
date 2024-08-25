@@ -42,14 +42,20 @@
 #' ## a mixed-item format test form
 #' ## with five dichotomous and two polytomous items
 #' # create a list containing the dichotomous item parameters
-#' par.drm <- list(a=c(1.1, 1.2, 0.9, 1.8, 1.4),
-#'                 b=c(0.1, -1.6, -0.2, 1.0, 1.2),
-#'                 g=rep(0.2, 5))
+#' par.drm <- list(
+#'   a = c(1.1, 1.2, 0.9, 1.8, 1.4),
+#'   b = c(0.1, -1.6, -0.2, 1.0, 1.2),
+#'   g = rep(0.2, 5)
+#' )
 #'
 #' # create a list containing the polytomous item parameters
-#' par.prm <- list(a=c(1.4, 0.6),
-#'                 d=list(c(0.0, -1.9, 1.2),
-#'                        c(0.4, -1.1, 1.5, 0.2)))
+#' par.prm <- list(
+#'   a = c(1.4, 0.6),
+#'   d = list(
+#'     c(0.0, -1.9, 1.2),
+#'     c(0.4, -1.1, 1.5, 0.2)
+#'   )
+#' )
 #'
 #' # create a numeric vector of score categories for the items
 #' cats <- c(2, 4, 2, 2, 5, 2, 2)
@@ -58,7 +64,7 @@
 #' model <- c("DRM", "GRM", "DRM", "DRM", "GPCM", "DRM", "DRM")
 #'
 #' # create an item meta set
-#' shape_df(par.drm=par.drm, par.prm=par.prm, cats=cats, model=model)
+#' shape_df(par.drm = par.drm, par.prm = par.prm, cats = cats, model = model)
 #'
 #' ## an empty item meta with five dichotomous and two polytomous items
 #' # create a numeric vector of score categories for the items
@@ -68,58 +74,58 @@
 #' model <- c("1PLM", "GRM", "GRM", "2PLM", "GPCM", "DRM", "3PLM")
 #'
 #' # create an empty item meta set
-#' shape_df(cats=cats, model=model, default.par=TRUE)
+#' shape_df(cats = cats, model = model, default.par = TRUE)
 #'
 #' ## an item meta for a single-item format test form with five dichotomous
-#' shape_df(par.drm=par.drm, cats=rep(2, 5), model="DRM")
-#'
+#' shape_df(par.drm = par.drm, cats = rep(2, 5), model = "DRM")
 #'
 #' @export
 #'
-shape_df <- function(par.drm=list(a=NULL, b=NULL, g=NULL), par.prm=list(a=NULL, d=NULL),
-                     item.id=NULL, cats, model, default.par=FALSE) {
-
+shape_df <- function(par.drm = list(a = NULL, b = NULL, g = NULL), par.prm = list(a = NULL, d = NULL),
+                     item.id = NULL, cats, model, default.par = FALSE) {
   # ensure that the model names are all upper cases
   model <- toupper(model)
 
   # check model names
-  if(!all(model %in% c("1PLM", "2PLM", "3PLM", "DRM", "GRM", "GPCM"))) {
-    stop(paste0("At least, one model name is mis-specified in the model argument. \n",
-                "Available model names are 1PLM, 2PLM, 3PLM, DRM, GRM, and GPCM"), call.=FALSE)
+  if (!all(model %in% c("1PLM", "2PLM", "3PLM", "DRM", "GRM", "GPCM"))) {
+    stop(paste0(
+      "At least, one model name is mis-specified in the model argument. \n",
+      "Available model names are 1PLM, 2PLM, 3PLM, DRM, GRM, and GPCM"
+    ), call. = FALSE)
   }
 
   # only to create an empty item meta
-  if(default.par) {
-
-    if(missing(cats) | missing(model)) {
-      stop("The number of score categories and IRT models must be specified.", call.=FALSE)
+  if (default.par) {
+    if (missing(cats) | missing(model)) {
+      stop("The number of score categories and IRT models must be specified.", call. = FALSE)
     }
 
     # find the index of drm items
     idx.drm <- which(cats == 2)
-    if(sum(idx.drm) == 0) idx.drm <- NULL
+    if (sum(idx.drm) == 0) idx.drm <- NULL
 
     # find the index of prm items
     idx.prm <- which(cats > 2)
-    if(sum(idx.prm) == 0) idx.prm <- NULL
+    if (sum(idx.prm) == 0) idx.prm <- NULL
 
     # assign default values to the item parameters
-    if(!is.null(idx.drm)) {
-      par.drm <- list(a=rep(1, length(idx.drm)),
-                      b=rep(0, length(idx.drm)), g=rep(NA_real_, length(idx.drm)))
+    if (!is.null(idx.drm)) {
+      par.drm <- list(
+        a = rep(1, length(idx.drm)),
+        b = rep(0, length(idx.drm)), g = rep(NA_real_, length(idx.drm))
+      )
       par.drm$g[model[idx.drm] == "3PLM" | model[idx.drm] == "DRM"] <- 0.2
     } else {
-      par.drm <- list(a=NULL, b=NULL, g=NULL)
+      par.drm <- list(a = NULL, b = NULL, g = NULL)
     }
-    if(!is.null(idx.prm)) {
-      par.prm <- list(a=rep(1, length(idx.prm)), d=vector('list', length(idx.prm)))
-      for(i in 1:length(idx.prm)) {
+    if (!is.null(idx.prm)) {
+      par.prm <- list(a = rep(1, length(idx.prm)), d = vector("list", length(idx.prm)))
+      for (i in 1:length(idx.prm)) {
         par.prm$d[[i]] <- rep(0, cats[idx.prm[i]] - 1)
       }
     } else {
-      par.prm <- list(a=NULL, d=NULL)
+      par.prm <- list(a = NULL, d = NULL)
     }
-
   }
 
   # number of the items
@@ -129,48 +135,46 @@ shape_df <- function(par.drm=list(a=NULL, b=NULL, g=NULL), par.prm=list(a=NULL, 
   max.cat <- max(cats)
 
   # create a vector of item ids when item.id = NULL
-  if(is.null(item.id)) item.id <- paste0("V", 1:nitem)
+  if (is.null(item.id)) item.id <- paste0("V", 1:nitem)
 
   # create a vector of score categories when length(cats) = 1
-  if(length(cats) == 1) cats <- rep(cats, nitem)
+  if (length(cats) == 1) cats <- rep(cats, nitem)
 
   # create a vector of model names when length(model) = 1
-  if(length(model) == 1) model <- rep(model, nitem)
+  if (length(model) == 1) model <- rep(model, nitem)
 
   # find the index of DRM and PLM items when default.par = FALSE
-  if(!default.par) {
-
+  if (!default.par) {
     # find the index of drm items
     idx.drm <- which(cats == 2)
-    if(sum(idx.drm) == 0) idx.drm <- NULL
+    if (sum(idx.drm) == 0) idx.drm <- NULL
 
     # find the index of prm items
     idx.prm <- which(cats > 2)
-    if(sum(idx.prm) == 0) idx.prm <- NULL
-
+    if (sum(idx.prm) == 0) idx.prm <- NULL
   }
 
   # create an empty matrix to contain item parameters
-  if(is.null(idx.prm)) {
+  if (is.null(idx.prm)) {
     par_mat <- array(NA, c(nitem, 3))
-  } else{
+  } else {
     par_mat <- array(NA, c(nitem, max.cat))
   }
 
   # if drm items exist
-  if(!is.null(idx.drm)) {
-    if(is.null(par.drm[[3]])) par.drm[[3]] <- rep(0, length(idx.drm))
+  if (!is.null(idx.drm)) {
+    if (is.null(par.drm[[3]])) par.drm[[3]] <- rep(0, length(idx.drm))
     par_mat[idx.drm, 1:3] <- bind.fill(par.drm, type = "cbind")
   }
 
   # if prm items exist
-  if(!is.null(idx.prm)) {
+  if (!is.null(idx.prm)) {
     par_mat[idx.prm, 1] <- par.prm[[1]]
     par_mat[idx.prm, 2:max.cat] <- bind.fill(par.prm[[2]], type = "rbind")
   }
 
   # create an item metadata
-  x <- data.frame(id=item.id, cats=cats, model=model, par_mat, stringsAsFactors = FALSE)
+  x <- data.frame(id = item.id, cats = cats, model = model, par_mat, stringsAsFactors = FALSE)
 
   # re-assign column names
   colnames(x) <- c("id", "cats", "model", paste0("par.", 1:(ncol(x) - 3)))
@@ -182,54 +186,56 @@ shape_df <- function(par.drm=list(a=NULL, b=NULL, g=NULL), par.prm=list(a=NULL, 
   x[x$model == "3PLM" & is.na(x$par.3), "par.3"] <- 0
 
   # last check
-  if(any(x[x$cats == 2, 3] %in% c("GRM", "GPCM"))) {
-    stop("Dichotomous items must have models among '1PLM', '2PLM', '3PLM', and 'DRM'.", call.=FALSE)
+  if (any(x[x$cats == 2, 3] %in% c("GRM", "GPCM"))) {
+    stop("Dichotomous items must have models among '1PLM', '2PLM', '3PLM', and 'DRM'.", call. = FALSE)
   }
-  if(any(x[x$cats > 2, 3] %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
-    stop("Polytomous items must have models among 'GRM' and 'GPCM'.", call.=FALSE)
+  if (any(x[x$cats > 2, 3] %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
+    stop("Polytomous items must have models among 'GRM' and 'GPCM'.", call. = FALSE)
   }
 
   # return the results
   x
-
 }
 
 
 # This function creates an item meta containing the starting values
-startval_df <- function(cats, model, item.id=NULL) {
-
+startval_df <- function(cats, model, item.id = NULL) {
   # ensure that the model names are all upper cases
   model <- toupper(model)
 
   # check model names
-  if(!all(model %in% c("1PLM", "2PLM", "3PLM", "DRM", "GRM", "GPCM"))) {
-    stop(paste0("At least, one model name is mis-specified in the model argument. \n",
-                "Available model names are 1PLM, 2PLM, 3PLM, DRM, GRM, and GPCM"), call.=FALSE)
+  if (!all(model %in% c("1PLM", "2PLM", "3PLM", "DRM", "GRM", "GPCM"))) {
+    stop(paste0(
+      "At least, one model name is mis-specified in the model argument. \n",
+      "Available model names are 1PLM, 2PLM, 3PLM, DRM, GRM, and GPCM"
+    ), call. = FALSE)
   }
 
   # find the index of drm items
   idx.drm <- which(cats == 2)
-  if(sum(idx.drm) == 0) idx.drm <- NULL
+  if (sum(idx.drm) == 0) idx.drm <- NULL
 
   # find the index of prm items
   idx.prm <- which(cats > 2)
-  if(sum(idx.prm) == 0) idx.prm <- NULL
+  if (sum(idx.prm) == 0) idx.prm <- NULL
 
   # assign default values to the item parameters
-  if(!is.null(idx.drm)) {
-    par.drm <- list(a=rep(1, length(idx.drm)),
-                    b=rep(0, length(idx.drm)), g=rep(0, length(idx.drm)))
+  if (!is.null(idx.drm)) {
+    par.drm <- list(
+      a = rep(1, length(idx.drm)),
+      b = rep(0, length(idx.drm)), g = rep(0, length(idx.drm))
+    )
     par.drm$g[model[idx.drm] == "3PLM" | model[idx.drm] == "DRM"] <- 0.2
   } else {
-    par.drm <- list(a=NULL, b=NULL, g=NULL)
+    par.drm <- list(a = NULL, b = NULL, g = NULL)
   }
-  if(!is.null(idx.prm)) {
-    par.prm <- list(a=rep(1, length(idx.prm)), d=vector('list', length(idx.prm)))
-    for(i in 1:length(idx.prm)) {
-      par.prm$d[[i]] <- seq(-1.0, 1.0, length.out=(cats[idx.prm[i]] - 1))
+  if (!is.null(idx.prm)) {
+    par.prm <- list(a = rep(1, length(idx.prm)), d = vector("list", length(idx.prm)))
+    for (i in 1:length(idx.prm)) {
+      par.prm$d[[i]] <- seq(-1.0, 1.0, length.out = (cats[idx.prm[i]] - 1))
     }
   } else {
-    par.prm <- list(a=NULL, d=NULL)
+    par.prm <- list(a = NULL, d = NULL)
   }
 
   # number of the items
@@ -239,35 +245,35 @@ startval_df <- function(cats, model, item.id=NULL) {
   max.cat <- max(cats)
 
   # create a vector of item ids when item.id = NULL
-  if(is.null(item.id)) item.id <- paste0("V", 1:nitem)
+  if (is.null(item.id)) item.id <- paste0("V", 1:nitem)
 
   # create a vector of score categories when length(cats) = 1
-  if(length(cats) == 1) cats <- rep(cats, nitem)
+  if (length(cats) == 1) cats <- rep(cats, nitem)
 
   # create a vector of model names when length(model) = 1
-  if(length(model) == 1) model <- rep(model, nitem)
+  if (length(model) == 1) model <- rep(model, nitem)
 
   # create an empty matrix to contain item parameters
-  if(is.null(idx.prm)) {
+  if (is.null(idx.prm)) {
     par_mat <- array(NA, c(nitem, 3))
-  } else{
+  } else {
     par_mat <- array(NA, c(nitem, max.cat))
   }
 
   # if drm items exist
-  if(!is.null(idx.drm)) {
-    if(is.null(par.drm[[3]])) par.drm[[3]] <- rep(0, length(idx.drm))
+  if (!is.null(idx.drm)) {
+    if (is.null(par.drm[[3]])) par.drm[[3]] <- rep(0, length(idx.drm))
     par_mat[idx.drm, 1:3] <- bind.fill(par.drm, type = "cbind")
   }
 
   # if prm items exist
-  if(!is.null(idx.prm)) {
+  if (!is.null(idx.prm)) {
     par_mat[idx.prm, 1] <- par.prm[[1]]
     par_mat[idx.prm, 2:max.cat] <- bind.fill(par.prm[[2]], type = "rbind")
   }
 
   # create an item metadata
-  x <- data.frame(id=item.id, cats=cats, model=model, par_mat, stringsAsFactors = FALSE)
+  x <- data.frame(id = item.id, cats = cats, model = model, par_mat, stringsAsFactors = FALSE)
 
   # re-assign column names
   colnames(x) <- c("id", "cats", "model", paste0("par.", 1:(ncol(x) - 3)))
@@ -279,14 +285,13 @@ startval_df <- function(cats, model, item.id=NULL) {
   x[x$model == "3PLM" & is.na(x$par.3), "par.3"] <- 0
 
   # last check
-  if(any(x[x$cats == 2, 3] %in% c("GRM", "GPCM"))) {
-    stop("Dichotomous items must have models among '1PLM', '2PLM', '3PLM', and 'DRM'.", call.=FALSE)
+  if (any(x[x$cats == 2, 3] %in% c("GRM", "GPCM"))) {
+    stop("Dichotomous items must have models among '1PLM', '2PLM', '3PLM', and 'DRM'.", call. = FALSE)
   }
-  if(any(x[x$cats > 2, 3] %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
-    stop("Polytomous items must have models among 'GRM' and 'GPCM'.", call.=FALSE)
+  if (any(x[x$cats > 2, 3] %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
+    stop("Polytomous items must have models among 'GRM' and 'GPCM'.", call. = FALSE)
   }
 
   # return the results
   x
-
 }

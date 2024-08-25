@@ -108,7 +108,9 @@ and generalized partial credit model, respectively, then \code{pr.model = c('GRM
 theta <- rnorm(100)
 
 # set item parameters for three dichotomous items with the 3PL model
-a.drm <- c(1, 1.2, 1.3); b.drm <- c(-1, 0, 1); g.drm <- rep(0.2, 3)
+a.drm <- c(1, 1.2, 1.3)
+b.drm <- c(-1, 0, 1)
+g.drm <- rep(0.2, 3)
 
 # set item parameters for three polytomous item parameters
 # note that 4, 4, and 5 categories are used for polytomous items
@@ -120,11 +122,13 @@ d.prm <- list(c(-1.2, -0.3, 0.4), c(-0.2, 0.5, 1.6), c(-1.7, 0.2, 1.1, 2.0))
 cats <- c(2, 2, 4, 4, 5, 2)
 
 # create a character vector of the IRT model for the polytomous items
-pr.model <- c('GPCM', 'GPCM', 'GRM')
+pr.model <- c("GPCM", "GPCM", "GRM")
 
 # simulate the response data
-simdat(theta=theta, a.drm=a.drm, b.drm=b.drm, g.drm=NULL,
-       a.prm=a.prm, d.prm=d.prm, cats=cats, pr.model=pr.model, D=1)
+simdat(
+  theta = theta, a.drm = a.drm, b.drm = b.drm, g.drm = NULL,
+  a.prm = a.prm, d.prm = d.prm, cats = cats, pr.model = pr.model, D = 1
+)
 
 
 ## example 2.
@@ -133,7 +137,7 @@ simdat(theta=theta, a.drm=a.drm, b.drm=b.drm, g.drm=NULL,
 cats <- rep(2, 3)
 
 # simulate the response data
-simdat(theta=theta, a.drm=a.drm, b.drm=b.drm, cats=cats, D=1)
+simdat(theta = theta, a.drm = a.drm, b.drm = b.drm, cats = cats, D = 1)
 
 ## example 3.
 ## the use of a "-prm.txt" file obtained from a flexMIRT
@@ -141,10 +145,10 @@ simdat(theta=theta, a.drm=a.drm, b.drm=b.drm, cats=cats, D=1)
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item metadata
-test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # simulate the response data
-simdat(x=test_flex, theta=theta, D=1) # use a data.frame of item meta information
+simdat(x = test_flex, theta = theta, D = 1) # use a data.frame of item meta information
 
 }
 \seealso{

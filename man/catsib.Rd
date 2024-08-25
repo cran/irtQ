@@ -186,7 +186,7 @@ flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select 36 of 3PLM items which are non-DIF items
 par_nstd <-
-  bring.flexmirt(file=flex_sam, "par")$Group1$full_df \%>\%
+  bring.flexmirt(file = flex_sam, "par")$Group1$full_df \%>\%
   dplyr::filter(.data$model == "3PLM") \%>\%
   dplyr::filter(dplyr::row_number() \%in\% 1:36) \%>\%
   dplyr::select(1:6)
@@ -194,14 +194,16 @@ par_nstd$id <- paste0("nondif", 1:36)
 
 # generate four new items to inject uniform DIF
 difpar_ref <-
-  shape_df(par.drm=list(a=c(0.8, 1.5, 0.8, 1.5), b=c(0.0, 0.0, -0.5, -0.5), g=0.15),
-           item.id=paste0("dif", 1:4), cats=2, model="3PLM")
+  shape_df(
+    par.drm = list(a = c(0.8, 1.5, 0.8, 1.5), b = c(0.0, 0.0, -0.5, -0.5), g = 0.15),
+    item.id = paste0("dif", 1:4), cats = 2, model = "3PLM"
+  )
 
 # manipulate uniform DIF on the four new items by adding constants to b-parameters
 # for the focal group
 difpar_foc <-
   difpar_ref \%>\%
-  dplyr::mutate_at(.vars="par.2", .funs=function(x) x + rep(0.7, 4))
+  dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + rep(0.7, 4))
 
 # combine the 4 DIF and 36 non-DIF items for both reference and focal groups
 # thus, the first four items have uniform DIF
@@ -214,8 +216,8 @@ theta_ref <- rnorm(500, 0.0, 1.0)
 theta_foc <- rnorm(500, 0.0, 1.0)
 
 # generate the response data
-resp_ref <- simdat(par_ref, theta=theta_ref, D=1)
-resp_foc <- simdat(par_foc, theta=theta_foc, D=1)
+resp_ref <- simdat(par_ref, theta = theta_ref, D = 1)
+resp_foc <- simdat(par_foc, theta = theta_foc, D = 1)
 data <- rbind(resp_ref, resp_foc)
 
 ###############################################
@@ -223,11 +225,11 @@ data <- rbind(resp_ref, resp_foc)
 #     using the aggregate data
 ###############################################
 # estimate the item parameters
-est_mod <- est_irt(data=data, D=1, model="3PLM")
+est_mod <- est_irt(data = data, D = 1, model = "3PLM")
 est_par <- est_mod$par.est
 
 # estimate the ability parameters using ML
-theta_est <- est_score(x=est_par, data=data, method="ML")
+theta_est <- est_score(x = est_par, data = data, method = "ML")
 score <- theta_est$est.theta
 se <- theta_est$se.theta
 
@@ -240,16 +242,19 @@ group <- c(rep(0, 500), rep(1, 500))
 
 # (a)-1 compute SIBTEST statistic by providing scores,
 #       and without a purification
-dif_1 <- catsib(x=NULL, data=data, D=1, score=score, se=se, group=group, focal.name=1,
- weight.group="comb", alpha=0.05, missing=NA, purify=FALSE)
+dif_1 <- catsib(
+  x = NULL, data = data, D = 1, score = score, se = se, group = group, focal.name = 1,
+  weight.group = "comb", alpha = 0.05, missing = NA, purify = FALSE
+)
 print(dif_1)
 
 # (a)-2 compute SIBTEST statistic by providing scores,
 #       and with a purification
-dif_2 <- catsib(x=est_par, data=data, D=1, score=score, se=se, group=group, focal.name=1,
- weight.group="comb", alpha=0.05, missing=NA, purify=TRUE)
+dif_2 <- catsib(
+  x = est_par, data = data, D = 1, score = score, se = se, group = group, focal.name = 1,
+  weight.group = "comb", alpha = 0.05, missing = NA, purify = TRUE
+)
 print(dif_2)
-
 }
 
 }

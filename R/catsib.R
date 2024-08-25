@@ -148,7 +148,7 @@
 #'
 #' # select 36 of 3PLM items which are non-DIF items
 #' par_nstd <-
-#'   bring.flexmirt(file=flex_sam, "par")$Group1$full_df %>%
+#'   bring.flexmirt(file = flex_sam, "par")$Group1$full_df %>%
 #'   dplyr::filter(.data$model == "3PLM") %>%
 #'   dplyr::filter(dplyr::row_number() %in% 1:36) %>%
 #'   dplyr::select(1:6)
@@ -156,14 +156,16 @@
 #'
 #' # generate four new items to inject uniform DIF
 #' difpar_ref <-
-#'   shape_df(par.drm=list(a=c(0.8, 1.5, 0.8, 1.5), b=c(0.0, 0.0, -0.5, -0.5), g=0.15),
-#'            item.id=paste0("dif", 1:4), cats=2, model="3PLM")
+#'   shape_df(
+#'     par.drm = list(a = c(0.8, 1.5, 0.8, 1.5), b = c(0.0, 0.0, -0.5, -0.5), g = 0.15),
+#'     item.id = paste0("dif", 1:4), cats = 2, model = "3PLM"
+#'   )
 #'
 #' # manipulate uniform DIF on the four new items by adding constants to b-parameters
 #' # for the focal group
 #' difpar_foc <-
 #'   difpar_ref %>%
-#'   dplyr::mutate_at(.vars="par.2", .funs=function(x) x + rep(0.7, 4))
+#'   dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + rep(0.7, 4))
 #'
 #' # combine the 4 DIF and 36 non-DIF items for both reference and focal groups
 #' # thus, the first four items have uniform DIF
@@ -176,8 +178,8 @@
 #' theta_foc <- rnorm(500, 0.0, 1.0)
 #'
 #' # generate the response data
-#' resp_ref <- simdat(par_ref, theta=theta_ref, D=1)
-#' resp_foc <- simdat(par_foc, theta=theta_foc, D=1)
+#' resp_ref <- simdat(par_ref, theta = theta_ref, D = 1)
+#' resp_foc <- simdat(par_foc, theta = theta_foc, D = 1)
 #' data <- rbind(resp_ref, resp_foc)
 #'
 #' ###############################################
@@ -185,11 +187,11 @@
 #' #     using the aggregate data
 #' ###############################################
 #' # estimate the item parameters
-#' est_mod <- est_irt(data=data, D=1, model="3PLM")
+#' est_mod <- est_irt(data = data, D = 1, model = "3PLM")
 #' est_par <- est_mod$par.est
 #'
 #' # estimate the ability parameters using ML
-#' theta_est <- est_score(x=est_par, data=data, method="ML")
+#' theta_est <- est_score(x = est_par, data = data, method = "ML")
 #' score <- theta_est$est.theta
 #' se <- theta_est$se.theta
 #'
@@ -202,90 +204,92 @@
 #'
 #' # (a)-1 compute SIBTEST statistic by providing scores,
 #' #       and without a purification
-#' dif_1 <- catsib(x=NULL, data=data, D=1, score=score, se=se, group=group, focal.name=1,
-#'  weight.group="comb", alpha=0.05, missing=NA, purify=FALSE)
+#' dif_1 <- catsib(
+#'   x = NULL, data = data, D = 1, score = score, se = se, group = group, focal.name = 1,
+#'   weight.group = "comb", alpha = 0.05, missing = NA, purify = FALSE
+#' )
 #' print(dif_1)
 #'
 #' # (a)-2 compute SIBTEST statistic by providing scores,
 #' #       and with a purification
-#' dif_2 <- catsib(x=est_par, data=data, D=1, score=score, se=se, group=group, focal.name=1,
-#'  weight.group="comb", alpha=0.05, missing=NA, purify=TRUE)
+#' dif_2 <- catsib(
+#'   x = est_par, data = data, D = 1, score = score, se = se, group = group, focal.name = 1,
+#'   weight.group = "comb", alpha = 0.05, missing = NA, purify = TRUE
+#' )
 #' print(dif_2)
-#'
 #' }
 #'
-#' @import janitor
+#' @import dplyr
+#' @importFrom janitor adorn_totals
 #' @export
-catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.bin=c(80, 10), min.binsize=3, max.del=0.075,
-                   weight.group = c("comb", "foc", "ref"), alpha=0.05, missing=NA, purify=FALSE, max.iter=10, min.resp=NULL, method="ML",
-                   range=c(-5, 5), norm.prior=c(0, 1), nquad=41, weights=NULL, ncore=1, verbose=TRUE, ...) {
-
+catsib <- function(x = NULL, data, score = NULL, se = NULL, group, focal.name, D = 1, n.bin = c(80, 10), min.binsize = 3, max.del = 0.075,
+                   weight.group = c("comb", "foc", "ref"), alpha = 0.05, missing = NA, purify = FALSE, max.iter = 10, min.resp = NULL, method = "ML",
+                   range = c(-5, 5), norm.prior = c(0, 1), nquad = 41, weights = NULL, ncore = 1, verbose = TRUE, ...) {
   # match.call
   cl <- match.call()
 
-  ##----------------------------------
+  ## ----------------------------------
   ## (1) prepare DIF analysis
-  ##----------------------------------
+  ## ----------------------------------
   # when purify = TRUE, the item metadata should be provided.
   # if not, stop.
-  if(purify & is.null(x)) {
-    stop("To implement a purification process, the item metadata must be provided in the argument 'x'.", call.=FALSE)
+  if (purify & is.null(x)) {
+    stop("To implement a purification process, the item metadata must be provided in the argument 'x'.", call. = FALSE)
   }
 
   # clean the data frame of the item metadata
-  if(!is.null(x)) {
-
+  if (!is.null(x)) {
     # confirm and correct all item metadata information
     x <- confirm_df(x)
 
     # stop when the model includes any polytomous model
-    if(any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
-      stop("The current version only supports dichotomous response data.", call.=FALSE)
+    if (any(x$model %in% c("GRM", "GPCM")) | any(x$cats > 2)) {
+      stop("The current version only supports dichotomous response data.", call. = FALSE)
     }
-
   }
 
   # transform the response data to a matrix form
   data <- data.matrix(data)
 
   # re-code missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
   # stop when the model includes any polytomous response data
-  if(any(data > 1, na.rm=TRUE)) {
-    stop("The current version only supports dichotomous response data.", call.=FALSE)
+  if (any(data > 1, na.rm = TRUE)) {
+    stop("The current version only supports dichotomous response data.", call. = FALSE)
   }
 
   # create an item id
-  if(is.null(x)) {
+  if (is.null(x)) {
     item.id <- paste0("item.", 1:ncol(data))
   } else {
     item.id <- x$id
   }
 
   # compute the score if score = NULL
-  if(!is.null(score)) {
+  if (!is.null(score)) {
     # transform scores to a vector form
-    if(is.matrix(score) | is.data.frame(score)) {
+    if (is.matrix(score) | is.data.frame(score)) {
       score <- as.numeric(data.matrix(score))
     }
     # transform scores to a vector form
-    if(is.matrix(se) | is.data.frame(se)) {
+    if (is.matrix(se) | is.data.frame(se)) {
       score <- as.numeric(data.matrix(se))
     }
   } else {
-
     # if min.resp is not NULL, find the examinees who have the number of responses
     # less than specified value (e.g., 5). Then, replace their all responses with NA
-    if(!is.null(min.resp)) {
+    if (!is.null(min.resp)) {
       n_resp <- Rfast::rowsums(!is.na(data))
       loc_less <- which(n_resp < min.resp & n_resp > 0)
       data[loc_less, ] <- NA
     }
-    score_rst <- est_score(x=x, data=data, D=D, method=method, range=range, norm.prior=norm.prior,
-                           nquad=nquad, weights=weights, ncore=ncore, ...)
+    score_rst <- est_score(
+      x = x, data = data, D = D, method = method, range = range, norm.prior = norm.prior,
+      nquad = nquad, weights = weights, ncore = ncore, ...
+    )
     score <- score_rst$est.theta
     se <- score_rst$se.theta
   }
@@ -293,9 +297,10 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
   # confirm the target ability density function
   weight.group <- match.arg(weight.group)
   weight.group <- switch(weight.group,
-                         foc = "foc",
-                         ref = "ref",
-                         comb = "comb")
+    foc = "foc",
+    ref = "ref",
+    comb = "comb"
+  )
 
   # set the maximum & minimum number of bins (intervals)
   max.bin <- n.bin[1]
@@ -306,14 +311,18 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
   # compute the beta statistic and its SE for all items using
   # corrected theta scores
   dif_rst <-
-    catsib_one(data=data, group=group, focal.name=focal.name, score=score, se=se, range=range,
-               item.id=item.id, max.bin=max.bin, min.bin=min.bin, min.binsize=min.binsize,
-               max.del=max.del, weight.group=weight.group, alpha=alpha)
+    catsib_one(
+      data = data, group = group, focal.name = focal.name, score = score, se = se, range = range,
+      item.id = item.id, max.bin = max.bin, min.bin = min.bin, min.binsize = min.binsize,
+      max.del = max.del, weight.group = weight.group, alpha = alpha
+    )
 
   # create two empty lists to contain the results
-  no_purify <- list(dif_stat=NULL, dif_item=NULL, contingency=NULL)
-  with_purify <- list(dif_stat=NULL, dif_item=NULL, n.iter=NULL,
-                      complete=NULL, contingency=NULL)
+  no_purify <- list(dif_stat = NULL, dif_item = NULL, contingency = NULL)
+  with_purify <- list(
+    dif_stat = NULL, dif_item = NULL, n.iter = NULL,
+    complete = NULL, contingency = NULL
+  )
 
   # record the first DIF detection results into the no purification list
   no_purify$dif_stat <- dif_rst$dif_stat
@@ -321,16 +330,17 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
   no_purify$contingency <- dif_rst$contingency
 
   # when purification is used
-  if(purify) {
-
+  if (purify) {
     # create an empty vector and empty data frames
     # to contain the detected DIF items, statistics, and contingency tables
     dif_item <- NULL
     dif_stat <-
-      data.frame(id=rep(NA_character_, nrow(x)), beta=NA, se=NA,
-                 z.beta=NA, p=NA, n.ref=NA, n.foc=NA, n.total=NA, n.iter=NA,
-                 stringsAsFactors=FALSE)
-    contingency <- vector('list', nrow(x))
+      data.frame(
+        id = rep(NA_character_, nrow(x)), beta = NA, se = NA,
+        z.beta = NA, p = NA, n.ref = NA, n.foc = NA, n.total = NA, n.iter = NA,
+        stringsAsFactors = FALSE
+      )
+    contingency <- vector("list", nrow(x))
     names(contingency) <- item.id
 
     # extract the first DIF analysis results
@@ -344,25 +354,23 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
     data_puri <- data
 
     # start the iteration if any item is detected as an DIF item
-    if(!is.null(dif_item_tmp)) {
-
+    if (!is.null(dif_item_tmp)) {
       # record unique item numbers
       item_num <- 1:nrow(x)
 
       # in case when at least one DIF item is detected from the no purification DIF analysis
       # in this case, the maximum number of iteration must be greater than 0.
       # if not, stop and return an error message
-      if(max.iter < 1) stop("The maximum iteration (i.e., max.iter) must be greater than 0 when purify = TRUE.", call.=FALSE)
+      if (max.iter < 1) stop("The maximum iteration (i.e., max.iter) must be greater than 0 when purify = TRUE.", call. = FALSE)
 
       # print a message
-      if(verbose) {
-        cat("Purification started...", '\n')
+      if (verbose) {
+        cat("Purification started...", "\n")
       }
 
-      for(i in 1:max.iter) {
-
+      for (i in 1:max.iter) {
         # print a message
-        if(verbose) {
+        if (verbose) {
           cat("\r", paste0("Iteration: ", i))
         }
 
@@ -391,24 +399,28 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
 
         # if min.resp is not NULL, find the examinees who have the number of responses
         # less than specified value (e.g., 5). Then, replace their all responses with NA
-        if(!is.null(min.resp)) {
+        if (!is.null(min.resp)) {
           n_resp <- rowSums(!is.na(data_puri))
           loc_less <- which(n_resp < min.resp & n_resp > 0)
           data_puri[loc_less, ] <- NA
         }
 
         # compute the updated ability estimates after deleting the detected DIF item data
-        score_rst_puri <- est_score(x=x_puri, data=data_puri, D=D, method=method, range=range, norm.prior=norm.prior,
-                                    nquad=nquad, weights=weights, ncore=ncore, ...)
+        score_rst_puri <- est_score(
+          x = x_puri, data = data_puri, D = D, method = method, range = range, norm.prior = norm.prior,
+          nquad = nquad, weights = weights, ncore = ncore, ...
+        )
         score_puri <- score_rst_puri$est.theta
         se_puri <- score_rst_puri$se.theta
 
         # do DIF analysis using the updated ability estimates
         item.id <- x_puri$id
         dif_rst_tmp <-
-          catsib_one(data=data_puri, group=group, focal.name=focal.name, score=score_puri, se=se_puri, range=range,
-                     item.id=item.id, max.bin=max.bin, min.bin=min.bin, min.binsize=min.binsize,
-                     max.del=max.del, weight.group=weight.group, alpha=alpha)
+          catsib_one(
+            data = data_puri, group = group, focal.name = focal.name, score = score_puri, se = se_puri, range = range,
+            item.id = item.id, max.bin = max.bin, min.bin = min.bin, min.binsize = min.binsize,
+            max.del = max.del, weight.group = weight.group, alpha = alpha
+          )
 
         # extract the first DIF analysis results
         # and check if at least one DIF item is detected
@@ -417,8 +429,7 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
         contingency_tmp <- dif_rst_tmp$contingency
 
         # check if a further DIF item is flagged
-        if(is.null(dif_item_tmp)) {
-
+        if (is.null(dif_item_tmp)) {
           # add no additional DIF item
           dif_item <- dif_item
 
@@ -428,12 +439,11 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
           contingency[item_num] <- contingency_tmp
 
           break
-
         }
       }
 
       # print a message
-      if(verbose) {
+      if (verbose) {
         cat("", "\n")
       }
 
@@ -442,8 +452,8 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
 
       # if the iteration reached out the maximum number of iteration but the purification was incomplete,
       # then, return a warning message
-      if(max.iter == n_iter & !is.null(dif_item_tmp)) {
-        warning("The iteration reached out the maximum number of iteration before purification is completed.", call.=FALSE)
+      if (max.iter == n_iter & !is.null(dif_item_tmp)) {
+        warning("The iteration reached out the maximum number of iteration before purification is completed.", call. = FALSE)
         complete <- FALSE
 
         # add flagged DIF item at the last iteration
@@ -453,13 +463,12 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
         dif_stat[item_num, 1:8] <- dif_stat_tmp
         dif_stat[item_num, 9] <- i
         contingency[item_num] <- contingency_tmp
-
       } else {
         complete <- TRUE
 
         # print a message
-        if(verbose) {
-          cat("Purification is finished.", '\n')
+        if (verbose) {
+          cat("Purification is finished.", "\n")
         }
       }
 
@@ -469,41 +478,34 @@ catsib <- function(x=NULL, data, score=NULL, se=NULL, group, focal.name, D=1, n.
       with_purify$n.iter <- n_iter
       with_purify$complete <- complete
       with_purify$contingency <- contingency
-
-
     } else {
-
       # in case when no DIF item is detected from the first DIF analysis results
-      with_purify$dif_stat <- cbind(no_purify$dif_stat, n.iter=0)
+      with_purify$dif_stat <- cbind(no_purify$dif_stat, n.iter = 0)
       with_purify$n.iter <- 0
       with_purify$complete <- TRUE
       with_purify$contingency <- no_purify$contingency
-
     }
-
   }
 
 
   # summarize the results
-  rst <- list(no_purify=no_purify, purify=purify, with_purify=with_purify, alpha=alpha)
+  rst <- list(no_purify = no_purify, purify = purify, with_purify = with_purify, alpha = alpha)
 
   # return the DIF detection results
   class(rst) <- "catsib"
   rst$call <- cl
   rst
-
 }
 
 
 # This function performs a regression correction for ability estimates and, then
 # computes the beta statistic and its SE for all items
 catsib_one <- function(data, group, focal.name, score, se, range,
-                       item.id, max.bin, min.bin, min.binsize=3, max.del=0.075,
-                       weight.group, alpha=0.05) {
-
-  ##------------------------------------------
+                       item.id, max.bin, min.bin, min.binsize = 3, max.del = 0.075,
+                       weight.group, alpha = 0.05) {
+  ## ------------------------------------------
   ## prepare data sets
-  ##------------------------------------------
+  ## ------------------------------------------
   # count the number of items
   nitem <- length(item.id)
 
@@ -512,8 +514,8 @@ catsib_one <- function(data, group, focal.name, score, se, range,
   loc_foc <- which(group == focal.name)
 
   # divide the response data into the two group data
-  resp_ref <- data[loc_ref, , drop=FALSE]
-  resp_foc <- data[loc_foc, , drop=FALSE]
+  resp_ref <- data[loc_ref, , drop = FALSE]
+  resp_foc <- data[loc_foc, , drop = FALSE]
 
   # divide the thetas into the two group data
   score_ref <- score[loc_ref]
@@ -523,21 +525,21 @@ catsib_one <- function(data, group, focal.name, score, se, range,
   se_ref <- se[loc_ref]
   se_foc <- se[loc_foc]
 
-  ##------------------------------------------
+  ## ------------------------------------------
   ## a regression correction for theta scores
-  ##------------------------------------------
+  ## ------------------------------------------
   # compute the mean and variance of scores for each group
   # note that, the bound scores are excluded.
   lb_score <- range[1]
   up_score <- range[2]
-  mu_ref <- mean(score_ref[score_ref > lb_score & score_ref < up_score], na.rm=TRUE)
-  mu_foc <- mean(score_foc[score_foc > lb_score & score_foc < up_score], na.rm=TRUE)
-  sigma2_ref <- stats::var(score_ref[score_ref > lb_score & score_ref < up_score], na.rm=TRUE)
-  sigma2_foc <- stats::var(score_foc[score_foc > lb_score & score_foc < up_score], na.rm=TRUE)
+  mu_ref <- mean(score_ref[score_ref > lb_score & score_ref < up_score], na.rm = TRUE)
+  mu_foc <- mean(score_foc[score_foc > lb_score & score_foc < up_score], na.rm = TRUE)
+  sigma2_ref <- stats::var(score_ref[score_ref > lb_score & score_ref < up_score], na.rm = TRUE)
+  sigma2_foc <- stats::var(score_foc[score_foc > lb_score & score_foc < up_score], na.rm = TRUE)
 
   # compute the error variance of scores for each group
-  errvar_ref <- mean((se_ref^2)[score_ref > lb_score & score_ref < up_score], na.rm=TRUE)
-  errvar_foc <- mean((se_foc^2)[score_foc > lb_score & score_foc < up_score], na.rm=TRUE)
+  errvar_ref <- mean((se_ref^2)[score_ref > lb_score & score_ref < up_score], na.rm = TRUE)
+  errvar_foc <- mean((se_foc^2)[score_foc > lb_score & score_foc < up_score], na.rm = TRUE)
 
   # compute the squared correlation (a.k.a. reliability) between theta estimate and true theta
   rho_ref2 <- suppressWarnings(1 - errvar_ref / sigma2_ref)
@@ -547,58 +549,59 @@ catsib_one <- function(data, group, focal.name, score, se, range,
   crscore_ref <- mu_ref + rho_ref2 * (score_ref - mu_ref)
   crscore_foc <- mu_foc + rho_foc2 * (score_foc - mu_foc)
 
-  ##------------------------------------------
+  ## ------------------------------------------
   ## compute CATSIB statistic
-  ##------------------------------------------
+  ## ------------------------------------------
   # conduct a DIF analysis
-  catsib_dif <- purrr::map(.x=1:nitem,
-                           .f=function(i) {
-                             catsib_item(crscore_ref=crscore_ref, crscore_foc=crscore_foc,
-                                         resp.ref=resp_ref[, i], resp.foc=resp_foc[, i],
-                                         max.bin=max.bin, min.bin=min.bin, min.binsize=min.binsize,
-                                         max.del=max.del, weight.group=weight.group)
-                           })
+  catsib_dif <- purrr::map(
+    .x = 1:nitem,
+    .f = function(i) {
+      catsib_item(
+        crscore_ref = crscore_ref, crscore_foc = crscore_foc,
+        resp.ref = resp_ref[, i], resp.foc = resp_foc[, i],
+        max.bin = max.bin, min.bin = min.bin, min.binsize = min.binsize,
+        max.del = max.del, weight.group = weight.group
+      )
+    }
+  )
 
   # extract the DIF analysis results
   dif_stat <-
-    purrr::map(.x=catsib_dif, "dif_stat") %>%
+    purrr::map(.x = catsib_dif, "dif_stat") %>%
     do.call(what = "rbind") %>%
-    dplyr::mutate_if("is.numeric", "round", digits=4) %>%
-    dplyr::mutate(id=item.id) %>%
-    dplyr::relocate("id", .before="beta")
-  contingency <- purrr::map(.x=catsib_dif, "contingency")
+    dplyr::mutate_if("is.numeric", "round", digits = 4) %>%
+    dplyr::mutate(id = item.id) %>%
+    dplyr::relocate("id", .before = "beta")
+  contingency <- purrr::map(.x = catsib_dif, "contingency")
   names(contingency) <- item.id
   dif_item <- as.numeric(which(dif_stat$p <= alpha))
-  if(length(dif_item) == 0) dif_item <- NULL
+  if (length(dif_item) == 0) dif_item <- NULL
 
   # return the results
-  rst <- list(dif_stat=dif_stat, dif_item=dif_item, contingency=contingency)
+  rst <- list(dif_stat = dif_stat, dif_item = dif_item, contingency = contingency)
   rst
-
 }
 
 
 # This function computes the beta statistic and its SE for an item
 catsib_item <- function(crscore_ref, crscore_foc, resp.ref, resp.foc,
-                        max.bin, min.bin, min.binsize=3, max.del=0.075,
+                        max.bin, min.bin, min.binsize = 3, max.del = 0.075,
                         weight.group) {
-
   # combine all corrected theta scores
   crscore <- c(crscore_ref, crscore_foc)
 
   # set the range of the ability scale
-  min.crscore <- min(crscore, na.rm=TRUE)
-  max.crscore <- max(crscore, na.rm=TRUE)
+  min.crscore <- min(crscore, na.rm = TRUE)
+  max.crscore <- max(crscore, na.rm = TRUE)
 
   # decide the number of bins and create an initial frequency table
-  for(num.bin in max.bin:min.bin) {
-
+  for (num.bin in max.bin:min.bin) {
     # compute the cut-scores to divide the theta scale into the bins
-    cutscore <- seq(from=min.crscore, to=max.crscore, length.out=num.bin + 1)
+    cutscore <- seq(from = min.crscore, to = max.crscore, length.out = num.bin + 1)
 
     # assign a group variable to each score
-    bin_ref <- cut(crscore_ref, breaks=cutscore, include.lowest=TRUE, dig.lab=7)
-    bin_foc <- cut(crscore_foc, breaks=cutscore, include.lowest=TRUE, dig.lab=7)
+    bin_ref <- cut(crscore_ref, breaks = cutscore, include.lowest = TRUE, dig.lab = 7)
+    bin_foc <- cut(crscore_foc, breaks = cutscore, include.lowest = TRUE, dig.lab = 7)
 
     # exclude bins where candidates' responses are NAs
     non.na.ref <- !is.na(resp.ref)
@@ -612,65 +615,74 @@ catsib_item <- function(crscore_ref, crscore_foc, resp.ref, resp.foc,
 
     # check if the counts of remaining sample is greater than equal to minimum a criterion
     isok_ref <- (sum(bin.n.ref[bin.n.ref >= min.binsize & bin.n.foc >= min.binsize]) /
-                   sum(bin.n.ref)) >= 1 - max.del
+      sum(bin.n.ref)) >= 1 - max.del
     isok_foc <- (sum(bin.n.foc[bin.n.ref >= min.binsize & bin.n.foc >= min.binsize]) /
-                   sum(bin.n.foc)) >= 1 - max.del
+      sum(bin.n.foc)) >= 1 - max.del
 
     # if the criterion is met, then break out the loop
-    if(all(isok_ref, isok_foc)) {
+    if (all(isok_ref, isok_foc)) {
       break
     }
-
   }
 
   # final data frame containing all components to compute the beta statistic
   prop.ref <- as.numeric(table(bin_ref, resp.ref[non.na.ref])[, 2] / bin.n.ref)
   prop.foc <- as.numeric(table(bin_foc, resp.foc[non.na.foc])[, 2] / bin.n.foc)
-  var.ref <- as.numeric(by(data =  resp.ref[non.na.ref],
-                           INDICES = bin_ref,
-                           FUN = stats::var, na.rm = TRUE))
-  var.foc <- as.numeric(by(data =  resp.foc[non.na.foc],
-                           INDICES = bin_foc,
-                           FUN = stats::var, na.rm = TRUE))
+  var.ref <- as.numeric(by(
+    data = resp.ref[non.na.ref],
+    INDICES = bin_ref,
+    FUN = stats::var, na.rm = TRUE
+  ))
+  var.foc <- as.numeric(by(
+    data = resp.foc[non.na.foc],
+    INDICES = bin_foc,
+    FUN = stats::var, na.rm = TRUE
+  ))
   ref.df <-
     as.data.frame(bin.n.ref, stringsAsFactors = FALSE) %>%
     stats::setNames(nm = c("bin", "n.ref")) %>%
-    data.frame(prop.ref=prop.ref, var.ref=var.ref)
+    data.frame(prop.ref = prop.ref, var.ref = var.ref)
   foc.df <-
     as.data.frame(bin.n.foc, stringsAsFactors = FALSE) %>%
     stats::setNames(nm = c("bin", "n.foc")) %>%
-    data.frame(prop.foc=prop.foc, var.foc=var.foc)
+    data.frame(prop.foc = prop.foc, var.foc = var.foc)
   n.ref <- n.foc <- weight <- NULL
   item_df <-
     merge(x = ref.df, y = foc.df, by = "bin", all = TRUE, sort = FALSE) %>%
     subset(n.ref >= 3 & n.foc >= 3) %>%
     transform(n.total = n.ref + n.foc) %>%
     dplyr::mutate(
-      weight=dplyr::case_when(
+      weight = dplyr::case_when(
         weight.group == "comb" ~ .data$n.total / sum(.data$n.total),
         weight.group == "foc" ~ .data$n.foc / sum(.data$n.foc),
-        weight.group == "ref" ~ .data$n.ref / sum(.data$n.ref))) %>%
-    transform(beta = ((prop.ref - prop.foc) * weight),
-              var.beta = ((var.ref / n.ref + var.foc / n.foc) * weight^2))
+        weight.group == "ref" ~ .data$n.ref / sum(.data$n.ref)
+      )
+    ) %>%
+    transform(
+      beta = ((prop.ref - prop.foc) * weight),
+      var.beta = ((var.ref / n.ref + var.foc / n.foc) * weight^2)
+    )
 
   # compute the beta statistic and its SE
   beta <- sum(item_df$beta)
   se_beta <- sqrt(sum(item_df$var.beta))
   z_beta <- beta / se_beta
-  pval_beta <- 2 * stats::pnorm(q=abs(z_beta), mean=0, sd=1, lower.tail=FALSE)
+  pval_beta <- 2 * stats::pnorm(q = abs(z_beta), mean = 0, sd = 1, lower.tail = FALSE)
   n.ref <- sum(item_df$n.ref)
   n.foc <- sum(item_df$n.foc)
-  stat_df <- data.frame(beta=beta, se=se_beta, z.beta=z_beta, p=pval_beta,
-                        n.ref=n.ref, n.foc=n.foc, n.total=n.ref + n.foc)
+  stat_df <- data.frame(
+    beta = beta, se = se_beta, z.beta = z_beta, p = pval_beta,
+    n.ref = n.ref, n.foc = n.foc, n.total = n.ref + n.foc
+  )
 
   # round the numbers of the data frame
   item_df2 <-
-    janitor::adorn_totals(dat=item_df, where="row", fill=NA,,, "n.ref", "n.foc", "n.total",
-                          "beta", "var.beta") %>%
-    dplyr::mutate_at(.vars=c(3, 4, 6, 7), "round", digits=4)
+    janitor::adorn_totals(
+      dat = item_df, where = "row", fill = NA, , , "n.ref", "n.foc", "n.total",
+      "beta", "var.beta"
+    ) %>%
+    dplyr::mutate_at(.vars = c(3, 4, 6, 7), "round", digits = 4)
 
   # return the results
-  list(dif_stat=stat_df, contingency=item_df2)
-
+  list(dif_stat = stat_df, contingency = item_df2)
 }
-

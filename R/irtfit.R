@@ -138,7 +138,7 @@
 #' ## example 1
 #' ## use the simulated CAT data
 #' # find the location of items that have more than 10,000 responses
-#' over10000 <- which(colSums(simCAT_MX$res.dat, na.rm=TRUE) > 10000)
+#' over10000 <- which(colSums(simCAT_MX$res.dat, na.rm = TRUE) > 10000)
 #'
 #' # select the items that have more than 10,000 responses
 #' x <- simCAT_MX$item.prm[over10000, ]
@@ -150,9 +150,11 @@
 #' score <- simCAT_MX$score
 #'
 #' # compute fit statistics
-#' fit1 <- irtfit(x=x, score=score, data=data, group.method="equal.width",
-#'                n.width=10, loc.theta="average", range.score=NULL, D=1, alpha=0.05,
-#'                missing=NA, overSR=2)
+#' fit1 <- irtfit(
+#'   x = x, score = score, data = data, group.method = "equal.width",
+#'   n.width = 10, loc.theta = "average", range.score = NULL, D = 1, alpha = 0.05,
+#'   missing = NA, overSR = 2
+#' )
 #'
 #' # fit statistics
 #' fit1$fit_stat
@@ -166,18 +168,20 @@
 #' flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # select the first two dichotomous items and last polytomous item
-#' x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
+#' x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
 #'
 #' # generate examinees' abilities from N(0, 1)
 #' set.seed(10)
-#' score <- rnorm(1000, mean=0, sd=1)
+#' score <- rnorm(1000, mean = 0, sd = 1)
 #'
 #' # simulate the response data
-#' data <- simdat(x=x, theta=score, D=1)
+#' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' # compute fit statistics
-#' fit2 <- irtfit(x=x, score=score, data=data, group.method="equal.freq",
-#'                n.width=11, loc.theta="average", range.score=c(-4, 4), D=1, alpha=0.05)
+#' fit2 <- irtfit(
+#'   x = x, score = score, data = data, group.method = "equal.freq",
+#'   n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1, alpha = 0.05
+#' )
 #'
 #' # fit statistics
 #' fit2$fit_stat
@@ -186,25 +190,24 @@
 #' fit2$contingency.fitstat
 #'
 #' # residual plots for the first item (dichotomous item)
-#' plot(x=fit2, item.loc=1, type = "both", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+#' plot(x = fit2, item.loc = 1, type = "both", ci.method = "wald",
+#'      show.table = TRUE, ylim.sr.adjust = TRUE)
 #'
 #' # residual plots for the third item (polytomous item)
-#' plot(x=fit2, item.loc=3, type = "both", ci.method = "wald", show.table=FALSE, ylim.sr.adjust=TRUE)
-#'
+#' plot(x = fit2, item.loc = 3, type = "both", ci.method = "wald",
+#'      show.table = FALSE, ylim.sr.adjust = TRUE)
 #' }
 #'
 #' @export
 irtfit <- function(x, ...) UseMethod("irtfit")
 
 #' @describeIn irtfit Default method to compute the traditional IRT item fit statistics for a data frame \code{x} containing the item metadata.
-#'
+#' @import dplyr
 #' @export
 #'
-irtfit.default <- function(x, score, data, group.method=c("equal.width", "equal.freq"),
-                           n.width=10, loc.theta="average", range.score=NULL, D=1, alpha=0.05,
-                           missing=NA, overSR=2, min.collapse=1, pcm.loc=NULL, ...) {
-
-
+irtfit.default <- function(x, score, data, group.method = c("equal.width", "equal.freq"),
+                           n.width = 10, loc.theta = "average", range.score = NULL, D = 1, alpha = 0.05,
+                           missing = NA, overSR = 2, min.collapse = 1, pcm.loc = NULL, ...) {
   # match.call
   cl <- match.call()
 
@@ -216,7 +219,7 @@ irtfit.default <- function(x, score, data, group.method=c("equal.width", "equal.
   pcm.lg[pcm.loc] <- TRUE
 
   # transform scores to a vector form
-  if(is.matrix(score) | is.data.frame(score)) {
+  if (is.matrix(score) | is.data.frame(score)) {
     score <- as.numeric(data.matrix(score))
   }
 
@@ -224,17 +227,17 @@ irtfit.default <- function(x, score, data, group.method=c("equal.width", "equal.
   data <- data.matrix(data)
 
   # recode missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
   # check if there are items which have zero or one response frequency
-  n.score <-  Rfast::colsums(!is.na(data))
-  if(all(n.score %in% c(0L, 1L))) {
-    stop("Every item has frequency of zero or one for the item response data. Each item must have more than two item responses.", call.=FALSE)
+  n.score <- Rfast::colsums(!is.na(data))
+  if (all(n.score %in% c(0L, 1L))) {
+    stop("Every item has frequency of zero or one for the item response data. Each item must have more than two item responses.", call. = FALSE)
   }
 
-  if(any(n.score %in% c(0L, 1L))) {
+  if (any(n.score %in% c(0L, 1L))) {
     del_item <- which(n.score %in% c(0L, 1L))
 
     # delete the items which have no frequency of scores from the data set
@@ -243,69 +246,74 @@ irtfit.default <- function(x, score, data, group.method=c("equal.width", "equal.
     pcm.lg <- pcm.lg[-del_item]
 
     # warning message
-    memo <- paste0(paste0("item ", del_item, collapse = ", "),
-                   " is/are excluded in the analysis. Because the item(s) has/have frequency of zero or one for the item response data.")
-    warning(memo, call.=FALSE)
+    memo <- paste0(
+      paste0("item ", del_item, collapse = ", "),
+      " is/are excluded in the analysis. Because the item(s) has/have frequency of zero or one for the item response data."
+    )
+    warning(memo, call. = FALSE)
   }
 
   # restrict the range of scores if required
-  if(!is.null(range.score)) {
+  if (!is.null(range.score)) {
     score <- ifelse(score < range.score[1], range.score[1], score)
     score <- ifelse(score > range.score[2], range.score[2], score)
   } else {
-    tmp.val <- max(ceiling(abs(range(score, na.rm=TRUE))))
+    tmp.val <- max(ceiling(abs(range(score, na.rm = TRUE))))
     range.score <- c(-tmp.val, tmp.val)
   }
 
   # compute item fit statistics and obtain contingency tables across all items
   fits <-
-    purrr::map(1:nrow(x), .f=function(i)
-      itemfit(x_item=x[i, ], score=score, resp=data[, i], group.method=group.method,
-              n.width=n.width, loc.theta=loc.theta, D=D, alpha=alpha, overSR=overSR,
-              min.collapse=min.collapse, is.pcm=pcm.lg[i]))
+    purrr::map(1:nrow(x), .f = function(i) {
+      itemfit(
+        x_item = x[i, ], score = score, resp = data[, i], group.method = group.method,
+        n.width = n.width, loc.theta = loc.theta, D = D, alpha = alpha, overSR = overSR,
+        min.collapse = min.collapse, is.pcm = pcm.lg[i]
+      )
+    })
 
   # extract fit statistics
   fit_stat <-
-    purrr::map(fits, .f=function(i) i$fit.stats) %>%
-    do.call(what="rbind")
-  fit_stat <- data.frame(id=x$id, fit_stat)
+    purrr::map(fits, .f = function(i) i$fit.stats) %>%
+    do.call(what = "rbind")
+  fit_stat <- data.frame(id = x$id, fit_stat)
 
   # extract the contingency tables used to compute the fit statistics
   contingency.fitstat <-
-    purrr::map(fits, .f=function(i) i$contingency.fitstat)
+    purrr::map(fits, .f = function(i) i$contingency.fitstat)
   names(contingency.fitstat) <- x$id
 
   # extract the contingency tables to be used to draw residual plots
   contingency.plot <-
-    purrr::map(fits, .f=function(i) i$contingency.plot)
+    purrr::map(fits, .f = function(i) i$contingency.plot)
   names(contingency.plot) <- x$id
 
   # extract the individual residuals and variances
   individual.info <-
-    purrr::map(fits, .f=function(i) i$individual.info)
+    purrr::map(fits, .f = function(i) i$individual.info)
   names(individual.info) <- x$id
 
   # return results
-  rst <- list(fit_stat=fit_stat, contingency.fitstat=contingency.fitstat,
-              contingency.plot=contingency.plot,
-              item_df=x, individual.info=individual.info,
-              ancillary=list(range.score=range.score, alpha=alpha, overSR=overSR, scale.D=D))
+  rst <- list(
+    fit_stat = fit_stat, contingency.fitstat = contingency.fitstat,
+    contingency.plot = contingency.plot,
+    item_df = x, individual.info = individual.info,
+    ancillary = list(range.score = range.score, alpha = alpha, overSR = overSR, scale.D = D)
+  )
   class(rst) <- "irtfit"
   rst$call <- cl
 
   rst
-
 }
 
 
 #' @describeIn irtfit An object created by the function \code{\link{est_item}}.
-#'
+#' @import dplyr
 #' @export
 #'
-irtfit.est_item <- function(x, group.method=c("equal.width", "equal.freq"),
-                            n.width=10, loc.theta="average", range.score=NULL, alpha=0.05,
-                            missing=NA, overSR=2, min.collapse=1, pcm.loc=NULL, ...) {
-
+irtfit.est_item <- function(x, group.method = c("equal.width", "equal.freq"),
+                            n.width = 10, loc.theta = "average", range.score = NULL, alpha = 0.05,
+                            missing = NA, overSR = 2, min.collapse = 1, pcm.loc = NULL, ...) {
   # match.call
   cl <- match.call()
 
@@ -323,7 +331,7 @@ irtfit.est_item <- function(x, group.method=c("equal.width", "equal.freq"),
   pcm.lg[pcm.loc] <- TRUE
 
   # transform scores to a vector form
-  if(is.matrix(score) | is.data.frame(score)) {
+  if (is.matrix(score) | is.data.frame(score)) {
     score <- as.numeric(data.matrix(score))
   }
 
@@ -331,17 +339,17 @@ irtfit.est_item <- function(x, group.method=c("equal.width", "equal.freq"),
   data <- data.matrix(data)
 
   # recode missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
   # check if there are items which have zero or one response frequency
-  n.score <-  Rfast::colsums(!is.na(data))
-  if(all(n.score %in% c(0L, 1L))) {
-    stop("Every item has frequency of zero or one for the item response data. Each item must have more than two item responses.", call.=FALSE)
+  n.score <- Rfast::colsums(!is.na(data))
+  if (all(n.score %in% c(0L, 1L))) {
+    stop("Every item has frequency of zero or one for the item response data. Each item must have more than two item responses.", call. = FALSE)
   }
 
-  if(any(n.score %in% c(0L, 1L))) {
+  if (any(n.score %in% c(0L, 1L))) {
     del_item <- which(n.score %in% c(0L, 1L))
 
     # delete the items which have no frequency of scores from the data set
@@ -350,71 +358,74 @@ irtfit.est_item <- function(x, group.method=c("equal.width", "equal.freq"),
     pcm.lg <- pcm.lg[-del_item]
 
     # warning message
-    memo <- paste0(paste0("item ", del_item, collapse = ", "),
-                   " is/are excluded in the analysis. Because the item(s) has/have frequency of zero or one for the item response data.")
-    warning(memo, call.=FALSE)
+    memo <- paste0(
+      paste0("item ", del_item, collapse = ", "),
+      " is/are excluded in the analysis. Because the item(s) has/have frequency of zero or one for the item response data."
+    )
+    warning(memo, call. = FALSE)
   }
 
   # restrict the range of scores if required
-  if(!is.null(range.score)) {
+  if (!is.null(range.score)) {
     score <- ifelse(score < range.score[1], range.score[1], score)
     score <- ifelse(score > range.score[2], range.score[2], score)
   } else {
-    tmp.val <- max(ceiling(abs(range(score, na.rm=TRUE))))
+    tmp.val <- max(ceiling(abs(range(score, na.rm = TRUE))))
     range.score <- c(-tmp.val, tmp.val)
   }
 
   # compute item fit statistics and obtain contingency tables across all items
   fits <-
-    purrr::map(1:nrow(x), .f=function(i)
-      itemfit(x_item=x[i, ], score=score, resp=data[, i], group.method=group.method,
-              n.width=n.width, loc.theta=loc.theta, D=D, alpha=alpha, overSR=overSR,
-              min.collapse=min.collapse, is.pcm=pcm.lg[i]))
+    purrr::map(1:nrow(x), .f = function(i) {
+      itemfit(
+        x_item = x[i, ], score = score, resp = data[, i], group.method = group.method,
+        n.width = n.width, loc.theta = loc.theta, D = D, alpha = alpha, overSR = overSR,
+        min.collapse = min.collapse, is.pcm = pcm.lg[i]
+      )
+    })
 
   # extract fit statistics
   fit_stat <-
-    purrr::map(fits, .f=function(i) i$fit.stats) %>%
-    do.call(what="rbind")
-  fit_stat <- data.frame(id=x$id, fit_stat)
+    purrr::map(fits, .f = function(i) i$fit.stats) %>%
+    do.call(what = "rbind")
+  fit_stat <- data.frame(id = x$id, fit_stat)
 
   # extract the contingency tables used to compute the fit statistics
   contingency.fitstat <-
-    purrr::map(fits, .f=function(i) i$contingency.fitstat)
+    purrr::map(fits, .f = function(i) i$contingency.fitstat)
   names(contingency.fitstat) <- x$id
 
   # extract the contingency tables to be used to draw residual plots
   contingency.plot <-
-    purrr::map(fits, .f=function(i) i$contingency.plot)
+    purrr::map(fits, .f = function(i) i$contingency.plot)
   names(contingency.plot) <- x$id
 
   # extract the individual residuals and variances
   individual.info <-
-    purrr::map(fits, .f=function(i) i$individual.info)
+    purrr::map(fits, .f = function(i) i$individual.info)
   names(individual.info) <- x$id
 
   # return results
-  rst <- list(fit_stat=fit_stat, contingency.fitstat=contingency.fitstat,
-              contingency.plot=contingency.plot,
-              item_df=x, individual.info=individual.info,
-              ancillary=list(range.score=range.score, alpha=alpha, overSR=overSR, scale.D=D))
+  rst <- list(
+    fit_stat = fit_stat, contingency.fitstat = contingency.fitstat,
+    contingency.plot = contingency.plot,
+    item_df = x, individual.info = individual.info,
+    ancillary = list(range.score = range.score, alpha = alpha, overSR = overSR, scale.D = D)
+  )
   class(rst) <- "irtfit"
   rst$call <- cl
 
   rst
-
-
 }
 
 
 #' @describeIn irtfit An object created by the function \code{\link{est_irt}}.
-#'
+#' @import dplyr
 #' @export
 #'
-irtfit.est_irt <- function(x, score, group.method=c("equal.width", "equal.freq"),
-                           n.width=10, loc.theta="average", range.score=NULL, alpha=0.05,
-                           missing=NA, overSR=2, min.collapse=1, pcm.loc=NULL, ...) {
-
-
+irtfit.est_irt <- function(x, score, group.method = c("equal.width", "equal.freq"),
+                           n.width = 10, loc.theta = "average", range.score = NULL, alpha = 0.05,
+                           missing = NA, overSR = 2, min.collapse = 1, pcm.loc = NULL, ...) {
   # match.call
   cl <- match.call()
 
@@ -431,7 +442,7 @@ irtfit.est_irt <- function(x, score, group.method=c("equal.width", "equal.freq")
   pcm.lg[pcm.loc] <- TRUE
 
   # transform scores to a vector form
-  if(is.matrix(score) | is.data.frame(score)) {
+  if (is.matrix(score) | is.data.frame(score)) {
     score <- as.numeric(data.matrix(score))
   }
 
@@ -439,17 +450,17 @@ irtfit.est_irt <- function(x, score, group.method=c("equal.width", "equal.freq")
   data <- data.matrix(data)
 
   # recode missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
   # check if there are items which have zero or one response frequency
-  n.score <-  Rfast::colsums(!is.na(data))
-  if(all(n.score %in% c(0L, 1L))) {
-    stop("Every item has frequency of zero or one for the item response data. Each item must have more than two item responses.", call.=FALSE)
+  n.score <- Rfast::colsums(!is.na(data))
+  if (all(n.score %in% c(0L, 1L))) {
+    stop("Every item has frequency of zero or one for the item response data. Each item must have more than two item responses.", call. = FALSE)
   }
 
-  if(any(n.score %in% c(0L, 1L))) {
+  if (any(n.score %in% c(0L, 1L))) {
     del_item <- which(n.score %in% c(0L, 1L))
 
     # delete the items which have no frequency of scores from the data set
@@ -458,68 +469,74 @@ irtfit.est_irt <- function(x, score, group.method=c("equal.width", "equal.freq")
     pcm.lg <- pcm.lg[-del_item]
 
     # warning message
-    memo <- paste0(paste0("item ", del_item, collapse = ", "),
-                   " is/are excluded in the analysis. Because the item(s) has/have frequency of zero or one for the item response data.")
-    warning(memo, call.=FALSE)
+    memo <- paste0(
+      paste0("item ", del_item, collapse = ", "),
+      " is/are excluded in the analysis. Because the item(s) has/have frequency of zero or one for the item response data."
+    )
+    warning(memo, call. = FALSE)
   }
 
   # restrict the range of scores if required
-  if(!is.null(range.score)) {
+  if (!is.null(range.score)) {
     score <- ifelse(score < range.score[1], range.score[1], score)
     score <- ifelse(score > range.score[2], range.score[2], score)
   } else {
-    tmp.val <- max(ceiling(abs(range(score, na.rm=TRUE))))
+    tmp.val <- max(ceiling(abs(range(score, na.rm = TRUE))))
     range.score <- c(-tmp.val, tmp.val)
   }
 
   # compute item fit statistics and obtain contingency tables across all items
   fits <-
-    purrr::map(1:nrow(x), .f=function(i)
-      itemfit(x_item=x[i, ], score=score, resp=data[, i], group.method=group.method,
-              n.width=n.width, loc.theta=loc.theta, D=D, alpha=alpha, overSR=overSR,
-              min.collapse=min.collapse, is.pcm=pcm.lg[i]))
+    purrr::map(1:nrow(x), .f = function(i) {
+      itemfit(
+        x_item = x[i, ], score = score, resp = data[, i], group.method = group.method,
+        n.width = n.width, loc.theta = loc.theta, D = D, alpha = alpha, overSR = overSR,
+        min.collapse = min.collapse, is.pcm = pcm.lg[i]
+      )
+    })
 
   # extract fit statistics
   fit_stat <-
-    purrr::map(fits, .f=function(i) i$fit.stats) %>%
-    do.call(what="rbind")
-  fit_stat <- data.frame(id=x$id, fit_stat)
+    purrr::map(fits, .f = function(i) i$fit.stats) %>%
+    do.call(what = "rbind")
+  fit_stat <- data.frame(id = x$id, fit_stat)
 
   # extract the contingency tables used to compute the fit statistics
   contingency.fitstat <-
-    purrr::map(fits, .f=function(i) i$contingency.fitstat)
+    purrr::map(fits, .f = function(i) i$contingency.fitstat)
   names(contingency.fitstat) <- x$id
 
   # extract the contingency tables to be used to draw residual plots
   contingency.plot <-
-    purrr::map(fits, .f=function(i) i$contingency.plot)
+    purrr::map(fits, .f = function(i) i$contingency.plot)
   names(contingency.plot) <- x$id
 
   # extract the individual residuals and variances
   individual.info <-
-    purrr::map(fits, .f=function(i) i$individual.info)
+    purrr::map(fits, .f = function(i) i$individual.info)
   names(individual.info) <- x$id
 
   # return results
-  rst <- list(fit_stat=fit_stat, contingency.fitstat=contingency.fitstat,
-              contingency.plot=contingency.plot,
-              item_df=x, individual.info=individual.info,
-              ancillary=list(range.score=range.score, alpha=alpha, overSR=overSR, scale.D=D))
+  rst <- list(
+    fit_stat = fit_stat, contingency.fitstat = contingency.fitstat,
+    contingency.plot = contingency.plot,
+    item_df = x, individual.info = individual.info,
+    ancillary = list(range.score = range.score, alpha = alpha, overSR = overSR, scale.D = D)
+  )
   class(rst) <- "irtfit"
   rst$call <- cl
 
   rst
-
 }
 
 
 
-#' @import janitor
-#' @import tibble
-itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.freq"),
-                    n.width=10, loc.theta="average", D=1, alpha=0.05, overSR=2, min.collapse=1,
-                    is.pcm=FALSE) {
-
+#' @importFrom janitor adorn_totals adorn_percentages
+#' @importFrom tibble rownames_to_column remove_rownames column_to_rownames
+#' @import dplyr
+itemfit <- function(x_item, score, resp, group.method = c("equal.width", "equal.freq"),
+                    n.width = 10, loc.theta = "average", D = 1, alpha = 0.05, overSR = 2, min.collapse = 1,
+                    is.pcm = FALSE) {
   # break down the item metadata into several elements
   elm_item <- breakdown(x_item)
 
@@ -532,13 +549,13 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   score <- score[!na_lg]
 
   # assign factor levels to the item responses
-  resp <- factor(resp, levels=(seq_len(cats) - 1))
+  resp <- factor(resp, levels = (seq_len(cats) - 1))
 
   # compute cut scores to divide score groups
   group.method <- match.arg(group.method)
   cutscore <- switch(group.method,
-                     equal.width = seq(from=min(score), to=max(score), length.out=n.width + 1) ,
-                     equal.freq = stats::quantile(score, probs=seq(0, 1, length.out=n.width + 1), type=9)
+    equal.width = seq(from = min(score), to = max(score), length.out = n.width + 1),
+    equal.freq = stats::quantile(score, probs = seq(0, 1, length.out = n.width + 1), type = 9)
   )
 
   # when there are the same cutscores,
@@ -546,12 +563,12 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   cutscore <- unique(cutscore)
 
   # assign score group variable to each score
-  intv <- cut(score, breaks=cutscore, right=FALSE, include.lowest=TRUE, dig.lab = 7)
+  intv <- cut(score, breaks = cutscore, right = FALSE, include.lowest = TRUE, dig.lab = 7)
 
   # create a contingency table for the frequencies of score points
   obs.freq <-
     as.data.frame.matrix(table(intv, resp)) %>%
-    tibble::rownames_to_column(var="interval") %>%
+    tibble::rownames_to_column(var = "interval") %>%
     janitor::adorn_totals(where = "col", name = "total")
   delrow.lg <- obs.freq$total == 0
   obs.freq <- obs.freq[!delrow.lg, ]
@@ -563,26 +580,26 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
 
   # find a theta point for each score group
   loc.theta <- tolower(loc.theta)
-  if(loc.theta == "middle") {
-    theta <- purrr::map_dbl(.x=2:length(cutscore), .f=function(i) mean(c(cutscore[i - 1], cutscore[i])))
+  if (loc.theta == "middle") {
+    theta <- purrr::map_dbl(.x = 2:length(cutscore), .f = function(i) mean(c(cutscore[i - 1], cutscore[i])))
     theta <- theta[!delrow.lg]
   } else {
     theta <-
       data.frame(intv, score) %>%
       dplyr::group_by(.data$intv) %>%
-      dplyr::summarize(ave=mean(.data$score), .groups="drop") %>%
+      dplyr::summarize(ave = mean(.data$score), .groups = "drop") %>%
       dplyr::pull(2)
   }
 
   # compute expected probabilities of endorsing an answer to each score category
   exp.prob <-
-    trace(elm_item=elm_item, theta=theta, D=D, tcc=FALSE)$prob.cats[[1]] %>%
+    trace(elm_item = elm_item, theta = theta, D = D, tcc = FALSE)$prob.cats[[1]] %>%
     data.frame()
   colnames(exp.prob) <- 0:(cats - 1)
 
-  ##-------------------------------------------------------------------------
+  ## -------------------------------------------------------------------------
   # find a z-score corresponding to significance level
-  zscore <- stats::qnorm(1-alpha)
+  zscore <- stats::qnorm(1 - alpha)
 
   # compute raw residuals (rr)
   rr <- obs.prop[2:(cats + 1)] - exp.prob
@@ -591,7 +608,7 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   se <- sqrt((exp.prob * (1 - exp.prob)) / obs.freq$total)
 
   # standardize the residuals (sr)
-  sr <- rr/se
+  sr <- rr / se
 
   # compute a proportion of groups (or intervals) that have the standardized
   # residuals greater than a specified criterion
@@ -600,24 +617,26 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
 
   # create a full contingency table to draw IRT residual plots
   ctg_tb <-
-    data.frame(point=theta, obs.freq=obs.freq, obs.prop=obs.prop[, 2:(cats + 1)],
-               exp.prob=exp.prob, raw.rsd=rr, se=se, std.rsd=sr) %>%
+    data.frame(
+      point = theta, obs.freq = obs.freq, obs.prop = obs.prop[, 2:(cats + 1)],
+      exp.prob = exp.prob, raw.rsd = rr, se = se, std.rsd = sr
+    ) %>%
     dplyr::relocate("obs.freq.interval", .before = "point") %>%
     dplyr::relocate("obs.freq.total", .after = "point") %>%
     dplyr::rename("interval" = "obs.freq.interval", "total" = "obs.freq.total")
 
-  ##------------------------------------------------------------------------------
+  ## ------------------------------------------------------------------------------
   # collapsing the contingency tables to compute the chi-square fit statistics
   # check the number of expected frequency for all cells
   exp.freq <- exp.prob * obs.freq$total
 
   # collapse the expected and observed frequency tables
   ftable_info <-
-    data.frame(exp.freq=exp.freq, obs.freq=obs.freq) %>%
+    data.frame(exp.freq = exp.freq, obs.freq = obs.freq) %>%
     tibble::remove_rownames() %>%
     tibble::column_to_rownames(var = "obs.freq.interval")
-  for(i in 1:cats) {
-    ftable_info <- collapse_ftable(x=ftable_info, col=i, min.collapse=min.collapse)
+  for (i in 1:cats) {
+    ftable_info <- collapse_ftable(x = ftable_info, col = i, min.collapse = min.collapse)
   }
 
   # new contingency tables after collapsing
@@ -629,7 +648,7 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   colnames(exp.prob.cp) <- paste0("exp.prob.", 0:(cats - 1))
   colnames(obs.prop.cp) <- paste0("obs.prop.", 0:(cats - 1))
 
-  ##-------------------------------------------------------------------------
+  ## -------------------------------------------------------------------------
   # create a contingency table to compute the item fit statistics
   # first, compute raw residuals
   rr.cp <- obs.prop.cp - exp.prob.cp
@@ -643,14 +662,14 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   rownames(ctg_tb.cp) <- 1:nrow(ctg_tb.cp)
 
   # compute the chi-square statistic (X2)
-  x2 <- sum(freq.tot.cp * (rr.cp^2 / exp.prob.cp), na.rm=TRUE)
+  x2 <- sum(freq.tot.cp * (rr.cp^2 / exp.prob.cp), na.rm = TRUE)
 
   # compute the likelihood ratio chi-square fit statistic (G2)
   g2 <- 2 * sum(obs.freq.cp[, 1:cats] * log(obs.prop.cp / exp.prob.cp), na.rm = TRUE)
 
   # find the number of parameters for each item
   model <- x_item$model
-  if(is.pcm) model <- "PCM"
+  if (is.pcm) model <- "PCM"
   count_prm <- NA
   count_prm[model %in% "1PLM"] <- 1
   count_prm[model %in% "2PLM"] <- 2
@@ -662,16 +681,18 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   # find a critical value and compute the p values
   df.x2 <- nrow(exp.freq.cp) * (ncol(exp.freq.cp) - 1) - count_prm
   df.g2 <- nrow(exp.freq.cp) * (ncol(exp.freq.cp) - 1)
-  crtval.x2 <- stats::qchisq(1-alpha, df=df.x2, lower.tail=TRUE)
-  crtval.g2 <- stats::qchisq(1-alpha, df=df.g2, lower.tail=TRUE)
-  pval.x2 <- 1 - stats::pchisq(x2, df=df.x2, lower.tail = TRUE)
-  pval.g2 <- 1 - stats::pchisq(g2, df=df.g2, lower.tail = TRUE)
+  crtval.x2 <- stats::qchisq(1 - alpha, df = df.x2, lower.tail = TRUE)
+  crtval.g2 <- stats::qchisq(1 - alpha, df = df.g2, lower.tail = TRUE)
+  pval.x2 <- 1 - stats::pchisq(x2, df = df.x2, lower.tail = TRUE)
+  pval.g2 <- 1 - stats::pchisq(g2, df = df.g2, lower.tail = TRUE)
 
-  ##------------------------------------------------------------------------------
+  ## ------------------------------------------------------------------------------
   # infit & outfit
   # individual expected probabilities for each score category
-  indiv_exp.prob <- trace(elm_item=elm_item, theta=score, D=D,
-                          tcc = FALSE)$prob.cats[[1]]
+  indiv_exp.prob <- trace(
+    elm_item = elm_item, theta = score, D = D,
+    tcc = FALSE
+  )$prob.cats[[1]]
 
   # individual observed proportion for each score category
   n.resp <- length(resp)
@@ -680,7 +701,7 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
     as.data.frame.matrix()
 
   # a matrix of the expected scores for each category
-  Emat <- matrix(0:(cats-1), nrow(indiv_exp.prob), ncol(indiv_exp.prob), byrow = TRUE)
+  Emat <- matrix(0:(cats - 1), nrow(indiv_exp.prob), ncol(indiv_exp.prob), byrow = TRUE)
 
   # residuals
   resid <- rowSums(indiv_obs.prob * Emat) - rowSums(Emat * indiv_exp.prob)
@@ -689,24 +710,23 @@ itemfit <- function(x_item, score, resp, group.method=c("equal.width", "equal.fr
   Var <- rowSums((Emat - rowSums(Emat * indiv_exp.prob))^2 * indiv_exp.prob)
 
   # compute outfit & infit
-  outfit <- sum(resid^2/Var) / n.resp
+  outfit <- sum(resid^2 / Var) / n.resp
   infit <- sum(resid^2) / sum(Var)
 
-  ##------------------------------------------------------------------------------
+  ## ------------------------------------------------------------------------------
   # summary of fit statistics
-  fitstats <- data.frame(X2=round(x2, 3), G2=round(g2, 3), df.X2=df.x2, df.G2=df.g2,
-                         crit.val.X2=round(crtval.x2, 2), crit.val.G2=round(crtval.g2, 2),
-                         p.X2=round(pval.x2, 3), p.G2=round(pval.g2, 3),
-                         outfit=round(outfit, 3), infit=round(infit, 3),
-                         N=n.resp, overSR.prop=over_sr_prop)
+  fitstats <- data.frame(
+    X2 = round(x2, 3), G2 = round(g2, 3), df.X2 = df.x2, df.G2 = df.g2,
+    crit.val.X2 = round(crtval.x2, 2), crit.val.G2 = round(crtval.g2, 2),
+    p.X2 = round(pval.x2, 3), p.G2 = round(pval.g2, 3),
+    outfit = round(outfit, 3), infit = round(infit, 3),
+    N = n.resp, overSR.prop = over_sr_prop
+  )
 
-  ##------------------------------------------------------------------------------
+  ## ------------------------------------------------------------------------------
   # return results
-  list(fit.stats=fitstats, contingency.fitstat=ctg_tb.cp, contingency.plot=ctg_tb,
-       individual.info=data.frame(resid=resid, Var=Var))
-
+  list(
+    fit.stats = fitstats, contingency.fitstat = ctg_tb.cp, contingency.plot = ctg_tb,
+    individual.info = data.frame(resid = resid, Var = Var)
+  )
 }
-
-
-
-

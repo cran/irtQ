@@ -40,12 +40,11 @@ in the page of \code{\link{irtQ-package}}.
 \examples{
 ## Category probabilities for an item with four categories
 ## using a generalized partial credit model
-prm(theta=c(-0.2, 0, 0.5), a=1.4, d=c(-0.2, 0, 0.5), D=1, pr.model='GPCM')
+prm(theta = c(-0.2, 0, 0.5), a = 1.4, d = c(-0.2, 0, 0.5), D = 1, pr.model = "GPCM")
 
 ## Category probabilities for an item with five categories
 ## using a graded response model
-prm(theta=c(-0.2, 0, 0.5), a=1.2, d=c(-0.4, -0.2, 0.4, 1.5), D=1, pr.model='GRM')
-
+prm(theta = c(-0.2, 0, 0.5), a = 1.2, d = c(-0.4, -0.2, 0.4, 1.5), D = 1, pr.model = "GRM")
 
 }
 \seealso{

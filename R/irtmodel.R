@@ -22,24 +22,23 @@
 #'
 #' @examples
 #' ## when vectors are used for both theta values and item parameters (3PLM)
-#' drm(c(-0.1, 0.0, 1.5), a=c(1, 2), b=c(0, 1), g=c(0.2, 0.1), D=1)
+#' drm(c(-0.1, 0.0, 1.5), a = c(1, 2), b = c(0, 1), g = c(0.2, 0.1), D = 1)
 #'
 #' ## when vectors are only used for item parameters (2PLM)
-#' drm(0.0, a=c(1, 2), b=c(0, 1), D=1)
+#' drm(0.0, a = c(1, 2), b = c(0, 1), D = 1)
 #'
 #' ## when vectors are only used for theta values (3PLM)
-#' drm(c(-0.1, 0.0, 1.5), a=1, b=1, g=0.2, D=1)
+#' drm(c(-0.1, 0.0, 1.5), a = 1, b = 1, g = 0.2, D = 1)
 #'
 #' @importFrom Rfast Outer
 #'
 #' @export
-drm <- function(theta, a, b, g=NULL, D=1) {
-
+drm <- function(theta, a, b, g = NULL, D = 1) {
   # count the numbers of items
   nitem <- length(a)
 
   # check the item guessing parameters
-  if(is.null(g)) g <- rep(0, nitem)
+  if (is.null(g)) g <- rep(0, nitem)
 
   # calculate probability of correct answer
   z <- (D * a) * Rfast::Outer(x = theta, y = b, oper = "-")
@@ -52,7 +51,6 @@ drm <- function(theta, a, b, g=NULL, D=1) {
 
   # return the probability matrix
   P
-
 }
 
 
@@ -88,60 +86,56 @@ drm <- function(theta, a, b, g=NULL, D=1) {
 #' @examples
 #' ## Category probabilities for an item with four categories
 #' ## using a generalized partial credit model
-#' prm(theta=c(-0.2, 0, 0.5), a=1.4, d=c(-0.2, 0, 0.5), D=1, pr.model='GPCM')
+#' prm(theta = c(-0.2, 0, 0.5), a = 1.4, d = c(-0.2, 0, 0.5), D = 1, pr.model = "GPCM")
 #'
 #' ## Category probabilities for an item with five categories
 #' ## using a graded response model
-#' prm(theta=c(-0.2, 0, 0.5), a=1.2, d=c(-0.4, -0.2, 0.4, 1.5), D=1, pr.model='GRM')
-#'
+#' prm(theta = c(-0.2, 0, 0.5), a = 1.2, d = c(-0.4, -0.2, 0.4, 1.5), D = 1, pr.model = "GRM")
 #'
 #' @export
-prm <- function(theta, a, d, D=1, pr.model=c("GRM", "GPCM")) {
-
+prm <- function(theta, a, d, D = 1, pr.model = c("GRM", "GPCM")) {
   pr.model <- toupper(pr.model)
-  if(pr.model == "GRM") {
-    P <- grm(theta=theta, a=a, d=d, D=D)
+  if (pr.model == "GRM") {
+    P <- grm(theta = theta, a = a, d = d, D = D)
   } else {
-    P <- gpcm(theta=theta, a=a, d=d, D=D)
+    P <- gpcm(theta = theta, a = a, d = d, D = D)
   }
 
   # return
   P
-
 }
 
 # IRT GPC model
-#' @importFrom Rfast Outer
-#' @importFrom Rfast colCumSums
-#' @importFrom Rfast rowsums
-gpcm <- function (theta, a, d, D = 1) {
-
+#' @importFrom Rfast Outer colCumSums rowsums
+gpcm <- function(theta, a, d, D = 1) {
   # add 0 of the the first category step (threshold) parameter
   # to the step parameter vector
   d <- c(0, d)
 
   # calculate category probabilities
-  z <- (D * a) * (Rfast::Outer(x =  theta, y = d, oper = "-"))
+  z <- (D * a) * (Rfast::Outer(x = theta, y = d, oper = "-"))
   cumsum_z <- t(Rfast::colCumSums(z))
-  if(any(cumsum_z > 700)) {cumsum_z <- (cumsum_z / max(cumsum_z)) * 700}
-  if(any(cumsum_z < -700)) {cumsum_z <- -(cumsum_z / min(cumsum_z)) * 700}
+  if (any(cumsum_z > 700)) {
+    cumsum_z <- (cumsum_z / max(cumsum_z)) * 700
+  }
+  if (any(cumsum_z < -700)) {
+    cumsum_z <- -(cumsum_z / min(cumsum_z)) * 700
+  }
   numer <- exp(cumsum_z) # numerator
   denom <- Rfast::rowsums(numer) # denominator
   P <- numer / denom
 
   # return
   P
-
 }
 
 # IRT GRM model
 grm <- function(theta, a, d, D = 1) {
-
   # count the number of d parameters
   # m <- length(d)
 
   # calculate all the probabilities greater than equal to each threshold
-  allP <- drm(theta=theta, a=a, b=d, g=0, D=D)
+  allP <- drm(theta = theta, a = a, b = d, g = 0, D = D)
 
   # calculate category probabilities
   P <- cbind(1, allP) - cbind(allP, 0)
@@ -150,6 +144,4 @@ grm <- function(theta, a, d, D = 1) {
 
   # return
   P
-
 }
-

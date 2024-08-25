@@ -29,17 +29,17 @@
 #' @examples
 #' ## example 1
 #' ## generate 41 gaussian quadrature points and weights of normal distribution
-#' gen.weight(n=41, dist = "norm", mu = 0, sigma = 1)
+#' gen.weight(n = 41, dist = "norm", mu = 0, sigma = 1)
 #'
 #' ## example 2
 #' ## generate 41 theta values and weights from the uniform normal distribution,
 #' ## given the mininum value of -4 and the maximum value of 4
-#' gen.weight(n=41, dist = "unif", l = -4, u = 4)
+#' gen.weight(n = 41, dist = "unif", l = -4, u = 4)
 #'
 #' ## example 3
 #' ## generate the normalized weights from the standardized normal distribution,
 #' ## given a set of theta values
-#' theta <- seq(-4, 4, by=0.1)
+#' theta <- seq(-4, 4, by = 0.1)
 #' gen.weight(dist = "norm", mu = 0, sigma = 1, theta = theta)
 #'
 #' ## example 4
@@ -50,42 +50,36 @@
 #'
 #' @export
 #' @importFrom statmod gauss.quad.prob
-gen.weight <- function(n=41, dist = "norm", mu = 0, sigma = 1, l = -4, u = 4, theta) {
-
+gen.weight <- function(n = 41, dist = "norm", mu = 0, sigma = 1, l = -4, u = 4, theta) {
   dist <- tolower(dist)
 
-  if(missing(theta)) {
-
-    if(dist == "emp") {
-      stop("To use actual option in a distribution argument, theta values are needed.", call.=FALSE)
+  if (missing(theta)) {
+    if (dist == "emp") {
+      stop("To use actual option in a distribution argument, theta values are needed.", call. = FALSE)
     }
-    if(dist == "norm") {
-      wts.nd <- statmod::gauss.quad.prob(n, dist=dist, mu=mu, sigma=sigma)
+    if (dist == "norm") {
+      wts.nd <- statmod::gauss.quad.prob(n, dist = dist, mu = mu, sigma = sigma)
       nodes <- wts.nd$nodes
       whts <- wts.nd$weights
     }
-    if(dist == "unif") {
-      nodes <- seq(l, u, length.out=n)
-      dens <- stats::dunif(nodes, min=l, max=u)
+    if (dist == "unif") {
+      nodes <- seq(l, u, length.out = n)
+      dens <- stats::dunif(nodes, min = l, max = u)
       whts <- dens / sum(dens)
     }
-
   }
 
-  if(!missing(theta)) {
-
-    if(dist == "emp") {
+  if (!missing(theta)) {
+    if (dist == "emp") {
       nodes <- theta
-      whts <- rep(1/length(theta), length(theta))
+      whts <- rep(1 / length(theta), length(theta))
     }
-    if(dist == "norm") {
+    if (dist == "norm") {
       nodes <- theta
-      dens <- stats::dnorm(theta, mean=mu, sd=sigma)
+      dens <- stats::dnorm(theta, mean = mu, sd = sigma)
       whts <- dens / sum(dens)
     }
-
   }
 
-  return(data.frame(theta=nodes, weight=whts))
-
+  return(data.frame(theta = nodes, weight = whts))
 }

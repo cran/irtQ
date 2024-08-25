@@ -5,7 +5,7 @@
 #'
 #' @param x A data frame containing the item metadata (e.g., item parameters, number
 #' of score categories, models). This can be created easily using the \code{\link{shape_df}}
-#' function. See \code{\link{est_irt}}, \code{\link{irtfit}}, \\code{\link{info}},
+#' function. See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}},
 #' or \code{\link{simdat}} for more details about the item metadata.
 #' @param data A matrix representing examinees' response data for the items in \code{x}.
 #' Each row and column corresponds to an examinee and an item, respectively.
@@ -37,7 +37,7 @@
 #' @return A data frame of loglikelihood values. Each row indicates the ability parameter
 #' for which the loglikelihood was computed, and each column represents a response pattern.
 #'
-#' @examples#'
+#' @examples
 #' ## Import the "-prm.txt" output file from flexMIRT
 #' flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
@@ -59,18 +59,16 @@
 #'
 #' @export
 #' @importFrom reshape2 melt
-#' @importFrom purrr map
-#' @importFrom dplyr rename_all
+#' @import dplyr
 llike_score <- function(x, data, theta, D = 1, method = "ML", norm.prior = c(0, 1),
                         fence.a = 3.0, fence.b = NULL, missing = NA) {
-
   # check if the data set is a vector of an examinee
-  if(is.vector(data)) {
+  if (is.vector(data)) {
     data <- rbind(data)
   }
 
   # re-code missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
@@ -81,24 +79,24 @@ llike_score <- function(x, data, theta, D = 1, method = "ML", norm.prior = c(0, 
   x <- confirm_df(x)
 
   # add two more items and data responses when "ML" with Fences method is used
-  if(method == "MLF") {
-
+  if (method == "MLF") {
     # when fence.b = NULL, use the range argument as the fence.b argument
-    if(is.null(fence.b)) {
+    if (is.null(fence.b)) {
       fence.b <- range
     }
 
     # add two more response columns for the two fence items
-    data <- cbind(data, f.lower=1, f.upper=0)
+    data <- cbind(data, f.lower = 1, f.upper = 0)
 
     # create a new item metadata for the two fence items
-    x.fence <- shape_df(par.drm = list(a=rep(fence.a, 2), b=fence.b, g=rep(0, 2)),
-                        item.id=c("fence.lower", "fence.upper"), cats=2,
-                        model="3PLM")
+    x.fence <- shape_df(
+      par.drm = list(a = rep(fence.a, 2), b = fence.b, g = rep(0, 2)),
+      item.id = c("fence.lower", "fence.upper"), cats = 2,
+      model = "3PLM"
+    )
 
     # create the new item metadata by adding two fence items
     x <- dplyr::bind_rows(x, x.fence)
-
   }
 
   # check the maximum score category across all items
@@ -113,12 +111,14 @@ llike_score <- function(x, data, theta, D = 1, method = "ML", norm.prior = c(0, 
   # reshape the data
   data <-
     data.frame(x, t(data), check.names = FALSE) %>%
-    reshape2::melt(id.vars = 1:max.col,
-                   variable.name = "std",
-                   value.name = "resp",
-                   na.rm = TRUE,
-                   factorsAsStrings = FALSE)
-  data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+    reshape2::melt(
+      id.vars = 1:max.col,
+      variable.name = "std",
+      value.name = "resp",
+      na.rm = TRUE,
+      factorsAsStrings = FALSE
+    )
+  data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
   data$std <- as.numeric(data$std)
 
   # create a score table to contain the scoring results
@@ -126,29 +126,33 @@ llike_score <- function(x, data, theta, D = 1, method = "ML", norm.prior = c(0, 
 
   # compute the log-likelihood values for all the discrete theta values
   lls <-
-    purrr::map(.x = 1:nstd,
-               .f = function(x) {
-                 exam_dat <-
-                   data %>%
-                   dplyr::filter(.data$std == x)
-                 llike_score_one(exam_dat=exam_dat, theta=theta,
-                                 elm_item=elm_item, max.col=max.col, D=D,
-                                 method=method, norm.prior=norm.prior)
-               }) %>%
+    purrr::map(
+      .x = 1:nstd,
+      .f = function(x) {
+        exam_dat <-
+          data %>%
+          dplyr::filter(.data$std == x)
+        llike_score_one(
+          exam_dat = exam_dat, theta = theta,
+          elm_item = elm_item, max.col = max.col, D = D,
+          method = method, norm.prior = norm.prior
+        )
+      }
+    ) %>%
     bind.fill(type = "cbind") %>%
     data.frame() %>%
-    dplyr::rename_all(.f = ~{paste0("Resp.", 1:nstd)})
+    dplyr::rename_all(.f = ~ {
+      paste0("Resp.", 1:nstd)
+    })
 
   # return results
   lls
-
 }
 
 
 # This function computes the loglikelihood values for one test data set
 llike_score_one <- function(exam_dat, theta, elm_item, max.col, D = 1, method = "ML",
                             norm.prior = c(0, 1)) {
-
   # extract the required objects from the individual exam data
   elm_item$pars <- data.matrix(exam_dat[, 4:max.col])
   elm_item$model <- exam_dat$model
@@ -166,17 +170,18 @@ llike_score_one <- function(exam_dat, theta, elm_item, max.col, D = 1, method = 
   freq.cat <-
     matrix(
       stats::xtabs(~ tmp.id + resp,
-                   na.action=stats::na.pass, addNA = FALSE),
-      nrow=n.resp)
+        na.action = stats::na.pass, addNA = FALSE
+      ),
+      nrow = n.resp
+    )
 
   # compute the negative log-likelihood values for all the discrete theta values
-  ll_val <- ll_score(theta=theta, elm_item=elm_item, freq.cat=freq.cat, method=method,
-                     idx.drm=idx.drm, idx.prm=idx.prm, D=D, norm.prior=norm.prior,
-                     logL=TRUE)
+  ll_val <- ll_score(
+    theta = theta, elm_item = elm_item, freq.cat = freq.cat, method = method,
+    idx.drm = idx.drm, idx.prm = idx.prm, D = D, norm.prior = norm.prior,
+    logL = TRUE
+  )
 
   # return the log-likelihood values
   return(-ll_val)
-
 }
-
-

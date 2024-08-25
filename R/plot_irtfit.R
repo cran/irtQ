@@ -84,53 +84,59 @@
 #' flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # select the first two dichotomous items and last polytomous item
-#' x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
+#' x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
 #'
 #' # generate examinees' abilities from N(0, 1)
 #' set.seed(23)
-#' score <- rnorm(1000, mean=0, sd=1)
+#' score <- rnorm(1000, mean = 0, sd = 1)
 #'
 #' # simulate the response data
-#' data <- simdat(x=x, theta=score, D=1)
+#' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' \donttest{
 #' # compute fit statistics
-#' fit <- irtfit(x=x, score=score, data=data, group.method="equal.freq",
-#'                n.width=11, loc.theta="average", range.score=c(-4, 4), D=1, alpha=0.05, overSR=1.5)
+#' fit <- irtfit(
+#'   x = x, score = score, data = data, group.method = "equal.freq",
+#'   n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1,
+#'   alpha = 0.05, overSR = 1.5
+#' )
 #'
 #' # residual plots for the first item (dichotomous item)
-#' plot(x=fit, item.loc=1, type = "both", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+#' plot(x = fit, item.loc = 1, type = "both", ci.method = "wald",
+#'      show.table = TRUE, ylim.sr.adjust = TRUE)
 #'
 #' # residual plots for the third item (polytomous item)
-#' plot(x=fit, item.loc=3, type = "both", ci.method = "wald", show.table=FALSE, ylim.sr.adjust=TRUE)
+#' plot(x = fit, item.loc = 3, type = "both", ci.method = "wald",
+#'      show.table = FALSE, ylim.sr.adjust = TRUE)
 #'
 #' # raw residual plot for the third item (polytomous item)
-#' plot(x=fit, item.loc=3, type = "icc", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+#' plot(x = fit, item.loc = 3, type = "icc", ci.method = "wald",
+#'      show.table = TRUE, ylim.sr.adjust = TRUE)
 #'
 #' # standardized residual plot for the third item (polytomous item)
-#' plot(x=fit, item.loc=3, type = "sr", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+#' plot(x = fit, item.loc = 3, type = "sr", ci.method = "wald",
+#'      show.table = TRUE, ylim.sr.adjust = TRUE)
 #' }
 #'
-#' @import ggplot2
+#' @import ggplot2 dplyr
 #' @importFrom reshape2 melt
 #' @importFrom rlang .data
 #' @importFrom gridExtra grid.arrange
 #'
 #' @export
-plot.irtfit <- function(x, item.loc=NULL, type = "both",
+plot.irtfit <- function(x, item.loc = NULL, type = "both",
                         ci.method = c("wald", "wilson", "wilson.cr"), show.table = TRUE,
-                        layout.col=2, xlab.text, ylab.text, main.text, lab.size=15, main.size=15,
-                        axis.size=15, line.size=1.0, point.size=2.5, strip.size=12,
-                        ylim.icc=c(0, 1), ylim.sr.adjust=FALSE, ylim.sr=c(-4, 4), ...) {
-
-  ##-------------------------------------------------------------------------
-  if(is.null(item.loc)) {
-    stop("The location of item being plotted should be specified in 'item.loc'.", call.=FALSE)
+                        layout.col = 2, xlab.text, ylab.text, main.text, lab.size = 15, main.size = 15,
+                        axis.size = 15, line.size = 1.0, point.size = 2.5, strip.size = 12,
+                        ylim.icc = c(0, 1), ylim.sr.adjust = FALSE, ylim.sr = c(-4, 4), ...) {
+  ## -------------------------------------------------------------------------
+  if (is.null(item.loc)) {
+    stop("The location of item being plotted should be specified in 'item.loc'.", call. = FALSE)
   }
 
-  if(!is.null(item.loc)) {
-    if(length(item.loc) > 1) {
-      stop("A length of 'item.loc' must be 1.", call.=FALSE)
+  if (!is.null(item.loc)) {
+    if (length(item.loc) > 1) {
+      stop("A length of 'item.loc' must be 1.", call. = FALSE)
     }
   }
 
@@ -158,8 +164,8 @@ plot.irtfit <- function(x, item.loc=NULL, type = "both",
 
   # subset of the observed probability table for score categories
   obs.prop <-
-    dplyr::select(ctg.tb, theta="point", dplyr::starts_with("obs.prop")) %>%
-    dplyr::rename_all(.funs=function(k) gsub(pattern="obs.prop.", replacement="", x=k))
+    dplyr::select(ctg.tb, theta = "point", dplyr::starts_with("obs.prop")) %>%
+    dplyr::rename_all(.funs = function(k) gsub(pattern = "obs.prop.", replacement = "", x = k))
 
   # subset of the frequency table for score categories
   obs.freq <- dplyr::select(ctg.tb, dplyr::starts_with("obs.freq"))
@@ -171,60 +177,66 @@ plot.irtfit <- function(x, item.loc=NULL, type = "both",
   se <- dplyr::select(ctg.tb, dplyr::starts_with("se"))
 
   # extract standardize the raw residuals
-  std.rsd <- dplyr::select(ctg.tb, dplyr::starts_with("std.rsd"), theta="point")
+  std.rsd <- dplyr::select(ctg.tb, dplyr::starts_with("std.rsd"), theta = "point")
 
   # find a z-score corresponding to significance level
-  zscore <- stats::qnorm(1-alpha)
+  zscore <- stats::qnorm(1 - alpha)
 
   # a data.frame including the standardized residuals and and information
   # to see if the standardized residuals are greater than a specified SR criterion.
   resid_df <-
     std.rsd %>%
-    reshape2::melt(id.vars="theta", variable.name="score", value.name = "std.rsd") %>%
-    dplyr::mutate(lessSR= factor(ifelse(abs(.data$std.rsd) > overSR, 1, 0), levels=c(0, 1))) %>%
-    dplyr::mutate_at(.vars = "score", ~{gsub(pattern="std.rsd.", replacement="", x=paste0("Score: ", .x))})
+    reshape2::melt(id.vars = "theta", variable.name = "score", value.name = "std.rsd") %>%
+    dplyr::mutate(lessSR = factor(ifelse(abs(.data$std.rsd) > overSR, 1, 0), levels = c(0, 1))) %>%
+    dplyr::mutate_at(.vars = "score", ~ {
+      gsub(pattern = "std.rsd.", replacement = "", x = paste0("Score: ", .x))
+    })
 
   # when the item is a DRM item
-  if(score.cats == 2) {
+  if (score.cats == 2) {
     resid_df <-
       resid_df %>%
       dplyr::filter(.data$score == "Score: 1")
   }
 
-  ##-------------------------------------------------------------------------
+  ## -------------------------------------------------------------------------
   # observed data information for ICC plot
   # reorganize the "obs.prop" data.frame
-  tb1 <- reshape2::melt(data=obs.prop, variable.name="score", id.vars="theta", value.name="obs.prop")
+  tb1 <- reshape2::melt(data = obs.prop, variable.name = "score", id.vars = "theta", value.name = "obs.prop")
 
   # compute the confidence interval
   ci.method <- tolower(ci.method)
   ci.method <- match.arg(ci.method)
   ci <- suppressWarnings(
     switch(ci.method,
-           wald =
-             purrr::map2(.x=obs.prop[, -1], .y=zscore * se, .f=function(k, j) data.frame(lower=k - j, upper=k + j)) %>%
-             do.call(what="rbind"),
-           wilson =
-             purrr::map(obs.freq, .f=function(k)
-               purrr::map2(.x=k, .y=total, .f=function(i, j)
-                 stats::prop.test(i, j, alternative="two.sided", conf.level=1-alpha, correct=FALSE)$conf.int) %>%
-                 bind.fill(type="rbind") %>%
-                 data.frame() %>%
-                 dplyr::rename("lower"="X1", "upper"="X2")) %>%
-             do.call(what="rbind"),
-           wilson.cr =
-             purrr::map(obs.freq, .f=function(k)
-               purrr::map2(.x=k, .y=total, .f=function(i, j)
-                 stats::prop.test(i, j, alternative="two.sided", conf.level=1-alpha, correct=TRUE)$conf.int) %>%
-                 bind.fill(type="rbind") %>%
-                 data.frame() %>%
-                 dplyr::rename("lower"="X1", "upper"="X2")) %>%
-             do.call(what="rbind")
+      wald =
+        purrr::map2(.x = obs.prop[, -1], .y = zscore * se, .f = function(k, j) data.frame(lower = k - j, upper = k + j)) %>%
+          do.call(what = "rbind"),
+      wilson =
+        purrr::map(obs.freq, .f = function(k) {
+          purrr::map2(.x = k, .y = total, .f = function(i, j) {
+            stats::prop.test(i, j, alternative = "two.sided", conf.level = 1 - alpha, correct = FALSE)$conf.int
+          }) %>%
+            bind.fill(type = "rbind") %>%
+            data.frame() %>%
+            dplyr::rename("lower" = "X1", "upper" = "X2")
+        }) %>%
+          do.call(what = "rbind"),
+      wilson.cr =
+        purrr::map(obs.freq, .f = function(k) {
+          purrr::map2(.x = k, .y = total, .f = function(i, j) {
+            stats::prop.test(i, j, alternative = "two.sided", conf.level = 1 - alpha, correct = TRUE)$conf.int
+          }) %>%
+            bind.fill(type = "rbind") %>%
+            data.frame() %>%
+            dplyr::rename("lower" = "X1", "upper" = "X2")
+        }) %>%
+          do.call(what = "rbind")
     )
   )
 
   # restrict the confidence intervals from 0 to 1 when Wald statistic is used
-  if(ci.method == "wald") {
+  if (ci.method == "wald") {
     ci[ci < 0] <- 0
     ci[ci > 1] <- 1
   }
@@ -232,20 +244,24 @@ plot.irtfit <- function(x, item.loc=NULL, type = "both",
   # a data.frame including the observed proportion and the confidence interval
   obs_df <-
     cbind(tb1, ci) %>%
-    dplyr::mutate_at(.vars = "score", ~{gsub(pattern="^*", replacement = "Score: ", x = .x)})
+    dplyr::mutate_at(.vars = "score", ~ {
+      gsub(pattern = "^*", replacement = "Score: ", x = .x)
+    })
 
   # define theta nodes for x-axis
   theta <- seq(range.score[1], range.score[2], 0.1)
 
   # a data.frame including the ICC across all score categories
   icc_df <-
-    data.frame(theta, traceline(x=item_meta, theta, D=D)$prob.cats[[1]]) %>%
-    dplyr::rename_all(.funs=function(k) gsub(pattern="resp.", replacement="", x=k)) %>%
-    reshape2::melt(id.vars="theta", variable.name="score", value.name = "icc") %>%
-    dplyr::mutate_at(.vars = "score", ~{gsub(pattern="^*", replacement = "Score: ", x = .x)})
+    data.frame(theta, traceline(x = item_meta, theta, D = D)$prob.cats[[1]]) %>%
+    dplyr::rename_all(.funs = function(k) gsub(pattern = "resp.", replacement = "", x = k)) %>%
+    reshape2::melt(id.vars = "theta", variable.name = "score", value.name = "icc") %>%
+    dplyr::mutate_at(.vars = "score", ~ {
+      gsub(pattern = "^*", replacement = "Score: ", x = .x)
+    })
 
   # when the item is dichotomous
-  if(score.cats == 2) {
+  if (score.cats == 2) {
     obs_df <-
       obs_df %>%
       dplyr::filter(.data$score == "Score: 1")
@@ -254,102 +270,113 @@ plot.irtfit <- function(x, item.loc=NULL, type = "both",
       dplyr::filter(.data$score == "Score: 1")
   }
 
-  ##-------------------------------------------------------------------------
+  ## -------------------------------------------------------------------------
   # draw plots
   type <- tolower(type)
   # (1) draw ICC plots
-  if(type == "icc") {
-
-    if(missing(xlab.text)) xlab.text <- expression(theta)
-    if(missing(ylab.text)) ylab.text <- 'Probability'
-    if(missing(main.text)) main.text <- paste0('Raw Residuals: ', item_meta$id)
+  if (type == "icc") {
+    if (missing(xlab.text)) xlab.text <- expression(theta)
+    if (missing(ylab.text)) ylab.text <- "Probability"
+    if (missing(main.text)) main.text <- paste0("Raw Residuals: ", item_meta$id)
 
     p <-
-      ggplot2::ggplot(data=icc_df, mapping=aes(x=.data$theta, y=.data$icc), ...) +
-      ggplot2::geom_line(color="blue", linewidth=line.size) +
-      ggplot2::geom_point(data=obs_df, mapping=aes(x=.data$theta, y=.data$obs.prop),
-                          shape=4, size=point.size, color="red") +
-      ggplot2::geom_segment(data=obs_df,
-                            mapping=aes(x=.data$theta, y=.data$upper, xend=.data$theta, yend=.data$lower),
-                            lineend = "square", size=0.7) +
-      ggplot2::labs(title=main.text, x=xlab.text, y=ylab.text) +
+      ggplot2::ggplot(data = icc_df, mapping = ggplot2::aes(x = .data$theta, y = .data$icc), ...) +
+      ggplot2::geom_line(color = "blue", linewidth = line.size) +
+      ggplot2::geom_point(
+        data = obs_df, mapping = ggplot2::aes(x = .data$theta, y = .data$obs.prop),
+        shape = 4, size = point.size, color = "red"
+      ) +
+      ggplot2::geom_segment(
+        data = obs_df,
+        mapping = ggplot2::aes(x = .data$theta, y = .data$upper, xend = .data$theta, yend = .data$lower),
+        lineend = "square", size = 0.7
+      ) +
+      ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
       ggplot2::ylim(ylim.icc[1], ylim.icc[2]) +
       ggplot2::theme_bw() +
-      ggplot2::facet_wrap(~score, ncol=layout.col) +
-      ggplot2::theme(plot.title = element_text(size=main.size),
-                     axis.title = element_text(size=lab.size),
-                     axis.text = element_text(size=axis.size)) +
-      ggplot2::theme(strip.text.x = element_text(size = strip.size, face='bold'))
+      ggplot2::facet_wrap(~score, ncol = layout.col) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(size = main.size),
+        axis.title = ggplot2::element_text(size = lab.size),
+        axis.text = ggplot2::element_text(size = axis.size)
+      ) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size = strip.size, face = "bold"))
 
     print(p)
-
   }
 
-  ##-------------------------------------------------------------------------
-  if(type == "sr") {
-
+  ## -------------------------------------------------------------------------
+  if (type == "sr") {
     # (2) draw standardized residual plots
-    if(missing(xlab.text)) xlab.text <- expression(theta)
-    if(missing(ylab.text)) ylab.text <- 'Standardized Residual'
-    if(missing(main.text)) main.text <- paste0('Standardized Residuals: ', item_meta$id)
+    if (missing(xlab.text)) xlab.text <- expression(theta)
+    if (missing(ylab.text)) ylab.text <- "Standardized Residual"
+    if (missing(main.text)) main.text <- paste0("Standardized Residuals: ", item_meta$id)
     point.color <- c("blue", "red")
     point.shape <- c(4, 1)
 
     # find a maximum value of the absolute standardized residuals
     # use the maximum value as the ylim value
-    if(ylim.sr.adjust)  {
+    if (ylim.sr.adjust) {
       y.max <- round(max(abs(resid_df$std.rsd)) + 1, 0)
       ylim.sr <- c(-y.max, y.max)
     }
 
     p <-
-      ggplot2::ggplot(data=resid_df, mapping=aes(x=.data$theta, y=.data$std.rsd), ...) +
-      ggplot2::geom_point(mapping=aes(color=.data$lessSR, shape=.data$lessSR), size=point.size) +
-      ggplot2::labs(title=main.text, x=xlab.text, y=ylab.text) +
+      ggplot2::ggplot(data = resid_df, mapping = ggplot2::aes(x = .data$theta, y = .data$std.rsd), ...) +
+      ggplot2::geom_point(mapping = ggplot2::aes(color = .data$lessSR, shape = .data$lessSR), size = point.size) +
+      ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
       ggplot2::ylim(ylim.sr[1], ylim.sr[2]) +
       ggplot2::xlim(range.score[1], range.score[2]) +
       ggplot2::theme_bw() +
-      ggplot2::facet_wrap(~score, ncol=layout.col) +
-      ggplot2::theme(plot.title = element_text(size=main.size),
-                     axis.title = element_text(size=lab.size),
-                     axis.text = element_text(size=axis.size)) +
-      ggplot2::theme(strip.text.x = element_text(size = strip.size, face='bold')) +
-      ggplot2::scale_shape_manual(values=point.shape) +
-      ggplot2::scale_colour_manual(values=point.color) +
-      ggplot2::theme(legend.position="none") +
-      ggplot2::geom_hline(yintercept = c(-overSR, overSR), linetype="dashed")
+      ggplot2::facet_wrap(~score, ncol = layout.col) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(size = main.size),
+        axis.title = ggplot2::element_text(size = lab.size),
+        axis.text = ggplot2::element_text(size = axis.size)
+      ) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size = strip.size, face = "bold")) +
+      ggplot2::scale_shape_manual(values = point.shape) +
+      ggplot2::scale_colour_manual(values = point.color) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::geom_hline(yintercept = c(-overSR, overSR), linetype = "dashed")
 
     print(p)
-
   }
 
-  ##-------------------------------------------------------------------------
-  if(type == "both") {
-
+  ## -------------------------------------------------------------------------
+  if (type == "both") {
     xlab.text <- expression(theta)
-    if(missing(ylab.text)) ylab.text <- c('Probability', 'Standardized Residual')
-    if(missing(main.text)) {
-      main.text <- c(paste0('Raw Residuals: ', item_meta$id),
-                     paste0('Standardized Residuals: ', item_meta$id))
+    if (missing(ylab.text)) ylab.text <- c("Probability", "Standardized Residual")
+    if (missing(main.text)) {
+      main.text <- c(
+        paste0("Raw Residuals: ", item_meta$id),
+        paste0("Standardized Residuals: ", item_meta$id)
+      )
     }
 
     # (1) draw ICC plots
     p1 <-
-      ggplot2::ggplot(data=icc_df, mapping=aes(x=.data$theta, y=.data$icc), ...) +
-      ggplot2::geom_line(color="blue", linewidth=line.size) +
-      ggplot2::geom_point(data=obs_df, mapping=aes(x=.data$theta, y=.data$obs.prop),
-                          shape=4, size=point.size, color="red") +
-      ggplot2::geom_segment(data=obs_df,
-                            mapping=aes(x=.data$theta, y=.data$upper, xend=.data$theta, yend=.data$lower),
-                            lineend = "square", size=0.7) +
-      ggplot2::labs(title=main.text[1], x=xlab.text, y=ylab.text[1]) +
+      ggplot2::ggplot(data = icc_df, mapping = ggplot2::aes(x = .data$theta, y = .data$icc), ...) +
+      ggplot2::geom_line(color = "blue", linewidth = line.size) +
+      ggplot2::geom_point(
+        data = obs_df, mapping = ggplot2::aes(x = .data$theta, y = .data$obs.prop),
+        shape = 4, size = point.size, color = "red"
+      ) +
+      ggplot2::geom_segment(
+        data = obs_df,
+        mapping = ggplot2::aes(x = .data$theta, y = .data$upper, xend = .data$theta, yend = .data$lower),
+        lineend = "square", size = 0.7
+      ) +
+      ggplot2::labs(title = main.text[1], x = xlab.text, y = ylab.text[1]) +
       ggplot2::ylim(ylim.icc[1], ylim.icc[2]) +
       ggplot2::theme_bw() +
-      ggplot2::facet_wrap(~score, ncol=1) +
-      ggplot2::theme(plot.title = element_text(size=main.size),
-                     axis.title = element_text(size=lab.size),
-                     axis.text = element_text(size=axis.size)) +
-      ggplot2::theme(strip.text.x = element_text(size = strip.size, face='bold'))
+      ggplot2::facet_wrap(~score, ncol = 1) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(size = main.size),
+        axis.title = ggplot2::element_text(size = lab.size),
+        axis.text = ggplot2::element_text(size = axis.size)
+      ) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size = strip.size, face = "bold"))
 
     # (2) draw standardized residual plots
     point.color <- c("blue", "red")
@@ -357,36 +384,36 @@ plot.irtfit <- function(x, item.loc=NULL, type = "both",
 
     # find a maximum value of the absolute standardized residuals
     # use the maximum value as the ylim value
-    if(ylim.sr.adjust)  {
+    if (ylim.sr.adjust) {
       y.max <- round(max(abs(resid_df$std.rsd)) + 1, 0)
       ylim.sr <- c(-y.max, y.max)
     }
 
     p2 <-
-      ggplot2::ggplot(data=resid_df, mapping=aes(x=.data$theta, y=.data$std.rsd), ...) +
-      ggplot2::geom_point(mapping=aes(color=.data$lessSR, shape=.data$lessSR), size=point.size) +
-      ggplot2::labs(title=main.text[2], x=xlab.text, y=ylab.text[2]) +
+      ggplot2::ggplot(data = resid_df, mapping = ggplot2::aes(x = .data$theta, y = .data$std.rsd), ...) +
+      ggplot2::geom_point(mapping = ggplot2::aes(color = .data$lessSR, shape = .data$lessSR), size = point.size) +
+      ggplot2::labs(title = main.text[2], x = xlab.text, y = ylab.text[2]) +
       ggplot2::ylim(ylim.sr[1], ylim.sr[2]) +
       ggplot2::xlim(range.score[1], range.score[2]) +
       ggplot2::theme_bw() +
-      ggplot2::facet_wrap(~score, ncol=1) +
-      ggplot2::theme(plot.title = element_text(size=main.size),
-                     axis.title = element_text(size=lab.size),
-                     axis.text = element_text(size=axis.size)) +
-      ggplot2::theme(strip.text.x = element_text(size = strip.size, face='bold')) +
-      ggplot2::scale_shape_manual(values=point.shape) +
-      ggplot2::scale_colour_manual(values=point.color) +
-      ggplot2::theme(legend.position="none") +
-      ggplot2::geom_hline(yintercept = c(-overSR, overSR), linetype="dashed")
+      ggplot2::facet_wrap(~score, ncol = 1) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(size = main.size),
+        axis.title = ggplot2::element_text(size = lab.size),
+        axis.text = ggplot2::element_text(size = axis.size)
+      ) +
+      ggplot2::theme(strip.text.x = ggplot2::element_text(size = strip.size, face = "bold")) +
+      ggplot2::scale_shape_manual(values = point.shape) +
+      ggplot2::scale_colour_manual(values = point.color) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::geom_hline(yintercept = c(-overSR, overSR), linetype = "dashed")
 
     # combine the two plots in a window
-    gridExtra::grid.arrange(p1, p2, ncol=2) # For multitple plots
-
+    gridExtra::grid.arrange(p1, p2, ncol = 2) # For multitple plots
   }
 
   # return the contingency table
-  if(show.table) {
+  if (show.table) {
     return(ctg.tb)
   }
-
 }

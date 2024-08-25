@@ -57,7 +57,7 @@ x <- simCAT_MX$item.prm
 temp_prm <- file.path(tempdir(), "single_group_temp-prm.txt")
 
 # 1-(3) write out the "-prm.txt" file
-write.flexmirt(x, file=temp_prm, norm.pop=c(0, 1), rePar=FALSE)
+write.flexmirt(x, file = temp_prm, norm.pop = c(0, 1), rePar = FALSE)
 
 ## 2. Create "-prm.txt" file for multiple groups
 ##    using the simulated three multiple group data
@@ -68,16 +68,19 @@ x <- simMG$item.prm
 temp_prm <- file.path(tempdir(), "mg_group_temp-prm1.txt")
 
 # write out the "-prm.txt" file
-write.flexmirt(x, file=temp_prm, norm.pop=list(c(0, 1), c(0.5, 0.8), c(-0.3, 1.3)),
-               rePar=FALSE, mgroup=TRUE, group.name=c("GR1", "GR2", "GR3"))
+write.flexmirt(x,
+  file = temp_prm, norm.pop = list(c(0, 1), c(0.5, 0.8), c(-0.3, 1.3)),
+  rePar = FALSE, mgroup = TRUE, group.name = c("GR1", "GR2", "GR3")
+)
 
 # or write out the "-prm.txt" file so that
 # all groups have the same ability distributions
 # and the group names are generate autoumatically
 temp_prm <- file.path(tempdir(), "mg_group_temp-prm2.txt")
-write.flexmirt(x, file=temp_prm, norm.pop=c(0, 1),
-               rePar=FALSE, mgroup=TRUE, group.name=NULL)
-
+write.flexmirt(x,
+  file = temp_prm, norm.pop = c(0, 1),
+  rePar = FALSE, mgroup = TRUE, group.name = NULL
+)
 }
 
 }

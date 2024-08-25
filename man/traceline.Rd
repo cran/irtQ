@@ -39,14 +39,14 @@ to draw the item or test characteristic curve using the function \code{\link{plo
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default method to compute the item category probabilities, item characteristic function, and
+\item \code{traceline(default)}: Default method to compute the item category probabilities, item characteristic function, and
 test characteristic function for a data frame \code{x} containing the item metadata.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{traceline(est_item)}: An object created by the function \code{\link{est_item}}.
 
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{traceline(est_irt)}: An object created by the function \code{\link{est_irt}}.
+
 }}
-
 \examples{
 ## example
 ## using a "-prm.txt" file obtained from a flexMIRT
@@ -54,14 +54,14 @@ test characteristic function for a data frame \code{x} containing the item metad
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item metadata
-test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # set theta values
 theta <- seq(-3, 3, 0.5)
 
 # compute the item category probabilities and item/test
 # characteristic functions given the theta values
-traceline(x=test_flex, theta, D=1)
+traceline(x = test_flex, theta, D = 1)
 
 }
 \seealso{

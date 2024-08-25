@@ -163,7 +163,7 @@ can be used as the starting values for the item parameter calibration by setting
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the item metadata
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
 # modify the item metadata so that some items follow 1PLM, 2PLM and GPCM
 x[c(1:3, 5), 3] <- "1PLM"
@@ -175,36 +175,41 @@ x[54:55, 3] <- "GPCM"
 
 # generate examinees' abilities from N(0, 1)
 set.seed(23)
-score <- rnorm(500, mean=0, sd=1)
+score <- rnorm(500, mean = 0, sd = 1)
 
 # simulate the response data
-data <- simdat(x=x, theta=score, D=1)
+data <- simdat(x = x, theta = score, D = 1)
 
 \donttest{
 # 1) item parameter estimation: constrain the slope parameters of the 1PLM to be equal
-(mod1 <- est_item(x, data, score, D=1, fix.a.1pl=FALSE, use.gprior=TRUE,
-                  gprior=list(dist="beta", params=c(5, 17)), use.startval=FALSE))
+(mod1 <- est_item(x, data, score,
+  D = 1, fix.a.1pl = FALSE, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
+))
 summary(mod1)
 
 # extract the item parameter estimates
-getirt(mod1, what="par.est")
+getirt(mod1, what = "par.est")
 
 # 2) item parameter estimation: fix the slope parameters of the 1PLM to 1
-(mod2 <- est_item(x, data, score, D=1, fix.a.1pl=TRUE, a.val.1pl=1, use.gprior=TRUE,
-                  gprior=list(dist="beta", params=c(5, 17)), use.startval=FALSE))
+(mod2 <- est_item(x, data, score,
+  D = 1, fix.a.1pl = TRUE, a.val.1pl = 1, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
+))
 summary(mod2)
 
 # extract the standard error estimates
-getirt(mod2, what="se.est")
+getirt(mod2, what = "se.est")
 
 # 3) item parameter estimation: fix the guessing parameters of the 3PLM to 0.2
-(mod3 <- est_item(x, data, score, D=1, fix.a.1pl=TRUE, fix.g=TRUE, a.val.1pl=1, g.val=.2,
-                  use.startval=FALSE))
+(mod3 <- est_item(x, data, score,
+  D = 1, fix.a.1pl = TRUE, fix.g = TRUE, a.val.1pl = 1, g.val = .2,
+  use.startval = FALSE
+))
 summary(mod3)
 
 # extract both item parameter and standard error estimates
-getirt(mod2, what="estimates")
-
+getirt(mod2, what = "estimates")
 }
 
 }

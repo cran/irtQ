@@ -302,64 +302,71 @@ of \code{group.mean} and \code{group.var}.
 \examples{
 \donttest{
 
-##------------------------------------------------------------------------------
+## ----------------------------------------------------------------------
 # 1. item parameter estimation for the dichotomous item data (LSAT6)
-##------------------------------------------------------------------------------
-# fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
-(mod.1pl.c <- est_irt(data=LSAT6, D=1, model="1PLM", cats=2, fix.a.1pl=FALSE))
+## ----------------------------------------------------------------------
+# fit the 1PL model to LSAT6 data and constrain the slope parameters
+# to be equal
+(mod.1pl.c <- est_irt(data = LSAT6, D = 1, model = "1PLM", cats = 2,
+                      fix.a.1pl = FALSE))
 
 # summary of the estimation
 summary(mod.1pl.c)
 
 # extract the item parameter estimates
-getirt(mod.1pl.c, what="par.est")
+getirt(mod.1pl.c, what = "par.est")
 
 # extract the standard error estimates
-getirt(mod.1pl.c, what="se.est")
+getirt(mod.1pl.c, what = "se.est")
 
 # fit the 1PL model to LSAT6 data and fix the slope parameters to 1.0
-(mod.1pl.f <- est_irt(data=LSAT6, D=1, model="1PLM", cats=2, fix.a.1pl=TRUE, a.val.1pl=1))
+(mod.1pl.f <- est_irt(data = LSAT6, D = 1, model = "1PLM", cats = 2,
+                      fix.a.1pl = TRUE, a.val.1pl = 1))
 
 # summary of the estimation
 summary(mod.1pl.f)
 
 # fit the 2PL model to LSAT6 data
-(mod.2pl <- est_irt(data=LSAT6, D=1, model="2PLM", cats=2))
+(mod.2pl <- est_irt(data = LSAT6, D = 1, model = "2PLM", cats = 2))
 
 # summary of the estimation
 summary(mod.2pl)
 
 # assess the fit of the 2PL model to the LSAT5 data using S-X2 fit statistic
-(sx2fit.2pl <- sx2_fit(x=mod.2pl))
+(sx2fit.2pl <- sx2_fit(x = mod.2pl))
 
 # compute the item and test information at several theta points
 theta <- seq(-4, 4, 0.1)
-(info.2pl <- info(x=mod.2pl, theta=theta))
+(info.2pl <- info(x = mod.2pl, theta = theta))
 
 # draw the test characteristic curve plot
-(trace.2pl <- traceline(x=mod.2pl, theta=theta))
+(trace.2pl <- traceline(x = mod.2pl, theta = theta))
 plot(trace.2pl)
 
 # draw the item characteristic curve for the 1st item
-plot(trace.2pl, item.loc=1)
+plot(trace.2pl, item.loc = 1)
 
 # fit the 2PL model to LSAT6 data and
 # estimate the empirical histogram of latent variable prior distribution
 # also use a less stringent convergence criterion for E-step
-(mod.2pl.hist <- est_irt(data=LSAT6, D=1, model="2PLM", cats=2, EmpHist=TRUE, Etol=0.001))
-(emphist <- getirt(mod.2pl.hist, what="weights"))
-plot(emphist$weight ~ emphist$theta, type="h")
+(mod.2pl.hist <- est_irt(data = LSAT6, D = 1, model = "2PLM", cats = 2,
+                         EmpHist = TRUE, Etol = 0.001))
+(emphist <- getirt(mod.2pl.hist, what = "weights"))
+plot(emphist$weight ~ emphist$theta, type = "h")
 
 # fit the 3PL model to LSAT6 data and use the Beta prior distribution for
 # the guessing parameters
-(mod.3pl <- est_irt(data=LSAT6, D=1, model="3PLM", cats=2, use.gprior=TRUE,
-                    gprior=list(dist="beta", params=c(5, 16))))
+(mod.3pl <- est_irt(
+  data = LSAT6, D = 1, model = "3PLM", cats = 2, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16))
+))
 
 # summary of the estimation
 summary(mod.3pl)
 
 # fit the 3PL model to LSAT6 data, but fix the guessing parameters to be 0.2
-(mod.3pl.f <- est_irt(data=LSAT6, D=1, model="3PLM", cats=2, fix.g=TRUE, g.val=0.2))
+(mod.3pl.f <- est_irt(data = LSAT6, D = 1, model = "3PLM", cats = 2,
+                      fix.g = TRUE, g.val = 0.2))
 
 # summary of the estimation
 summary(mod.3pl.f)
@@ -368,30 +375,32 @@ summary(mod.3pl.f)
 # fit the constrained 1PL model to the 1st, 2nd, and 3rd items, fit the 2PL model to
 # the 4th item, and fit the 3PL model to the 5th item with the Beta prior of
 # the guessing parameter
-(mod.drm.mix <- est_irt(data=LSAT6, D=1, model=c("1PLM", "1PLM", "1PLM", "2PLM", "3PLM"),
-                        cats=2, fix.a.1pl=FALSE, use.gprior=TRUE,
-                        gprior=list(dist="beta", params=c(5, 16))))
+(mod.drm.mix <- est_irt(
+  data = LSAT6, D = 1, model = c("1PLM", "1PLM", "1PLM", "2PLM", "3PLM"),
+  cats = 2, fix.a.1pl = FALSE, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16))
+))
 # summary of the estimation
 summary(mod.drm.mix)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 2. item parameter estimation for the mixed-item format data (simulation data)
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 ## import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the item metadata
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
 # modify the item metadata so that the 39th and 40th items follow GPCM
 x[39:40, 3] <- "GPCM"
 
 # generate 1,000 examinees' latent abilities from N(0, 1)
 set.seed(37)
-score1 <- rnorm(1000, mean=0, sd=1)
+score1 <- rnorm(1000, mean = 0, sd = 1)
 
 # simulate the response data
-sim.dat1 <- simdat(x=x, theta=score1, D=1)
+sim.dat1 <- simdat(x = x, theta = score1, D = 1)
 
 # fit the 3PL model to all dichotomous items, fit the GPCM model to 39th and 40th items,
 # and fit the GRM model to the 53th, 54th, 55th items.
@@ -400,38 +409,48 @@ sim.dat1 <- simdat(x=x, theta=score1, D=1)
 # for the difficulty (or threshold) parameters.
 # also, specify the argument 'x' to provide the IRT model and score category information
 # for items
-item.meta <- shape_df(item.id=x$id, cats=x$cats, model=x$model, default.par=TRUE)
-(mod.mix1 <- est_irt(x=item.meta, data=sim.dat1, D=1, use.aprior=TRUE, use.bprior=TRUE,
-                     use.gprior=TRUE,
-                     aprior=list(dist="lnorm", params=c(0.0, 0.5)),
-                     bprior=list(dist="norm", params=c(0.0, 2.0)),
-                     gprior=list(dist="beta", params=c(5, 16))))
+item.meta <- shape_df(item.id = x$id, cats = x$cats, model = x$model, default.par = TRUE)
+(mod.mix1 <- est_irt(
+  x = item.meta, data = sim.dat1, D = 1, use.aprior = TRUE, use.bprior = TRUE,
+  use.gprior = TRUE,
+  aprior = list(dist = "lnorm", params = c(0.0, 0.5)),
+  bprior = list(dist = "norm", params = c(0.0, 2.0)),
+  gprior = list(dist = "beta", params = c(5, 16))
+))
 
 # summary of the estimation
 summary(mod.mix1)
 
 # estimate examinees' latent scores given the item parameter estimates using the MLE
-(score.mle <- est_score(x=mod.mix1, method = "ML", range = c(-4, 4), ncore=2))
+(score.mle <- est_score(x = mod.mix1, method = "ML", range = c(-4, 4), ncore = 2))
 
 # compute the traditional fit statistics
-(fit.mix1 <- irtfit(x=mod.mix1, score=score.mle$est.theta, group.method="equal.width",
-                    n.width=10, loc.theta="middle"))
+(fit.mix1 <- irtfit(
+  x = mod.mix1, score = score.mle$est.theta, group.method = "equal.width",
+  n.width = 10, loc.theta = "middle"
+))
 
 # residual plots for the first item (dichotomous item)
-plot(x=fit.mix1, item.loc=1, type = "both", ci.method = "wald",
-     show.table=TRUE, ylim.sr.adjust=TRUE)
+plot(
+  x = fit.mix1, item.loc = 1, type = "both", ci.method = "wald",
+  show.table = TRUE, ylim.sr.adjust = TRUE
+)
 
 # residual plots for the last item (polytomous item)
-plot(x=fit.mix1, item.loc=55, type = "both", ci.method = "wald",
-     show.table=FALSE, ylim.sr.adjust=TRUE)
+plot(
+  x = fit.mix1, item.loc = 55, type = "both", ci.method = "wald",
+  show.table = FALSE, ylim.sr.adjust = TRUE
+)
 
 # fit the 2PL model to all dichotomous items, fit the GPCM model to 39th and 40th items,
 # and fit the GRM model to the 53th, 54th, 55th items.
 # also, specify the arguments of 'model' and 'cats' to provide the IRT model and
 # score category information for items
-(mod.mix2 <- est_irt(data=sim.dat1, D=1,
-                     model=c(rep("2PLM", 38), rep("GPCM", 2), rep("2PLM", 12), rep("GRM", 3)),
-                     cats=c(rep(2, 38), rep(5, 2), rep(2, 12), rep(5, 3))))
+(mod.mix2 <- est_irt(
+  data = sim.dat1, D = 1,
+  model = c(rep("2PLM", 38), rep("GPCM", 2), rep("2PLM", 12), rep("GRM", 3)),
+  cats = c(rep(2, 38), rep(5, 2), rep(2, 12), rep(5, 3))
+))
 
 # summary of the estimation
 summary(mod.mix2)
@@ -441,53 +460,59 @@ summary(mod.mix2)
 # of latent variable prior distribution.
 # also, specify the arguments of 'model' and 'cats' to provide the IRT model and
 # score category information for items
-(mod.mix3 <- est_irt(data=sim.dat1, D=1,
-                     model=c(rep("2PLM", 38), rep("GPCM", 2), rep("2PLM", 12), rep("GRM", 3)),
-                     cats=c(rep(2, 38), rep(5, 2), rep(2, 12), rep(5, 3)), EmpHist=TRUE))
-(emphist <- getirt(mod.mix3, what="weights"))
-plot(emphist$weight ~ emphist$theta, type="h")
+(mod.mix3 <- est_irt(
+  data = sim.dat1, D = 1,
+  model = c(rep("2PLM", 38), rep("GPCM", 2), rep("2PLM", 12), rep("GRM", 3)),
+  cats = c(rep(2, 38), rep(5, 2), rep(2, 12), rep(5, 3)), EmpHist = TRUE
+))
+(emphist <- getirt(mod.mix3, what = "weights"))
+plot(emphist$weight ~ emphist$theta, type = "h")
 
 # fit the 2PL model to all dichotomous items,
 # fit the PCM model to 39th and 40th items by fixing the slope parameters to 1,
 # and fit the GRM model to the 53th, 54th, 55th items.
 # also, specify the arguments of 'model' and 'cats' to provide the IRT model and
 # score category information for items
-(mod.mix4 <- est_irt(data=sim.dat1, D=1,
-                     model=c(rep("2PLM", 38), rep("GPCM", 2), rep("2PLM", 12), rep("GRM", 3)),
-                     cats=c(rep(2, 38), rep(5, 2), rep(2, 12), rep(5, 3)),
-                     fix.a.gpcm=TRUE, a.val.gpcm=1))
+(mod.mix4 <- est_irt(
+  data = sim.dat1, D = 1,
+  model = c(rep("2PLM", 38), rep("GPCM", 2), rep("2PLM", 12), rep("GRM", 3)),
+  cats = c(rep(2, 38), rep(5, 2), rep(2, 12), rep(5, 3)),
+  fix.a.gpcm = TRUE, a.val.gpcm = 1
+))
 
 # summary of the estimation
 summary(mod.mix4)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 3. fixed item parameter calibration (FIPC) for the mixed-item format data
 #    (simulation data)
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 ## import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the item metadata
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
 # generate 1,000 examinees' latent abilities from N(0.4, 1.3)
 set.seed(20)
-score2 <- rnorm(1000, mean=0.4, sd=1.3)
+score2 <- rnorm(1000, mean = 0.4, sd = 1.3)
 
 # simulate the response data
-sim.dat2 <- simdat(x=x, theta=score2, D=1)
+sim.dat2 <- simdat(x = x, theta = score2, D = 1)
 
 # fit the 3PL model to all dichotomous items, fit the GRM model to all polytomous data,
 # fix the five 3PL items (1st - 5th items) and three GRM items (53rd to 55th items)
 # also, estimate the empirical histogram of latent variable
 # use the MEM method.
 fix.loc <- c(1:5, 53:55)
-(mod.fix1 <- est_irt(x=x, data=sim.dat2, D=1, use.gprior=TRUE,
-                     gprior=list(dist="beta", params=c(5, 16)), EmpHist=TRUE,
-                     Etol=1e-3, fipc=TRUE, fipc.method="MEM", fix.loc=fix.loc))
+(mod.fix1 <- est_irt(
+  x = x, data = sim.dat2, D = 1, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16)), EmpHist = TRUE,
+  Etol = 1e-3, fipc = TRUE, fipc.method = "MEM", fix.loc = fix.loc
+))
 (prior.par <- mod.fix1$group.par)
-(emphist <- getirt(mod.fix1, what="weights"))
-plot(emphist$weight ~ emphist$theta, type="h")
+(emphist <- getirt(mod.fix1, what = "weights"))
+plot(emphist$weight ~ emphist$theta, type = "h")
 
 # summary of the estimation
 summary(mod.fix1)
@@ -495,10 +520,12 @@ summary(mod.fix1)
 # or the same five items can be fixed by providing their item IDs to the 'fix.id' argument
 # in this case, set fix.loc = NULL
 fix.id <- c(x$id[1:5], x$id[53:55])
-(mod.fix1 <- est_irt(x=x, data=sim.dat2, D=1, use.gprior=TRUE,
-                     gprior=list(dist="beta", params=c(5, 16)), EmpHist=TRUE,
-                     Etol=1e-3, fipc=TRUE, fipc.method="MEM", fix.loc=NULL,
-                     fix.id=fix.id))
+(mod.fix1 <- est_irt(
+  x = x, data = sim.dat2, D = 1, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16)), EmpHist = TRUE,
+  Etol = 1e-3, fipc = TRUE, fipc.method = "MEM", fix.loc = NULL,
+  fix.id = fix.id
+))
 
 # summary of the estimation
 summary(mod.fix1)
@@ -509,24 +536,28 @@ summary(mod.fix1)
 # instead, estimate the scale of normal prior distribution of latent variable
 # use the MEM method.
 fix.loc <- c(1:5, 53:55)
-(mod.fix2 <- est_irt(x=x, data=sim.dat2, D=1, use.gprior=TRUE,
-                     gprior=list(dist="beta", params=c(5, 16)), EmpHist=FALSE,
-                     Etol=1e-3, fipc=TRUE, fipc.method="MEM", fix.loc=fix.loc))
+(mod.fix2 <- est_irt(
+  x = x, data = sim.dat2, D = 1, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16)), EmpHist = FALSE,
+  Etol = 1e-3, fipc = TRUE, fipc.method = "MEM", fix.loc = fix.loc
+))
 (prior.par <- mod.fix2$group.par)
-(emphist <- getirt(mod.fix2, what="weights"))
-plot(emphist$weight ~ emphist$theta, type="h")
+(emphist <- getirt(mod.fix2, what = "weights"))
+plot(emphist$weight ~ emphist$theta, type = "h")
 
 # fit the 3PL model to all dichotomous items, fit the GRM model to all polytomous data,
 # at this moment fix only the five 3PL items (1st - 5th items)
 # and estimate the empirical histogram of latent variable.
 # use the OEM method. Thus, only 1 EM cycle is used.
 fix.loc <- c(1:5)
-(mod.fix3 <- est_irt(x=x, data=sim.dat2, D=1, use.gprior=TRUE,
-                     gprior=list(dist="beta", params=c(5, 16)), EmpHist=TRUE,
-                     Etol=1e-3, fipc=TRUE, fipc.method="OEM", fix.loc=fix.loc))
+(mod.fix3 <- est_irt(
+  x = x, data = sim.dat2, D = 1, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16)), EmpHist = TRUE,
+  Etol = 1e-3, fipc = TRUE, fipc.method = "OEM", fix.loc = fix.loc
+))
 (prior.par <- mod.fix3$group.par)
-(emphist <- getirt(mod.fix3, what="weights"))
-plot(emphist$weight ~ emphist$theta, type="h")
+(emphist <- getirt(mod.fix3, what = "weights"))
+plot(emphist$weight ~ emphist$theta, type = "h")
 
 # summary of the estimation
 summary(mod.fix3)
@@ -535,11 +566,13 @@ summary(mod.fix3)
 # at this moment fix all 55 items and estimate only the latent ability distribution
 # using the MEM method.
 fix.loc <- c(1:55)
-(mod.fix4 <- est_irt(x=x, data=sim.dat2, D=1, EmpHist=TRUE,
-                     Etol=1e-3, fipc=TRUE, fipc.method="MEM", fix.loc=fix.loc))
+(mod.fix4 <- est_irt(
+  x = x, data = sim.dat2, D = 1, EmpHist = TRUE,
+  Etol = 1e-3, fipc = TRUE, fipc.method = "MEM", fix.loc = fix.loc
+))
 (prior.par <- mod.fix4$group.par)
-(emphist <- getirt(mod.fix4, what="weights"))
-plot(emphist$weight ~ emphist$theta, type="h")
+(emphist <- getirt(mod.fix4, what = "weights"))
+plot(emphist$weight ~ emphist$theta, type = "h")
 
 # summary of the estimation
 summary(mod.fix4)
@@ -547,13 +580,14 @@ summary(mod.fix4)
 # or all 55 items can be fixed by providing their item IDs to the 'fix.id' argument
 # in this case, set fix.loc = NULL
 fix.id <- x$id
-(mod.fix4 <- est_irt(x=x, data=sim.dat2, D=1, EmpHist=TRUE,
-                     Etol=1e-3, fipc=TRUE, fipc.method="MEM", fix.loc=NULL,
-                     fix.id=fix.id))
+(mod.fix4 <- est_irt(
+  x = x, data = sim.dat2, D = 1, EmpHist = TRUE,
+  Etol = 1e-3, fipc = TRUE, fipc.method = "MEM", fix.loc = NULL,
+  fix.id = fix.id
+))
 
 # summary of the estimation
 summary(mod.fix4)
-
 }
 
 }

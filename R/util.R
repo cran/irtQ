@@ -4,6 +4,9 @@
 #' of numeric vectors.
 #' @param List A list containing different length of numeric vectors
 #' @param type A character string specifying whether rbind is used or cbind is used.
+#' @param fill The value used to fill in missing data when aligning datasets. For \code{type = "cbind"},
+#' this fills missing rows in shorter columns. For \code{type = "rbind"}, this fills missing columns in shorter rows.
+#' Accepts any R object (e.g., numeric, character, logical). Defaults to NA.
 #'
 #' @return A matrix.
 #'
@@ -20,9 +23,13 @@
 #' # 2) create a cbind with the sample score list
 #' bind.fill(score_list, type="cbind")
 #'
-#' @import dplyr
+#' # 3) create a cbind with the sample score list,
+#' #    and fill missing data with 0s.
+#' bind.fill(score_list, type="cbind", fill = 0L)
+#'
 #' @export
-bind.fill <- function(List, type=c("rbind", "cbind")){
+#' @import dplyr
+bind.fill <- function(List, type=c("rbind", "cbind"), fill = NA){
   type <- tolower(type)
   type <- match.arg(type)
   nm <- List
@@ -30,7 +37,7 @@ bind.fill <- function(List, type=c("rbind", "cbind")){
   names(nm) <- 1:length(nm)
   n <- max(purrr::map_dbl(nm, nrow))
   df <-
-    purrr::map_dfc(nm, function(x) {rbind(x, matrix(NA, n-nrow(x), ncol(x)))}) %>%
+    purrr::map_dfc(nm, function(x) {rbind(x, matrix(fill, n - nrow(x), ncol(x)))}) %>%
     as.matrix()
   switch(type,
          cbind = unname(df),

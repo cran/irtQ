@@ -257,14 +257,14 @@ the purification process.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default method to computes three GRDIF statistics with multiple group data
+\item \code{grdif(default)}: Default method to computes three GRDIF statistics with multiple group data
 using a data frame \code{x} containing the item metadata.
 
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{grdif(est_irt)}: An object created by the function \code{\link{est_irt}}.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{grdif(est_item)}: An object created by the function \code{\link{est_item}}.
+
 }}
-
 \examples{
 \donttest{
 # load library
@@ -279,7 +279,7 @@ flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # Select 36 of 3PLM items which are non-DIF items
 par_nstd <-
-  bring.flexmirt(file=flex_sam, "par")$Group1$full_df \%>\%
+  bring.flexmirt(file = flex_sam, "par")$Group1$full_df \%>\%
   dplyr::filter(.data$model == "3PLM") \%>\%
   dplyr::filter(dplyr::row_number() \%in\% 1:36) \%>\%
   dplyr::select(1:6)
@@ -287,20 +287,22 @@ par_nstd$id <- paste0("nondif", 1:36)
 
 # Generate four new items where uniform DIF will be manipulated
 difpar_ref <-
-  shape_df(par.drm=list(a=c(0.8, 1.5, 0.8, 1.5), b=c(0.0, 0.0, -0.5, -0.5), g=.15),
-           item.id=paste0("dif", 1:4), cats=2, model="3PLM")
+  shape_df(
+    par.drm = list(a = c(0.8, 1.5, 0.8, 1.5), b = c(0.0, 0.0, -0.5, -0.5), g = .15),
+    item.id = paste0("dif", 1:4), cats = 2, model = "3PLM"
+  )
 
 # Manipulate uniform DIF on the four new items by adjusting the b-parameters
 # for the three focal groups
 difpar_foc1 <-
   difpar_ref \%>\%
-  dplyr::mutate_at(.vars="par.2", .funs=function(x) x + c(0.7, 0.7, 0, 0))
+  dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + c(0.7, 0.7, 0, 0))
 difpar_foc2 <-
   difpar_ref \%>\%
-  dplyr::mutate_at(.vars="par.2", .funs=function(x) x + c(0, 0, 0.7, 0.7))
+  dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + c(0, 0, 0.7, 0.7))
 difpar_foc3 <-
   difpar_ref \%>\%
-  dplyr::mutate_at(.vars="par.2", .funs=function(x) x + c(-0.4, -0.4, -0.5, -0.5))
+  dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + c(-0.4, -0.4, -0.5, -0.5))
 
 # Combine the 4 DIF and 36 non-DIF item data for both reference and focal groups.
 # Thus, the first four items have uniform DIF for thee three focal groups
@@ -317,10 +319,10 @@ theta_foc2 <- rnorm(500, 1.0, 1.0)
 theta_foc3 <- rnorm(500, 0.5, 1.0)
 
 # Generate the response data
-resp_ref <- irtQ::simdat(par_ref, theta=theta_ref, D=1)
-resp_foc1 <- irtQ::simdat(par_foc1, theta=theta_foc1, D=1)
-resp_foc2 <- irtQ::simdat(par_foc2, theta=theta_foc2, D=1)
-resp_foc3 <- irtQ::simdat(par_foc3, theta=theta_foc3, D=1)
+resp_ref <- irtQ::simdat(par_ref, theta = theta_ref, D = 1)
+resp_foc1 <- irtQ::simdat(par_foc1, theta = theta_foc1, D = 1)
+resp_foc2 <- irtQ::simdat(par_foc2, theta = theta_foc2, D = 1)
+resp_foc3 <- irtQ::simdat(par_foc3, theta = theta_foc3, D = 1)
 data <- rbind(resp_ref, resp_foc1, resp_foc2, resp_foc3)
 
 ########################################################
@@ -328,11 +330,11 @@ data <- rbind(resp_ref, resp_foc1, resp_foc2, resp_foc3)
 #     using the aggregate data
 ########################################################
 # Estimate the item parameters
-est_mod <- irtQ::est_irt(data=data, D=1, model="3PLM")
+est_mod <- irtQ::est_irt(data = data, D = 1, model = "3PLM")
 est_par <- est_mod$par.est
 
 # Estimate the ability parameters using MLE
-score <- irtQ::est_score(x=est_par, data=data, method="ML")$est.theta
+score <- irtQ::est_score(x = est_par, data = data, method = "ML")$est.theta
 
 ########################################################
 # (3) Conduct DIF analysis
@@ -344,9 +346,11 @@ group <- c(rep(0, 500), rep(1, 500), rep(2, 500), rep(3, 500))
 # (a) Compute GRDIF statistics without purification
 #     and implement the post-hoc two-groups comparison analysis for
 #     the flagged items
-dif_nopuri <- grdif(x=est_par, data=data, score=score, group=group,
-                    focal.name=c(1, 2, 3), D=1, alpha=0.05,
-                    purify=FALSE, post.hoc=TRUE)
+dif_nopuri <- grdif(
+  x = est_par, data = data, score = score, group = group,
+  focal.name = c(1, 2, 3), D = 1, alpha = 0.05,
+  purify = FALSE, post.hoc = TRUE
+)
 print(dif_nopuri)
 
 # Print the post-hoc analysis results for the fagged items
@@ -355,9 +359,11 @@ print(dif_nopuri$no_purify$post.hoc)
 # (b) Compute GRDIF statistics with purification
 #     based on \eqn{GRDIF_{R}} and implement the post-hoc
 #     two-groups comparison analysis for flagged items
-dif_puri_r <- grdif(x=est_par, data=data, score=score, group=group,
-                    focal.name=c(1, 2, 3), D=1, alpha=0.05,
-                    purify=TRUE, purify.by = "grdifr", post.hoc=TRUE)
+dif_puri_r <- grdif(
+  x = est_par, data = data, score = score, group = group,
+  focal.name = c(1, 2, 3), D = 1, alpha = 0.05,
+  purify = TRUE, purify.by = "grdifr", post.hoc = TRUE
+)
 print(dif_puri_r)
 
 # Print the post-hoc analysis results without purification
@@ -365,7 +371,6 @@ print(dif_puri_r$no_purify$post.hoc)
 
 # Print the post-hoc analysis results with purification
 print(dif_puri_r$with_purify$post.hoc)
-
 }
 
 }

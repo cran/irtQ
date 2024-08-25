@@ -35,23 +35,24 @@
 #' ## (a = 1, b = 0.2)
 #'
 #' # set a function of theta
-#' find.th <- function(theta, p) {p - drm(theta=theta, a=1, b=0.2, D=1)}
+#' find.th <- function(theta, p) {
+#'   p - drm(theta = theta, a = 1, b = 0.2, D = 1)
+#' }
 #'
 #' # find the theta corresponding to p = 0.2
-#' bisection(.fun=find.th, p=0.2, lb=-10, ub=10)$root
+#' bisection(.fun = find.th, p = 0.2, lb = -10, ub = 10)$root
 #'
 #' # find the theta corresponding to p = 0.8
-#' bisection(.fun=find.th, p=0.8, lb=-10, ub=10)$root
+#' bisection(.fun = find.th, p = 0.8, lb = -10, ub = 10)$root
 #'
 #' @export
-bisection <- function (.fun, ..., lb, ub, tol = 1e-4, max.it = 100) {
-
+bisection <- function(.fun, ..., lb, ub, tol = 1e-4, max.it = 100) {
   iter <- 0
   f.ub <- .fun(ub, ...)
   while (abs(lb - ub) > tol) {
     mb <- (lb + ub) / 2
     f.mb <- .fun(mb, ...)
-    if(f.mb == 0) {
+    if (f.mb == 0) {
       ub <- mb + (tol / 2)
       lb <- mb - (tol / 2)
     } else if (f.ub * f.mb < 0) {
@@ -62,13 +63,10 @@ bisection <- function (.fun, ..., lb, ub, tol = 1e-4, max.it = 100) {
     }
     iter <- iter + 1
     if (iter > max.it) {
-      warning("The maximum number of iteration is reached. \n", call.=FALSE)
+      warning("The maximum number of iteration is reached. \n", call. = FALSE)
       break
     }
   }
-  root <- (lb + ub)/2
-  list(root=root, iter=iter, delta=abs(lb - ub))
-
+  root <- (lb + ub) / 2
+  list(root = root, iter = iter, delta = abs(lb - ub))
 }
-
-

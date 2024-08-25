@@ -117,31 +117,38 @@ they are displayed with crosses.
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the first two dichotomous items and last polytomous item
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
 
 # generate examinees' abilities from N(0, 1)
 set.seed(23)
-score <- rnorm(1000, mean=0, sd=1)
+score <- rnorm(1000, mean = 0, sd = 1)
 
 # simulate the response data
-data <- simdat(x=x, theta=score, D=1)
+data <- simdat(x = x, theta = score, D = 1)
 
 \donttest{
 # compute fit statistics
-fit <- irtfit(x=x, score=score, data=data, group.method="equal.freq",
-               n.width=11, loc.theta="average", range.score=c(-4, 4), D=1, alpha=0.05, overSR=1.5)
+fit <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.freq",
+  n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1,
+  alpha = 0.05, overSR = 1.5
+)
 
 # residual plots for the first item (dichotomous item)
-plot(x=fit, item.loc=1, type = "both", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+plot(x = fit, item.loc = 1, type = "both", ci.method = "wald",
+     show.table = TRUE, ylim.sr.adjust = TRUE)
 
 # residual plots for the third item (polytomous item)
-plot(x=fit, item.loc=3, type = "both", ci.method = "wald", show.table=FALSE, ylim.sr.adjust=TRUE)
+plot(x = fit, item.loc = 3, type = "both", ci.method = "wald",
+     show.table = FALSE, ylim.sr.adjust = TRUE)
 
 # raw residual plot for the third item (polytomous item)
-plot(x=fit, item.loc=3, type = "icc", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+plot(x = fit, item.loc = 3, type = "icc", ci.method = "wald",
+     show.table = TRUE, ylim.sr.adjust = TRUE)
 
 # standardized residual plot for the third item (polytomous item)
-plot(x=fit, item.loc=3, type = "sr", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+plot(x = fit, item.loc = 3, type = "sr", ci.method = "wald",
+     show.table = TRUE, ylim.sr.adjust = TRUE)
 }
 
 }

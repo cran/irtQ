@@ -69,10 +69,10 @@ that you want to compute the variance-covariance matrices of five polytomous ite
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the first two dichotomous items and last polytomous item
-x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df[c(1:2, 55), ]
+x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df[c(1:2, 55), ]
 
 # compute the var-covariance matrices with sample size of 2,000
-covirt(x, D=1, nstd=2000, norm.prior=c(0, 1), nquad=41)
+covirt(x, D = 1, nstd = 2000, norm.prior = c(0, 1), nquad = 41)
 
 }
 \references{

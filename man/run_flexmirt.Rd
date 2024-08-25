@@ -66,11 +66,11 @@ and an additional directory of "Resources" that contains two files which are
 file.syntax <- system.file("extdata", "2PLM_example.flexmirt", package = "irtQ")
 
 # run flexMIRT to estimate the item parameters of IRT 3PL model
-run_flexmirt(file.syntax=file.syntax, dir.flex=NULL, show.output=TRUE)
+run_flexmirt(file.syntax = file.syntax, dir.flex = NULL, show.output = TRUE)
 
 # check the output file
 out.file <- system.file("extdata", "2PLM_example-prm.txt", package = "irtQ")
-bring.flexmirt(out.file, type="par")
+bring.flexmirt(out.file, type = "par")
 
 # (2) run multiple syntax files
 # import two examples of flexMIRT syntax files
@@ -78,15 +78,14 @@ file.syntax1 <- system.file("extdata", "2PLM_example.flexmirt", package = "irtQ"
 file.syntax2 <- system.file("extdata", "3PLM_example.flexmirt", package = "irtQ")
 
 # run flexMIRT to estimate the item parameters
-run_flexmirt(file.syntax=c(file.syntax1, file.syntax2), dir.flex=NULL, show.output=FALSE)
+run_flexmirt(file.syntax = c(file.syntax1, file.syntax2), dir.flex = NULL, show.output = FALSE)
 
 # check the output file
 out.file1 <- system.file("extdata", "2PLM_example-prm.txt", package = "irtQ")
 out.file2 <- system.file("extdata", "3PLM_example-prm.txt", package = "irtQ")
-bring.flexmirt(out.file1, type="par")
-bring.flexmirt(out.file2, type="par")
+bring.flexmirt(out.file1, type = "par")
+bring.flexmirt(out.file2, type = "par")
 }
-
 
 }
 \references{

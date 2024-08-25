@@ -1,7 +1,6 @@
 # This function calculates the central and non-central chi-square fit statistics
 #' @importFrom Rfast rowsums
 chisq_stat <- function(exp.freq, obs.freq, count.prm, crt.delta, alpha) {
-
   # transform the two frequency tables to the matrix forms
   exp.freq2 <- data.matrix(exp.freq)
   obs.freq2 <- data.matrix(obs.freq)
@@ -11,11 +10,11 @@ chisq_stat <- function(exp.freq, obs.freq, count.prm, crt.delta, alpha) {
   obs.freq2[is.na(obs.freq2)] <- 0
 
   # create the two proportion tables
-  exp.prop <- prop.table(exp.freq2, margin=1)
-  obs.prop <- prop.table(obs.freq2, margin=1)
+  exp.prop <- prop.table(exp.freq2, margin = 1)
+  obs.prop <- prop.table(obs.freq2, margin = 1)
 
   # compute the chi-square statistic
-  chisq_fit <- sum(Rfast::rowsums(obs.freq2) * ((obs.prop - exp.prop)^2 / exp.prop), na.rm=TRUE)
+  chisq_fit <- sum(Rfast::rowsums(obs.freq2) * ((obs.prop - exp.prop)^2 / exp.prop), na.rm = TRUE)
 
   # copy the expected proportion table and replace 0 with NA
   exp.prop2 <- exp.prop
@@ -31,8 +30,8 @@ chisq_stat <- function(exp.freq, obs.freq, count.prm, crt.delta, alpha) {
   diff_low[diff_low > crt.delta] <- crt.delta
 
   # compute the two non-centrality parameters
-  ncp_up <- sum(rowSums(obs.freq) * (diff_up^2 / exp.prop2), na.rm=TRUE)
-  ncp_low <- sum(rowSums(obs.freq) * (diff_low^2 / exp.prop2), na.rm=TRUE)
+  ncp_up <- sum(rowSums(obs.freq) * (diff_up^2 / exp.prop2), na.rm = TRUE)
+  ncp_low <- sum(rowSums(obs.freq) * (diff_low^2 / exp.prop2), na.rm = TRUE)
   ncp <- max(ncp_up, ncp_low)
 
   # compute degrees of freedom
@@ -43,13 +42,14 @@ chisq_stat <- function(exp.freq, obs.freq, count.prm, crt.delta, alpha) {
   df <- nrow(exp.freq) * (ncol(exp.freq) - 1) - count.prm - counted_NA
 
   # compute the central critical value
-  crtval_cen <- stats::qchisq(1-alpha, df=df, lower.tail=TRUE)
+  crtval_cen <- stats::qchisq(1 - alpha, df = df, lower.tail = TRUE)
 
   # compute the non-central critical value
-  crtval_non <- stats::qchisq(1-alpha, df=df, ncp=ncp, lower.tail=TRUE)
+  crtval_non <- stats::qchisq(1 - alpha, df = df, ncp = ncp, lower.tail = TRUE)
 
   # return results
-  list(chisq_fit=chisq_fit, df=df, crtval_cen=crtval_cen, crtval_non=crtval_non, ncp=ncp,
-       exp.prop=exp.prop2, obs.prop=obs.prop2)
-
+  list(
+    chisq_fit = chisq_fit, df = df, crtval_cen = crtval_cen, crtval_non = crtval_non, ncp = ncp,
+    exp.prop = exp.prop2, obs.prop = obs.prop2
+  )
 }

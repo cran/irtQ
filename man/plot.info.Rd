@@ -75,28 +75,28 @@ The object of class \code{\link{info}} can be obtained from the function \code{\
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item metadata
-test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # set theta values
 theta <- seq(-4, 4, 0.1)
 
 # compute item and test information values given the theta values
-x <- info(x=test_flex, theta=theta, D=1, tif=TRUE)
+x <- info(x = test_flex, theta = theta, D = 1, tif = TRUE)
 
 # draw a plot of the test information function
 plot(x)
 
 # draw a plot of the item information function for the second item
-plot(x, item.loc=2)
+plot(x, item.loc = 2)
 
 # draw a plot of multiple item information functions across the multiple panels
-plot(x, item.loc=1:8, overlap=FALSE)
+plot(x, item.loc = 1:8, overlap = FALSE)
 
 # draw a plot of multiple item information functions in one panel
-plot(x, item.loc=1:8, overlap=TRUE)
+plot(x, item.loc = 1:8, overlap = TRUE)
 
 # draw a plot of conditional standard error at a test level
-plot(x, csee=TRUE)
+plot(x, csee = TRUE)
 
 }
 \seealso{

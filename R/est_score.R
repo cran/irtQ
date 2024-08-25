@@ -118,7 +118,7 @@
 #' \emph{Educational Measurement: Issues and Practice, 29}(3), 8-14.
 #'
 #' Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
-#' \emph{Journal of Educational Measurement}. DOI: 10.1111/jedm.12276.
+#' \emph{Journal of Educational Measurement, 58}(2), 154-178.
 #'
 #' Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
 #' \emph{Journal of Statistical Software, 76}, 1-19.
@@ -141,62 +141,60 @@
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # read item parameters and transform them to item metadata
-#' x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+#' x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
 #' # generate examinees abilities
 #' set.seed(12)
 #' theta <- rnorm(10)
 #'
 #' # simulate the item response data
-#' data <- simdat(x, theta, D=1)
+#' data <- simdat(x, theta, D = 1)
 #'
 #' \donttest{
 #' # estimate the abilities using ML
-#' est_score(x, data, D=1, method="ML", range=c(-4, 4), se=TRUE)
+#' est_score(x, data, D = 1, method = "ML", range = c(-4, 4), se = TRUE)
 #'
 #' # estimate the abilities using WL
-#' est_score(x, data, D=1, method="WL", range=c(-4, 4), se=TRUE)
+#' est_score(x, data, D = 1, method = "WL", range = c(-4, 4), se = TRUE)
 #'
 #' # estimate the abilities using MLF with default fences of item difficulty parameters
-#' est_score(x, data, D=1, method="MLF", fence.a=3.0, fence.b=NULL, se=TRUE)
+#' est_score(x, data, D = 1, method = "MLF", fence.a = 3.0, fence.b = NULL, se = TRUE)
 #'
 #' # estimate the abilities using MLF with different fences of item difficulty parameters
-#' est_score(x, data, D=1, method="MLF", fence.a=3.0, fence.b=c(-7, 7), se=TRUE)
+#' est_score(x, data, D = 1, method = "MLF", fence.a = 3.0, fence.b = c(-7, 7), se = TRUE)
 #'
 #' # estimate the abilities using MAP
-#' est_score(x, data, D=1, method="MAP", norm.prior=c(0, 1), nquad=30, se=TRUE)
+#' est_score(x, data, D = 1, method = "MAP", norm.prior = c(0, 1), nquad = 30, se = TRUE)
 #'
 #' # estimate the abilities using EAP
-#' est_score(x, data, D=1, method="EAP", norm.prior=c(0, 1), nquad=30, se=TRUE)
+#' est_score(x, data, D = 1, method = "EAP", norm.prior = c(0, 1), nquad = 30, se = TRUE)
 #'
 #' # estimate the abilities using EAP summed scoring
-#' est_score(x, data, D=1, method="EAP.SUM", norm.prior=c(0, 1), nquad=30)
+#' est_score(x, data, D = 1, method = "EAP.SUM", norm.prior = c(0, 1), nquad = 30)
 #'
 #' # estimate the abilities using inverse TCC scoring
-#' est_score(x, data, D=1, method="INV.TCC", intpol=TRUE, range.tcc=c(-7, 7))
-#'
+#' est_score(x, data, D = 1, method = "INV.TCC", intpol = TRUE, range.tcc = c(-7, 7))
 #' }
 #'
 #' @export
 est_score <- function(x, ...) UseMethod("est_score")
 
 #' @describeIn est_score Default method to estimate examinees' latent ability parameters using a data frame \code{x} containing the item metadata.
-#' @import dplyr
 #' @importFrom reshape2 melt
+#' @import dplyr
 #' @export
 est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), norm.prior = c(0, 1),
                               nquad = 41, weights = NULL, fence.a = 3.0, fence.b = NULL,
-                              tol = 1e-4, max.iter=100, se = TRUE, stval.opt = 1,
-                              intpol=TRUE, range.tcc=c(-7, 7),
-                              missing = NA, ncore=1, ...) {
-
+                              tol = 1e-4, max.iter = 100, se = TRUE, stval.opt = 1,
+                              intpol = TRUE, range.tcc = c(-7, 7),
+                              missing = NA, ncore = 1, ...) {
   # check if the data set is a vector of an examinee
-  if(is.vector(data)) {
+  if (is.vector(data)) {
     data <- rbind(data)
   }
 
   # re-code missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
@@ -207,31 +205,30 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
   x <- confirm_df(x)
 
   # scoring of ML, WL, MLF, MAP, and EAP
-  if(method %in% c("ML", "MAP", "WL", "EAP", "MLF")) {
-
+  if (method %in% c("ML", "MAP", "WL", "EAP", "MLF")) {
     # check if the method is WL
     # if TRUE, ji = TRUE
     ji <- ifelse(method == "WL", TRUE, FALSE)
 
     # add two more items and data responses when MLF is used
-    if(method == "MLF") {
-
+    if (method == "MLF") {
       # when fence.b = NULL, use the range argument as the fence.b argument
-      if(is.null(fence.b)) {
+      if (is.null(fence.b)) {
         fence.b <- range
       }
 
       # add two more response columns for the two fence items
-      data <- cbind(data, f.lower=1, f.upper=0)
+      data <- cbind(data, f.lower = 1, f.upper = 0)
 
       # create a new item metadata for the two fence items
-      x.fence <- shape_df(par.drm = list(a=rep(fence.a, 2), b=fence.b, g=rep(0, 2)),
-                          item.id=c("fence.lower", "fence.upper"), cats=2,
-                          model="3PLM")
+      x.fence <- shape_df(
+        par.drm = list(a = rep(fence.a, 2), b = fence.b, g = rep(0, 2)),
+        item.id = c("fence.lower", "fence.upper"), cats = 2,
+        model = "3PLM"
+      )
 
       # create the new item metadata by adding two fence items
       x <- dplyr::bind_rows(x, x.fence)
-
     }
 
     # check the maximum score category across all items
@@ -244,33 +241,35 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
     elm_item <- list(pars = NULL, model = NULL, cats = NULL)
 
     # check the number of CPU cores
-    if(ncore < 1) {
-      stop("The number of logical CPU cores must not be less than 1.", call.=FALSE)
+    if (ncore < 1) {
+      stop("The number of logical CPU cores must not be less than 1.", call. = FALSE)
     }
 
     # estimation
-    if(ncore == 1L) {
-
+    if (ncore == 1L) {
       # reshape the data
-      if(stval.opt == 2) {
+      if (stval.opt == 2) {
         data <-
           data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(id.vars = 1:max.col,
-                         variable.name = "std",
-                         value.name = "resp.num",
-                         na.rm = TRUE,
-                         factorsAsStrings = FALSE)
-        data$resp <- factor(data$resp.num, levels=(seq_len(max.cats) - 1))
-
+          reshape2::melt(
+            id.vars = 1:max.col,
+            variable.name = "std",
+            value.name = "resp.num",
+            na.rm = TRUE,
+            factorsAsStrings = FALSE
+          )
+        data$resp <- factor(data$resp.num, levels = (seq_len(max.cats) - 1))
       } else {
         data <-
           data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(id.vars = 1:max.col,
-                         variable.name = "std",
-                         value.name = "resp",
-                         na.rm = TRUE,
-                         factorsAsStrings = FALSE)
-        data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+          reshape2::melt(
+            id.vars = 1:max.col,
+            variable.name = "std",
+            value.name = "resp",
+            na.rm = TRUE,
+            factorsAsStrings = FALSE
+          )
+        data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
       }
       data$std <- as.numeric(data$std)
 
@@ -286,15 +285,14 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
             max.col = max.col, D = D, method = method,
             range = range, norm.prior = norm.prior, nquad = nquad,
             weights = weights, tol = tol, max.iter = max.iter, se = se,
-            stval.opt=stval.opt, ji=ji)
+            stval.opt = stval.opt, ji = ji
+          )
         )
 
       # merge the scoring results
       rst <- merge(x = rst, y = est, by = "std")
       rst <- rst[, -1]
-
     } else {
-
       # create a parallel processing cluster
       # cl <- parallel::makeCluster(ncore)
       cl <- parallel::makeCluster(ncore, ...)
@@ -302,27 +300,29 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
       # divide data into
       quotient <- nstd %/% ncore
       remain <- nstd %% ncore
-      data_list <- vector('list', ncore)
-      for(k in 1:ncore) {
-        if(k == ncore & remain != 0) {
-          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient*k + remain), ]
+      data_list <- vector("list", ncore)
+      for (k in 1:ncore) {
+        if (k == ncore & remain != 0) {
+          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient * k + remain), ]
         } else {
-          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient*k), ]
+          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient * k), ]
         }
       }
 
       # delete 'data' object
-      rm(data, envir=environment(), inherits = FALSE)
+      rm(data, envir = environment(), inherits = FALSE)
 
       # load some specific variable names into processing cluster
-      parallel::clusterExport(cl, c("x", "elm_item", "D", "method",
-                                    "max.cats", "max.col", "range", "norm.prior", "nquad",
-                                    "weights", "tol",  "max.iter", "se", "stval.opt", "ji",
-                                    "est_score_1core", "est_score_indiv", "idxfinder",
-                                    "ll_score", "drm", "prm", "gpcm", "grm",
-                                    "logprior_deriv", "esprior_norm",
-                                    "info_score", "info_drm", "info_prm",
-                                    "gen.weight"), envir = environment())
+      parallel::clusterExport(cl, c(
+        "x", "elm_item", "D", "method",
+        "max.cats", "max.col", "range", "norm.prior", "nquad",
+        "weights", "tol", "max.iter", "se", "stval.opt", "ji",
+        "est_score_1core", "est_score_indiv", "idxfinder",
+        "ll_score", "drm", "prm", "gpcm", "grm",
+        "logprior_deriv", "esprior_norm",
+        "info_score", "info_drm", "info_prm",
+        "gen.weight"
+      ), envir = environment())
       parallel::clusterEvalQ(cl, library(dplyr))
       # parallel::clusterEvalQ(cl, library(reshape2))
       # parallel::clusterEvalQ(cl, library(Rfast))
@@ -330,69 +330,72 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
 
       # set a function for scoring
       fsm <- function(subdat) {
-        est_score_1core(x=x, elm_item=elm_item, data=subdat, D=D,
-                        method=method, max.cats = max.cats, max.col = max.col,
-                        range=range, norm.prior=norm.prior, nquad=nquad,
-                        weights=weights, tol=tol, max.iter=max.iter,
-                        se=se, stval.opt=stval.opt, ji=ji)
+        est_score_1core(
+          x = x, elm_item = elm_item, data = subdat, D = D,
+          method = method, max.cats = max.cats, max.col = max.col,
+          range = range, norm.prior = norm.prior, nquad = nquad,
+          weights = weights, tol = tol, max.iter = max.iter,
+          se = se, stval.opt = stval.opt, ji = ji
+        )
       }
 
       # parallel scoring
-      est <- parallel::parLapply(cl=cl, X=data_list, fun=fsm)
+      est <- parallel::parLapply(cl = cl, X = data_list, fun = fsm)
 
       # finish
       parallel::stopCluster(cl)
 
       # combine the results
       rst <- do.call(what = "rbind", args = est)
-
     }
 
     # return a warning message when some examinees have all missing responses
     loc.na <- which(is.na(rst$est.theta))
-    if(length(loc.na) > 0) {
+    if (length(loc.na) > 0) {
       memo <- paste("NA values were reterned for examinees with all missing responses.")
-      warning(memo, call.=FALSE)
+      warning(memo, call. = FALSE)
     }
-
   }
 
-  if(method == "EAP.SUM") {
-    rst <- eap_sum(x=x, data=data, norm.prior=norm.prior,
-                   nquad=nquad, weights=weights, D=D)
+  if (method == "EAP.SUM") {
+    rst <- eap_sum(
+      x = x, data = data, norm.prior = norm.prior,
+      nquad = nquad, weights = weights, D = D
+    )
   }
 
-  if(method == "INV.TCC") {
-    rst <- inv_tcc(x, data, D=D, intpol=intpol, range.tcc=range.tcc,
-                   tol=tol, max.it=500)
+  if (method == "INV.TCC") {
+    rst <- inv_tcc(x, data,
+      D = D, intpol = intpol, range.tcc = range.tcc,
+      tol = tol, max.it = 500
+    )
   }
 
   # return results
   rst
-
 }
 
 
 #' @describeIn est_score An object created by the function \code{\link{est_irt}}.
+#' @import dplyr
 #' @export
 est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c(0, 1),
                               nquad = 41, weights = NULL, fence.a = 3.0, fence.b = NULL,
-                              tol = 1e-4, max.iter=100, se = TRUE, stval.opt = 1,
-                              intpol=TRUE, range.tcc=c(-7, 7),
-                              missing = NA, ncore=1, ...) {
-
+                              tol = 1e-4, max.iter = 100, se = TRUE, stval.opt = 1,
+                              intpol = TRUE, range.tcc = c(-7, 7),
+                              missing = NA, ncore = 1, ...) {
   # extract information from an object
   data <- x$data
   D <- x$scale.D
   x <- x$par.est
 
   # check if the data set is a vector of an examinee
-  if(is.vector(data)) {
+  if (is.vector(data)) {
     data <- rbind(data)
   }
 
   # re-code missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
@@ -403,31 +406,30 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
   x <- confirm_df(x)
 
   # scoring of ML, WL, MLF, MAP, and EAP
-  if(method %in% c("ML", "MAP", "WL", "EAP", "MLF")) {
-
+  if (method %in% c("ML", "MAP", "WL", "EAP", "MLF")) {
     # check if the method is WL
     # if TRUE, ji = TRUE
     ji <- ifelse(method == "WL", TRUE, FALSE)
 
     # add two more items and data responses when "ML" with Fences method is used
-    if(method == "MLF") {
-
+    if (method == "MLF") {
       # when fence.b = NULL, use the range argument as the fence.b argument
-      if(is.null(fence.b)) {
+      if (is.null(fence.b)) {
         fence.b <- range
       }
 
       # add two more response columns for the two fence items
-      data <- cbind(data, f.lower=1, f.upper=0)
+      data <- cbind(data, f.lower = 1, f.upper = 0)
 
       # create a new item metadata for the two fence items
-      x.fence <- shape_df(par.drm = list(a=rep(fence.a, 2), b=fence.b, g=rep(0, 2)),
-                          item.id=c("fence.lower", "fence.upper"), cats=2,
-                          model="3PLM")
+      x.fence <- shape_df(
+        par.drm = list(a = rep(fence.a, 2), b = fence.b, g = rep(0, 2)),
+        item.id = c("fence.lower", "fence.upper"), cats = 2,
+        model = "3PLM"
+      )
 
       # create the new item metadata by adding two fence items
       x <- dplyr::bind_rows(x, x.fence)
-
     }
 
     # check the maximum score category across all items
@@ -440,32 +442,35 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
     elm_item <- list(pars = NULL, model = NULL, cats = NULL)
 
     # check the number of CPU cores
-    if(ncore < 1) {
-      stop("The number of logical CPU cores must not be less than 1.", call.=FALSE)
+    if (ncore < 1) {
+      stop("The number of logical CPU cores must not be less than 1.", call. = FALSE)
     }
 
     # estimation
-    if(ncore == 1L) {
-
+    if (ncore == 1L) {
       # reshape the data
-      if(stval.opt == 2) {
+      if (stval.opt == 2) {
         data <-
           data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(id.vars = 1:max.col,
-                         variable.name = "std",
-                         value.name = "resp.num",
-                         na.rm = TRUE,
-                         factorsAsStrings = FALSE)
-        data$resp <- factor(data$resp.num, levels=(seq_len(max.cats) - 1))
+          reshape2::melt(
+            id.vars = 1:max.col,
+            variable.name = "std",
+            value.name = "resp.num",
+            na.rm = TRUE,
+            factorsAsStrings = FALSE
+          )
+        data$resp <- factor(data$resp.num, levels = (seq_len(max.cats) - 1))
       } else {
         data <-
           data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(id.vars = 1:max.col,
-                         variable.name = "std",
-                         value.name = "resp",
-                         na.rm = TRUE,
-                         factorsAsStrings = FALSE)
-        data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+          reshape2::melt(
+            id.vars = 1:max.col,
+            variable.name = "std",
+            value.name = "resp",
+            na.rm = TRUE,
+            factorsAsStrings = FALSE
+          )
+        data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
       }
       data$std <- as.numeric(data$std)
 
@@ -481,42 +486,43 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
             max.col = max.col, D = D, method = method,
             range = range, norm.prior = norm.prior, nquad = nquad,
             weights = weights, tol = tol, max.iter = max.iter, se = se,
-            stval.opt=stval.opt, ji=ji)
+            stval.opt = stval.opt, ji = ji
+          )
         )
 
       # merge the scoring results
       rst <- merge(x = rst, y = est, by = "std")
       rst <- rst[, -1]
-
     } else {
-
       # create a parallel processing cluster
       cl <- parallel::makeCluster(ncore, ...)
 
       # divide data into
       quotient <- nstd %/% ncore
       remain <- nstd %% ncore
-      data_list <- vector('list', ncore)
-      for(k in 1:ncore) {
-        if(k == ncore & remain != 0) {
-          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient*k + remain), ]
+      data_list <- vector("list", ncore)
+      for (k in 1:ncore) {
+        if (k == ncore & remain != 0) {
+          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient * k + remain), ]
         } else {
-          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient*k), ]
+          data_list[[k]] <- data[((k - 1) * quotient + 1):(quotient * k), ]
         }
       }
 
       # delete 'data' object
-      rm(data, envir=environment(), inherits = FALSE)
+      rm(data, envir = environment(), inherits = FALSE)
 
       # load some specific variable names into processing cluster
-      parallel::clusterExport(cl, c("x", "elm_item", "D", "method",
-                                    "max.cats", "max.col", "range", "norm.prior", "nquad",
-                                    "weights", "tol",  "max.iter", "se", "stval.opt", "ji",
-                                    "est_score_1core", "est_score_indiv", "idxfinder",
-                                    "ll_score", "drm", "prm", "gpcm", "grm",
-                                    "logprior_deriv", "esprior_norm",
-                                    "info_score", "info_drm", "info_prm",
-                                    "gen.weight"), envir = environment())
+      parallel::clusterExport(cl, c(
+        "x", "elm_item", "D", "method",
+        "max.cats", "max.col", "range", "norm.prior", "nquad",
+        "weights", "tol", "max.iter", "se", "stval.opt", "ji",
+        "est_score_1core", "est_score_indiv", "idxfinder",
+        "ll_score", "drm", "prm", "gpcm", "grm",
+        "logprior_deriv", "esprior_norm",
+        "info_score", "info_drm", "info_prm",
+        "gen.weight"
+      ), envir = environment())
       parallel::clusterEvalQ(cl, library(dplyr))
       # parallel::clusterEvalQ(cl, library(reshape2))
       # parallel::clusterEvalQ(cl, library(Rfast))
@@ -524,79 +530,84 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
 
       # set a function for scoring
       fsm <- function(subdat) {
-        est_score_1core(x=x, elm_item=elm_item, data=subdat, D=D,
-                        method=method, max.cats = max.cats, max.col = max.col,
-                        range=range, norm.prior=norm.prior, nquad=nquad,
-                        weights=weights, tol=tol, max.iter=max.iter,
-                        se=se, stval.opt=stval.opt, ji=ji)
+        est_score_1core(
+          x = x, elm_item = elm_item, data = subdat, D = D,
+          method = method, max.cats = max.cats, max.col = max.col,
+          range = range, norm.prior = norm.prior, nquad = nquad,
+          weights = weights, tol = tol, max.iter = max.iter,
+          se = se, stval.opt = stval.opt, ji = ji
+        )
       }
 
       # parallel scoring
-      est <- parallel::parLapply(cl=cl, X=data_list, fun=fsm)
+      est <- parallel::parLapply(cl = cl, X = data_list, fun = fsm)
 
       # finish
       parallel::stopCluster(cl)
 
       # combine the results
       rst <- do.call(what = "rbind", args = est)
-
     }
 
     # return a warning message when some examinees have all missing responses
     loc.na <- which(is.na(rst$est.theta))
-    if(length(loc.na) > 0) {
+    if (length(loc.na) > 0) {
       memo <- paste("NA values were reterned for examinees with all missing responses.")
-      warning(memo, call.=FALSE)
+      warning(memo, call. = FALSE)
     }
-
   }
 
-  if(method == "EAP.SUM") {
-    rst <- eap_sum(x=x, data=data, norm.prior=norm.prior,
-                   nquad=nquad, weights=weights, D=D)
+  if (method == "EAP.SUM") {
+    rst <- eap_sum(
+      x = x, data = data, norm.prior = norm.prior,
+      nquad = nquad, weights = weights, D = D
+    )
   }
 
-  if(method == "INV.TCC") {
-    rst <- inv_tcc(x, data, D=D, intpol=intpol, range.tcc=range.tcc,
-                   tol=tol, max.it=500)
+  if (method == "INV.TCC") {
+    rst <- inv_tcc(x, data,
+      D = D, intpol = intpol, range.tcc = range.tcc,
+      tol = tol, max.it = 500
+    )
   }
 
   # return results
   rst
-
 }
 
 
 # This function is used for each single core computation
+#' @import dplyr
 est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
                             max.cats, max.col, range = c(-4, 4), norm.prior = c(0, 1), nquad = 41,
                             weights = NULL, tol = 1e-4, max.iter = 30, se = TRUE,
-                            stval.opt=1, ji=FALSE) {
-
-
+                            stval.opt = 1, ji = FALSE) {
   # check the number of examinees
   nstd <- nrow(data)
 
   # reshape the data
-  if(stval.opt == 2) {
+  if (stval.opt == 2) {
     data <-
       data.frame(x, t(data), check.names = FALSE) %>%
-      reshape2::melt(id.vars = 1:max.col,
-                     variable.name = "std",
-                     value.name = "resp.num",
-                     na.rm = TRUE,
-                     factorsAsStrings = FALSE)
-    data$resp <- factor(data$resp.num, levels=(seq_len(max.cats) - 1))
-
+      reshape2::melt(
+        id.vars = 1:max.col,
+        variable.name = "std",
+        value.name = "resp.num",
+        na.rm = TRUE,
+        factorsAsStrings = FALSE
+      )
+    data$resp <- factor(data$resp.num, levels = (seq_len(max.cats) - 1))
   } else {
     data <-
       data.frame(x, t(data), check.names = FALSE) %>%
-      reshape2::melt(id.vars = 1:max.col,
-                     variable.name = "std",
-                     value.name = "resp",
-                     na.rm = TRUE,
-                     factorsAsStrings = FALSE)
-    data$resp <- factor(data$resp, levels=(seq_len(max.cats) - 1))
+      reshape2::melt(
+        id.vars = 1:max.col,
+        variable.name = "std",
+        value.name = "resp",
+        na.rm = TRUE,
+        factorsAsStrings = FALSE
+      )
+    data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
   }
   data$std <- as.numeric(data$std)
 
@@ -612,7 +623,8 @@ est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
         max.col = max.col, D = D, method = method,
         range = range, norm.prior = norm.prior, nquad = nquad,
         weights = weights, tol = tol, max.iter = max.iter, se = se,
-        stval.opt=stval.opt, ji=ji)
+        stval.opt = stval.opt, ji = ji
+      )
     )
 
   # merge the scoring results
@@ -621,15 +633,13 @@ est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
 
   # return results
   rst
-
 }
 
 # This function computes an ability estimate for an examinee (ML, MLF, MAP, EAP)
-#' @importFrom stats xtabs
+#' @importFrom stats xtabs na.pass
 est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
                             range = c(-4, 4), norm.prior = c(0, 1), nquad = 41, weights = NULL,
-                            tol = 1e-4, max.iter = 30, se = TRUE, stval.opt=1, ji=FALSE) {
-
+                            tol = 1e-4, max.iter = 30, se = TRUE, stval.opt = 1, ji = FALSE) {
   # extract the required objects from the individual exam data
   elm_item$pars <- data.matrix(exam_dat[, 4:max.col])
   elm_item$model <- exam_dat$model
@@ -647,24 +657,26 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
   freq.cat <-
     matrix(
       stats::xtabs(~ tmp.id + resp,
-                   na.action=stats::na.pass, addNA = FALSE),
-      nrow=n.resp)
+        na.action = stats::na.pass, addNA = FALSE
+      ),
+      nrow = n.resp
+    )
 
-  ##----------------------------------------------------
+  ## ----------------------------------------------------
   ## ML, MLF and MAP
-  if(method %in% c("ML", "WL",  "MLF", "MAP")) {
-
+  if (method %in% c("ML", "WL", "MLF", "MAP")) {
     # set a starting value
-    if(stval.opt == 1) {
-
+    if (stval.opt == 1) {
       # use a brute force + smart starting value method
       # prepare the discrete theta values
-      theta.nodes <- seq(from=range[1], to=range[2], by=0.1)
+      theta.nodes <- seq(from = range[1], to = range[2], by = 0.1)
 
       # compute the negative log-likelihood values for all the discrete theta values
-      ll_tmp <- ll_score(theta=theta.nodes, elm_item=elm_item, freq.cat=freq.cat,
-                         method=method, idx.drm=idx.drm, idx.prm=idx.prm, D=D,
-                         norm.prior=norm.prior, logL=TRUE)
+      ll_tmp <- ll_score(
+        theta = theta.nodes, elm_item = elm_item, freq.cat = freq.cat,
+        method = method, idx.drm = idx.drm, idx.prm = idx.prm, D = D,
+        norm.prior = norm.prior, logL = TRUE
+      )
 
       # find the locations of thetas where the sign of slope changes
       # in the negative loglikelihood function
@@ -676,44 +688,40 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       # if there is no selected starting value (this means that the negative ll function is
       # monotonically increasing or descreasing), use the 0
       theta <- ifelse(length(stval_tmp1) > 0L, stval_tmp1, 0)
-
-    } else if(stval.opt == 2) {
-
+    } else if (stval.opt == 2) {
       # compute a perfect NC score
       total.nc <- sum(elm_item$cats - 1)
 
       # compute a starting value based on the observed sum score
       obs.sum <- sum(exam_dat$resp.num)
-      if(obs.sum == 0) {
+      if (obs.sum == 0) {
         theta <- log(1 / total.nc)
-      } else if(obs.sum == total.nc) {
+      } else if (obs.sum == total.nc) {
         theta <- log(total.nc / 1)
       } else {
         theta <- log(obs.sum / (total.nc - obs.sum))
       }
-
-    } else if(stval.opt == 3) {
-
+    } else if (stval.opt == 3) {
       # use 0 as a starting value
       theta <- 0
-
     }
 
     # estimate an ability using Newton-Raphson
     # set the iteration number to 0
     i <- 0
     abs_delta <- 1
-    while(abs_delta >= tol) {
-
+    while (abs_delta >= tol) {
       # update the iteration number
       i <- i + 1
 
       # compute the gradient (gradient of negative log-likelihood)
       # and the fisher information (negative expectation of second derivative of log-likelihood)
       gr_fi <-
-        info_score(theta=theta, elm_item=elm_item, freq.cat=freq.cat,
-                   idx.drm=idx.drm, idx.prm=idx.prm, method=method, D=D,
-                   norm.prior=norm.prior, grad=TRUE, ji=ji)
+        info_score(
+          theta = theta, elm_item = elm_item, freq.cat = freq.cat,
+          idx.drm = idx.drm, idx.prm = idx.prm, method = method, D = D,
+          norm.prior = norm.prior, grad = TRUE, ji = ji
+        )
       grad <- gr_fi$grad
       finfo <- gr_fi$finfo
 
@@ -730,8 +738,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       # update the theta value
       theta <- theta - delta
 
-      if(i == max.iter) break
-
+      if (i == max.iter) break
     }
 
     # assign boundary score when the theta estimate is beyond the boundary
@@ -740,43 +747,45 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
     est.theta <- theta
 
     # compute the standard error
-    if(se) {
-      if(est.theta %in% range) {
+    if (se) {
+      if (est.theta %in% range) {
         se.theta <- 99.9999
       } else {
         finfo <-
-          info_score(theta=est.theta, elm_item=elm_item, freq.cat=freq.cat,
-                     idx.drm=idx.drm, idx.prm=idx.prm, method=method, D=D,
-                     norm.prior=norm.prior, grad=FALSE, ji=FALSE)$finfo
+          info_score(
+            theta = est.theta, elm_item = elm_item, freq.cat = freq.cat,
+            idx.drm = idx.drm, idx.prm = idx.prm, method = method, D = D,
+            norm.prior = norm.prior, grad = FALSE, ji = FALSE
+          )$finfo
         se.theta <- 1 / sqrt(finfo)
       }
     } else {
       se.theta <- NA
     }
-
   }
 
-  ##----------------------------------------------------
+  ## ----------------------------------------------------
   ## EAP scoring
-  if(method == "EAP") {
-
+  if (method == "EAP") {
     # generate quadrature points and weights
-    if(is.null(weights)) {
-      popdist <- gen.weight(n=nquad, dist="norm", mu=norm.prior[1], sigma=norm.prior[2])
+    if (is.null(weights)) {
+      popdist <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
     } else {
       popdist <- data.frame(weights)
     }
 
     # compute the posterior distribution
     posterior <-
-      ll_score(theta=popdist[, 1], elm_item=elm_item, freq.cat=freq.cat,
-               idx.drm=idx.drm, idx.prm=idx.prm, D=D, logL=FALSE) * popdist[, 2]
+      ll_score(
+        theta = popdist[, 1], elm_item = elm_item, freq.cat = freq.cat,
+        idx.drm = idx.drm, idx.prm = idx.prm, D = D, logL = FALSE
+      ) * popdist[, 2]
 
     # Expected A Posterior
     posterior <- posterior / sum(posterior)
     est.theta <- sum(popdist[, 1] * posterior)
 
-    if(se) {
+    if (se) {
       # calculating standard error
       ex2 <- sum(popdist[, 1]^2 * posterior)
       var <- ex2 - (est.theta)^2
@@ -784,14 +793,11 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
     } else {
       se.theta <- NA
     }
-
   }
 
   # combine theta and se into a list
-  rst <- data.frame(est.theta=est.theta, se.theta=se.theta)
+  rst <- data.frame(est.theta = est.theta, se.theta = se.theta)
 
   # return results
   rst
-
 }
-

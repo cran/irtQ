@@ -40,143 +40,139 @@
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # read item parameters and transform them to item metadata
-#' test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+#' test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
 #' # set theta values
 #' theta <- seq(-4, 4, 0.1)
 #'
 #' # compute item and test information values given the theta values
-#' x <- info(x=test_flex, theta=theta, D=1, tif=TRUE)
+#' x <- info(x = test_flex, theta = theta, D = 1, tif = TRUE)
 #'
 #' # draw a plot of the test information function
 #' plot(x)
 #'
 #' # draw a plot of the item information function for the second item
-#' plot(x, item.loc=2)
+#' plot(x, item.loc = 2)
 #'
 #' # draw a plot of multiple item information functions across the multiple panels
-#' plot(x, item.loc=1:8, overlap=FALSE)
+#' plot(x, item.loc = 1:8, overlap = FALSE)
 #'
 #' # draw a plot of multiple item information functions in one panel
-#' plot(x, item.loc=1:8, overlap=TRUE)
+#' plot(x, item.loc = 1:8, overlap = TRUE)
 #'
 #' # draw a plot of conditional standard error at a test level
-#' plot(x, csee=TRUE)
+#' plot(x, csee = TRUE)
 #'
 #' @import ggplot2 dplyr
 #' @importFrom reshape2 melt
 #' @importFrom rlang .data
 #' @export
-plot.info <- function(x, item.loc=NULL, overlap=FALSE, csee=FALSE, xlab.text, ylab.text, main.text,
-                      lab.size=15, main.size=15, axis.size=15, line.color, line.size=1, layout.col=4,
-                      strip.size=12, ...) {
-
-  if(!csee) {
-
+plot.info <- function(x, item.loc = NULL, overlap = FALSE, csee = FALSE, xlab.text, ylab.text, main.text,
+                      lab.size = 15, main.size = 15, axis.size = 15, line.color, line.size = 1, layout.col = 4,
+                      strip.size = 12, ...) {
+  if (!csee) {
     # 1. plot test infomation
-    if(is.null(item.loc)) {
-
+    if (is.null(item.loc)) {
       # data manipulation for plotting
-      if(is.null(x$tif)) {
-        stop("The test information (tif) is NULL in the provided object 'x'. ", call.=FALSE)
+      if (is.null(x$tif)) {
+        stop("The test information (tif) is NULL in the provided object 'x'. ", call. = FALSE)
       }
-      df_info <- data.frame(theta=x$theta, info = x$tif)
+      df_info <- data.frame(theta = x$theta, info = x$tif)
 
       # plot
       # Set plot conditions
-      if(missing(xlab.text)) xlab.text <- expression(theta)
-      if(missing(ylab.text)) ylab.text <- 'Information'
-      if(missing(main.text)) main.text <- 'Test Information'
-      if(missing(line.color)) line.color <- "#F8766D" else line.color <- line.color
+      if (missing(xlab.text)) xlab.text <- expression(theta)
+      if (missing(ylab.text)) ylab.text <- "Information"
+      if (missing(main.text)) main.text <- "Test Information"
+      if (missing(line.color)) line.color <- "#F8766D" else line.color <- line.color
 
       # draw a plot
       p <-
         df_info %>%
-        ggplot2::ggplot(mapping=ggplot2::aes(x=.data$theta, y=.data$info)) +
-        ggplot2::geom_line(linewidth=line.size, color=line.color, ...) +
+        ggplot2::ggplot(mapping = ggplot2::aes(x = .data$theta, y = .data$info)) +
+        ggplot2::geom_line(linewidth = line.size, color = line.color, ...) +
         ggplot2::theme_bw() +
         ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
-        ggplot2::theme(plot.title = ggplot2::element_text(size=main.size),
-                       axis.title = ggplot2::element_text(size=lab.size),
-                       axis.text = ggplot2::element_text(size=axis.size))
-
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(size = main.size),
+          axis.title = ggplot2::element_text(size = lab.size),
+          axis.text = ggplot2::element_text(size = axis.size)
+        )
     }
 
     # 2. plot item information
-    if(!is.null(item.loc)) {
-
+    if (!is.null(item.loc)) {
       # data manipulation for plotting
       df_info <-
-        data.frame(t(x$iif[item.loc, , drop=FALSE]), theta=x$theta) %>%
-        reshape2::melt(variable.name="item", id.vars="theta", value.name="info")
+        data.frame(t(x$iif[item.loc, , drop = FALSE]), theta = x$theta) %>%
+        reshape2::melt(variable.name = "item", id.vars = "theta", value.name = "info")
 
       # plot
       # Set plot conditions
-      if(missing(xlab.text)) xlab.text <- expression(theta)
-      if(missing(ylab.text)) ylab.text <- 'Information'
-      if(length(item.loc) == 1) {
-        if(missing(main.text)) main.text <- paste0('Item Information: ', unique(df_info$item))
-      } else if(length(item.loc) > 1) {
-        if(missing(main.text)) main.text <- 'Item Information'
+      if (missing(xlab.text)) xlab.text <- expression(theta)
+      if (missing(ylab.text)) ylab.text <- "Information"
+      if (length(item.loc) == 1) {
+        if (missing(main.text)) main.text <- paste0("Item Information: ", unique(df_info$item))
+      } else if (length(item.loc) > 1) {
+        if (missing(main.text)) main.text <- "Item Information"
       }
-      if(missing(line.color)) line.color <- "#F8766D" else line.color <- line.color
+      if (missing(line.color)) line.color <- "#F8766D" else line.color <- line.color
 
-      if(!overlap) {
+      if (!overlap) {
         p <-
           df_info %>%
-          ggplot2::ggplot(mapping=ggplot2::aes(x=.data$theta, y=.data$info)) +
-          ggplot2::geom_line(linewidth=line.size, color=line.color, ...) +
+          ggplot2::ggplot(mapping = ggplot2::aes(x = .data$theta, y = .data$info)) +
+          ggplot2::geom_line(linewidth = line.size, color = line.color, ...) +
           ggplot2::theme_bw() +
           ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
-          ggplot2::theme(plot.title = ggplot2::element_text(size=main.size),
-                         axis.title = ggplot2::element_text(size=lab.size),
-                         axis.text = ggplot2::element_text(size=axis.size)) +
-          ggplot2::facet_wrap(~item, ncol=layout.col) +
-          ggplot2::theme(strip.text.x = ggplot2::element_text(size = strip.size, face = 'bold'))
+          ggplot2::theme(
+            plot.title = ggplot2::element_text(size = main.size),
+            axis.title = ggplot2::element_text(size = lab.size),
+            axis.text = ggplot2::element_text(size = axis.size)
+          ) +
+          ggplot2::facet_wrap(~item, ncol = layout.col) +
+          ggplot2::theme(strip.text.x = ggplot2::element_text(size = strip.size, face = "bold"))
       } else {
         p <-
           df_info %>%
-          dplyr::rename("Item"="item") %>%
-          dplyr::mutate_at(.vars="Item", as.factor) %>%
-          ggplot2::ggplot(mapping=ggplot2::aes(x=.data$theta, y=.data$info)) +
-          ggplot2::geom_line(mapping=ggplot2::aes(color=.data$Item), linewidth=line.size, ...) +
+          dplyr::rename("Item" = "item") %>%
+          dplyr::mutate_at(.vars = "Item", as.factor) %>%
+          ggplot2::ggplot(mapping = ggplot2::aes(x = .data$theta, y = .data$info)) +
+          ggplot2::geom_line(mapping = ggplot2::aes(color = .data$Item), linewidth = line.size, ...) +
           ggplot2::theme_bw() +
           ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
-          ggplot2::theme(plot.title = ggplot2::element_text(size=main.size),
-                         axis.title = ggplot2::element_text(size=lab.size),
-                         axis.text = ggplot2::element_text(size=axis.size))
+          ggplot2::theme(
+            plot.title = ggplot2::element_text(size = main.size),
+            axis.title = ggplot2::element_text(size = lab.size),
+            axis.text = ggplot2::element_text(size = axis.size)
+          )
       }
-
     }
-
   } else {
-
     # Plot only test level csee infomation
     # data manipulation for plotting
-    df_csee <- data.frame(theta=x$theta, csee = 1/sqrt(x$tif))
+    df_csee <- data.frame(theta = x$theta, csee = 1 / sqrt(x$tif))
 
     # plot
     # Set plot conditions
-    if(missing(xlab.text)) xlab.text <- expression(theta)
-    if(missing(ylab.text)) ylab.text <- 'Standard Error'
-    if(missing(main.text)) main.text <- 'Conditional Standard Error of Estimation'
-    if(missing(line.color)) line.color <- "#F8766D" else line.color <- line.color
+    if (missing(xlab.text)) xlab.text <- expression(theta)
+    if (missing(ylab.text)) ylab.text <- "Standard Error"
+    if (missing(main.text)) main.text <- "Conditional Standard Error of Estimation"
+    if (missing(line.color)) line.color <- "#F8766D" else line.color <- line.color
 
     # draw a plot
     p <-
       df_csee %>%
-      ggplot2::ggplot(mapping=ggplot2::aes(x=.data$theta, y=.data$csee)) +
-      ggplot2::geom_line(linewidth=line.size, color=line.color, ...) +
+      ggplot2::ggplot(mapping = ggplot2::aes(x = .data$theta, y = .data$csee)) +
+      ggplot2::geom_line(linewidth = line.size, color = line.color, ...) +
       ggplot2::theme_bw() +
       ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
-      ggplot2::theme(plot.title = ggplot2::element_text(size=main.size),
-                     axis.title = ggplot2::element_text(size=lab.size),
-                     axis.text = ggplot2::element_text(size=axis.size))
-
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(size = main.size),
+        axis.title = ggplot2::element_text(size = lab.size),
+        axis.text = ggplot2::element_text(size = axis.size)
+      )
   }
 
   p
-
 }
-
-

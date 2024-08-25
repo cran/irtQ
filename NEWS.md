@@ -1,6 +1,24 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# irtQ 0.2.1
+
+- Enhanced functionality of the `bind.fill()` function by adding a new
+  argument `fill`. The value in the argument is used to fill in missing
+  data when aligning datasets.
+
+- Fixed a bug within the `est_irt()` function that was previously unable
+  to implement the fixed item parameter calibration (FIPC) when only
+  freely estimating a single item given that all other items are fixed.
+
+- Added a new function, `reval_mst()`, which evaluates the measurement
+  precision and bias in Multistage-adaptive Test (MST) panels using a
+  recursion-based evaluation method introduced by Lim et al. (2020).
+
+- Added a new function, `pcd2()`, which the Pseudo-count $D^{2}$
+  statistics (Cappaert et al., 2018; Stone, 2000) to detect item
+  parameter drift.
+
 # irtQ 0.2.0
 
 - Introduced Warm’s (1989) Weighted Likelihood (WL) estimation method to

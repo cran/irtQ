@@ -184,19 +184,19 @@ the \eqn{\chi^{2}} fit statistic.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default method to compute the traditional IRT item fit statistics for a data frame \code{x} containing the item metadata.
+\item \code{irtfit(default)}: Default method to compute the traditional IRT item fit statistics for a data frame \code{x} containing the item metadata.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{irtfit(est_item)}: An object created by the function \code{\link{est_item}}.
 
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{irtfit(est_irt)}: An object created by the function \code{\link{est_irt}}.
+
 }}
-
 \examples{
 \donttest{
 ## example 1
 ## use the simulated CAT data
 # find the location of items that have more than 10,000 responses
-over10000 <- which(colSums(simCAT_MX$res.dat, na.rm=TRUE) > 10000)
+over10000 <- which(colSums(simCAT_MX$res.dat, na.rm = TRUE) > 10000)
 
 # select the items that have more than 10,000 responses
 x <- simCAT_MX$item.prm[over10000, ]
@@ -208,9 +208,11 @@ data <- simCAT_MX$res.dat[, over10000]
 score <- simCAT_MX$score
 
 # compute fit statistics
-fit1 <- irtfit(x=x, score=score, data=data, group.method="equal.width",
-               n.width=10, loc.theta="average", range.score=NULL, D=1, alpha=0.05,
-               missing=NA, overSR=2)
+fit1 <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.width",
+  n.width = 10, loc.theta = "average", range.score = NULL, D = 1, alpha = 0.05,
+  missing = NA, overSR = 2
+)
 
 # fit statistics
 fit1$fit_stat
@@ -224,18 +226,20 @@ fit1$contingency.fitstat
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the first two dichotomous items and last polytomous item
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
 
 # generate examinees' abilities from N(0, 1)
 set.seed(10)
-score <- rnorm(1000, mean=0, sd=1)
+score <- rnorm(1000, mean = 0, sd = 1)
 
 # simulate the response data
-data <- simdat(x=x, theta=score, D=1)
+data <- simdat(x = x, theta = score, D = 1)
 
 # compute fit statistics
-fit2 <- irtfit(x=x, score=score, data=data, group.method="equal.freq",
-               n.width=11, loc.theta="average", range.score=c(-4, 4), D=1, alpha=0.05)
+fit2 <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.freq",
+  n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1, alpha = 0.05
+)
 
 # fit statistics
 fit2$fit_stat
@@ -244,11 +248,12 @@ fit2$fit_stat
 fit2$contingency.fitstat
 
 # residual plots for the first item (dichotomous item)
-plot(x=fit2, item.loc=1, type = "both", ci.method = "wald", show.table=TRUE, ylim.sr.adjust=TRUE)
+plot(x = fit2, item.loc = 1, type = "both", ci.method = "wald",
+     show.table = TRUE, ylim.sr.adjust = TRUE)
 
 # residual plots for the third item (polytomous item)
-plot(x=fit2, item.loc=3, type = "both", ci.method = "wald", show.table=FALSE, ylim.sr.adjust=TRUE)
-
+plot(x = fit2, item.loc = 3, type = "both", ci.method = "wald",
+     show.table = FALSE, ylim.sr.adjust = TRUE)
 }
 
 }

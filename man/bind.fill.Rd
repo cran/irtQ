@@ -4,12 +4,16 @@
 \alias{bind.fill}
 \title{Bind Fill}
 \usage{
-bind.fill(List, type = c("rbind", "cbind"))
+bind.fill(List, type = c("rbind", "cbind"), fill = NA)
 }
 \arguments{
 \item{List}{A list containing different length of numeric vectors}
 
 \item{type}{A character string specifying whether rbind is used or cbind is used.}
+
+\item{fill}{The value used to fill in missing data when aligning datasets. For \code{type = "cbind"},
+this fills missing rows in shorter columns. For \code{type = "rbind"}, this fills missing columns in shorter rows.
+Accepts any R object (e.g., numeric, character, logical). Defaults to NA.}
 }
 \value{
 A matrix.
@@ -28,6 +32,10 @@ bind.fill(score_list, type="rbind")
 
 # 2) create a cbind with the sample score list
 bind.fill(score_list, type="cbind")
+
+# 3) create a cbind with the sample score list,
+#    and fill missing data with 0s.
+bind.fill(score_list, type="cbind", fill = 0L)
 
 }
 \author{

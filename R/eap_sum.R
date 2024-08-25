@@ -36,36 +36,34 @@
 # # estimate the abilities
 # eap_sum(x, data, norm.prior=c(0, 1), nquad=41, D=1)
 #
-#' @importFrom Rfast rowsums
-#' @importFrom Rfast colsums
-eap_sum <- function(x, data, norm.prior = c(0, 1), nquad = 41, weights=NULL, D=1) {
-
-  ##------------------------------------------------------------------------------------------------
+#' @importFrom Rfast colsums rowsums
+eap_sum <- function(x, data, norm.prior = c(0, 1), nquad = 41, weights = NULL, D = 1) {
+  ## ------------------------------------------------------------------------------------------------
   # check missing data
   # replace NAs with 0
   na.lg <- is.na(data)
-  if(any(na.lg)) {
+  if (any(na.lg)) {
     data[na.lg] <- 0
     memo <- "Any missing responses are replaced with 0s. \n"
-    warning(memo, call.=FALSE)
+    warning(memo, call. = FALSE)
   }
 
   # generate quad nodes and weights
-  if(is.null(weights)) {
-    weights <- gen.weight(n=nquad, dist="norm", mu=norm.prior[1], sigma=norm.prior[2])
+  if (is.null(weights)) {
+    weights <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
   } else {
     weights <- data.frame(weights)
   }
 
   # estimate likelihoods using lord-wingersky algorithm
-  lkhd <- lwrc(x=x, theta=weights[, 1], prob=NULL, D=D)
+  lkhd <- lwrc(x = x, theta = weights[, 1], prob = NULL, D = D)
 
   # estimate EAP for sum scores
-  ss.prob <- c(lkhd %*% weights[ ,2])
-  post <- t((t(lkhd) * weights[ ,2])) / ss.prob
+  ss.prob <- c(lkhd %*% weights[, 2])
+  post <- t((t(lkhd) * weights[, 2])) / ss.prob
   tr_post <- t(post)
-  eap.est <- Rfast::colsums(tr_post * weights[ ,1])
-  eap.est2 <- Rfast::colsums(tr_post * weights[ ,1]^2)
+  eap.est <- Rfast::colsums(tr_post * weights[, 1])
+  eap.est2 <- Rfast::colsums(tr_post * weights[, 1]^2)
   se.est <- sqrt(eap.est2 - eap.est^2)
 
   # assign the EAP summed scores to each examinee
@@ -76,20 +74,25 @@ eap_sum <- function(x, data, norm.prior = c(0, 1), nquad = 41, weights=NULL, D=1
   est_score <- eap.est[as.character(sumScore)]
   est_se <- se.est[as.character(sumScore)]
   score_table <-
-    data.frame(sum.score=obs.score,
-               est.theta=eap.est, se.theta=se.est,
-               stringsAsFactors=FALSE)
+    data.frame(
+      sum.score = obs.score,
+      est.theta = eap.est, se.theta = se.est,
+      stringsAsFactors = FALSE
+    )
   rownames(score_table) <- NULL
 
   # create a data frame for the estimated scores
-  est.par <- data.frame(sum.score=sumScore,
-                        est.theta=est_score,
-                        se.theta=est_se)
+  est.par <- data.frame(
+    sum.score = sumScore,
+    est.theta = est_score,
+    se.theta = est_se
+  )
   rownames(est.par) <- NULL
 
   # return results
-  rst <- list(est.par=est.par,
-              score.table=score_table)
+  rst <- list(
+    est.par = est.par,
+    score.table = score_table
+  )
   rst
-
 }

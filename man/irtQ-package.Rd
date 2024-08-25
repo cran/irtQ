@@ -2,6 +2,7 @@
 % Please edit documentation in R/irtQ-package.R
 \docType{package}
 \name{irtQ-package}
+\alias{irtQ}
 \alias{irtQ-package}
 \title{irtQ: Unidimensional Item Response Theory Modeling}
 \description{
@@ -22,8 +23,8 @@ running flexMIRT (Cai, 2017) through R, generating simulated data, computing the
 using the Lord-Wingersky recursion formula, computing item and test information functions, computing item and test characteristic
 curve functions, and plotting item and test characteristic curves and item and test information functions.
 
-\tabular{ll}{ Package: \tab irtQ\cr Version: \tab 0.2.0\cr Date: \tab
-2023-07-05\cr Depends: \tab R (>= 4.1)\cr License: \tab GPL (>= 2)\cr }
+\tabular{ll}{ Package: \tab irtQ\cr Version: \tab 0.2.1\cr Date: \tab
+2024-08-23\cr Depends: \tab R (>= 4.1)\cr License: \tab GPL (>= 2)\cr }
 }
 \details{
 Following five sections describe a) how to implement the online item calibration using FIPC, a) how to implement the online item
@@ -315,6 +316,10 @@ Bock, R. D., & Mislevy, R. J. (1982). Adaptive EAP estimation of ability in a mi
 Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional item analysis and test scoring [Computer software].
 Chapel Hill, NC: Vector Psychometric Group.
 
+Cappaert, K. J., Wen, Y., & Chang, Y. F. (2018). Evaluating CAT-adjusted
+approaches for suspected item parameter drift detection. \emph{Measurement:
+Interdisciplinary Research and Perspectives, 16}(4), 226-238.
+
 Chalmers, R. P. (2012). mirt: A multidimensional item response theory package for the R environment.
 \emph{Journal of Statistical Software, 48}(6), 1-29.
 
@@ -364,13 +369,16 @@ using IRT residual DIF framework}. Paper presented at the Annual Meeting of the 
 in Education. Chicago, IL.
 
 Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
-\emph{Journal of Educational Measurement}. DOI: 10.1111/jedm.12276.
+\emph{Journal of Educational Measurement, 58}(2), 154-178.
 
 Lord, F. & Wingersky, M. (1984). Comparison of IRT true score and equipercentile observed score equatings.
 \emph{Applied Psychological Measurement, 8}(4), 453-461.
 
 Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
 \emph{Journal of Statistical Software, 76}, 1-19.
+
+Magis, D., Yan, D., & Von Davier, A. A. (2017). \emph{Computerized adaptive
+and multistage testing with R: Using packages catR and mstR}. Springer.
 
 McKinley, R., & Mills, C. (1985). A comparison of several goodness-of-fit statistics.
 \emph{Applied Psychological Measurement, 9}, 49-57.
@@ -400,6 +408,10 @@ Stocking, M. L. (1996). An alternative method for scoring adaptive tests.
 \emph{Journal of Educational and Behavioral Statistics, 21}(4), 365-389.
 
 Stocking, M. L. (1988). \emph{Scale drift in on-line calibration} (Research Rep. 88-28). Princeton, NJ: ETS.
+
+Stone, C. A. (2000). Monte Carlo based null distribution for an alternative
+goodness-of-fit test statistic in IRT models. \emph{Journal of educational
+measurement, 37}(1), 58-75.
 
 Thissen, D. (1982). Marginal maximum likelihood estimation for the one-parameter logistic model.
 \emph{Psychometrika, 47}, 175-186.

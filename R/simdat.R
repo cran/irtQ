@@ -82,7 +82,9 @@
 #' theta <- rnorm(100)
 #'
 #' # set item parameters for three dichotomous items with the 3PL model
-#' a.drm <- c(1, 1.2, 1.3); b.drm <- c(-1, 0, 1); g.drm <- rep(0.2, 3)
+#' a.drm <- c(1, 1.2, 1.3)
+#' b.drm <- c(-1, 0, 1)
+#' g.drm <- rep(0.2, 3)
 #'
 #' # set item parameters for three polytomous item parameters
 #' # note that 4, 4, and 5 categories are used for polytomous items
@@ -94,11 +96,13 @@
 #' cats <- c(2, 2, 4, 4, 5, 2)
 #'
 #' # create a character vector of the IRT model for the polytomous items
-#' pr.model <- c('GPCM', 'GPCM', 'GRM')
+#' pr.model <- c("GPCM", "GPCM", "GRM")
 #'
 #' # simulate the response data
-#' simdat(theta=theta, a.drm=a.drm, b.drm=b.drm, g.drm=NULL,
-#'        a.prm=a.prm, d.prm=d.prm, cats=cats, pr.model=pr.model, D=1)
+#' simdat(
+#'   theta = theta, a.drm = a.drm, b.drm = b.drm, g.drm = NULL,
+#'   a.prm = a.prm, d.prm = d.prm, cats = cats, pr.model = pr.model, D = 1
+#' )
 #'
 #'
 #' ## example 2.
@@ -107,7 +111,7 @@
 #' cats <- rep(2, 3)
 #'
 #' # simulate the response data
-#' simdat(theta=theta, a.drm=a.drm, b.drm=b.drm, cats=cats, D=1)
+#' simdat(theta = theta, a.drm = a.drm, b.drm = b.drm, cats = cats, D = 1)
 #'
 #' ## example 3.
 #' ## the use of a "-prm.txt" file obtained from a flexMIRT
@@ -115,17 +119,16 @@
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # read item parameters and transform them to item metadata
-#' test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+#' test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
 #' # simulate the response data
-#' simdat(x=test_flex, theta=theta, D=1) # use a data.frame of item meta information
+#' simdat(x = test_flex, theta = theta, D = 1) # use a data.frame of item meta information
 #'
 #' @importFrom stats na.exclude
 #' @export
 #'
-simdat <- function(x=NULL, theta, a.drm, b.drm, g.drm=NULL, a.prm, d.prm, cats, pr.model, D=1) {
-
-  if(!is.null(x)) { # if the item metadata is inserted in the x argument
+simdat <- function(x = NULL, theta, a.drm, b.drm, g.drm = NULL, a.prm, d.prm, cats, pr.model, D = 1) {
+  if (!is.null(x)) { # if the item metadata is inserted in the x argument
 
     # confirm and correct all item metadata information
     x <- confirm_df(x)
@@ -148,25 +151,27 @@ simdat <- function(x=NULL, theta, a.drm, b.drm, g.drm=NULL, a.prm, d.prm, cats, 
 
     # Simulate data
     # (1) for DRM items
-    if(!is.null(idx.drm)) {
-      res.drm <- simdat_drm(theta, a=comp$par[idx.drm, 1],
-                            b=comp$par[idx.drm, 2], g=comp$par[idx.drm, 3], D=D)
+    if (!is.null(idx.drm)) {
+      res.drm <- simdat_drm(theta,
+        a = comp$par[idx.drm, 1],
+        b = comp$par[idx.drm, 2], g = comp$par[idx.drm, 3], D = D
+      )
       res[, idx.drm] <- res.drm
     }
 
     # (2) for PRM items
-    if(!is.null(idx.prm)) {
-      for(i in idx.prm) {
+    if (!is.null(idx.prm)) {
+      for (i in idx.prm) {
         par.tmp <- stats::na.exclude(comp$par[i, ])
-        res[, i] <- simdat_prm(theta, a=par.tmp[1], d=par.tmp[-1], D=D,
-                               pr.model=comp$model[i])
+        res[, i] <- simdat_prm(theta,
+          a = par.tmp[1], d = par.tmp[-1], D = D,
+          pr.model = comp$model[i]
+        )
       }
     }
-
   } else {
-
     # check whether argument is correctly specified
-    if(missing(cats)) stop("Category of each item is missing", call.=FALSE)
+    if (missing(cats)) stop("Category of each item is missing", call. = FALSE)
 
     # Set conditions
     nstd <- length(theta)
@@ -182,28 +187,25 @@ simdat <- function(x=NULL, theta, a.drm, b.drm, g.drm=NULL, a.prm, d.prm, cats, 
 
     # Simulate data
     # (1) for DRM items
-    if(any(cats == 2)) {
-      res.drm <- simdat_drm(theta, a=a.drm, b=b.drm, g=g.drm, D=D)
+    if (any(cats == 2)) {
+      res.drm <- simdat_drm(theta, a = a.drm, b = b.drm, g = g.drm, D = D)
       res[, idx.drm] <- res.drm
     }
 
     # (2) for PRM items
-    if(any(cats > 2)) {
-      for(i in 1:length(idx.prm)) {
-        res[, idx.prm[i]] <- simdat_prm(theta, a=a.prm[i], d=d.prm[[i]], D=D, pr.model=pr.model[i])
+    if (any(cats > 2)) {
+      for (i in 1:length(idx.prm)) {
+        res[, idx.prm[i]] <- simdat_prm(theta, a = a.prm[i], d = d.prm[[i]], D = D, pr.model = pr.model[i])
       }
     }
-
   }
 
   res
-
 }
 
 
 # A function for generating binary data for one item
 simdat_drm <- function(theta, a, b, g, D) {
-
   # Number of examinees
   nstd <- length(theta)
 
@@ -211,7 +213,7 @@ simdat_drm <- function(theta, a, b, g, D) {
   nitem <- length(a)
 
   # check the item guessing parameters
-  if(is.null(g)) g <- rep(0, nitem)
+  if (is.null(g)) g <- rep(0, nitem)
 
   # calculate probability of correct answer
   z <- (D * a) * Rfast::Outer(x = theta, y = b, oper = "-")
@@ -227,7 +229,6 @@ simdat_drm <- function(theta, a, b, g, D) {
 
   # return the results
   sim
-
 }
 
 
@@ -235,7 +236,6 @@ simdat_drm <- function(theta, a, b, g, D) {
 #' @importFrom Rfast colCumSums
 #' @importFrom Rfast rowsums
 simdat_prm <- function(theta, a, d, D, pr.model) {
-
   # Number of examinees
   nstd <- length(theta)
 
@@ -252,7 +252,4 @@ simdat_prm <- function(theta, a, d, D, pr.model) {
 
   # return the results
   res
-
 }
-
-

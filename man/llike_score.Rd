@@ -19,7 +19,7 @@ llike_score(
 \arguments{
 \item{x}{A data frame containing the item metadata (e.g., item parameters, number
 of score categories, models). This can be created easily using the \code{\link{shape_df}}
-function. See \code{\link{est_irt}}, \code{\link{irtfit}}, \\code{\link{info}},
+function. See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}},
 or \code{\link{simdat}} for more details about the item metadata.}
 
 \item{data}{A matrix representing examinees' response data for the items in \code{x}.
@@ -66,7 +66,6 @@ their item response data matrix with two rows in \code{data} and a vector of abi
 for which loglikelihood needs to be computed in \code{theta}.
 }
 \examples{
-#'
 ## Import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 

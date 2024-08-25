@@ -98,14 +98,14 @@ categories following the graded response model. The examples below show how to i
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item meta data
-bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
 ## example 2
 ## import the ".par" output file from PARSCALE
 pscale_sam <- system.file("extdata", "parscale_sample.PAR", package = "irtQ")
 
 # read item parameters and transform them to item meta data
-bring.parscale(file=pscale_sam, "par")$full_df
+bring.parscale(file = pscale_sam, "par")$full_df
 
 }
 \references{

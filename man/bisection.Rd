@@ -43,13 +43,15 @@ number of iterations (\code{max.it}) is reached.
 ## (a = 1, b = 0.2)
 
 # set a function of theta
-find.th <- function(theta, p) {p - drm(theta=theta, a=1, b=0.2, D=1)}
+find.th <- function(theta, p) {
+  p - drm(theta = theta, a = 1, b = 0.2, D = 1)
+}
 
 # find the theta corresponding to p = 0.2
-bisection(.fun=find.th, p=0.2, lb=-10, ub=10)$root
+bisection(.fun = find.th, p = 0.2, lb = -10, ub = 10)$root
 
 # find the theta corresponding to p = 0.8
-bisection(.fun=find.th, p=0.8, lb=-10, ub=10)$root
+bisection(.fun = find.th, p = 0.8, lb = -10, ub = 10)$root
 
 }
 \references{

@@ -167,50 +167,49 @@ To implement WL method, the \code{Pi}, \code{Ji}, and \code{Ii} functions of \pk
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default method to estimate examinees' latent ability parameters using a data frame \code{x} containing the item metadata.
+\item \code{est_score(default)}: Default method to estimate examinees' latent ability parameters using a data frame \code{x} containing the item metadata.
 
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{est_score(est_irt)}: An object created by the function \code{\link{est_irt}}.
+
 }}
-
 \examples{
 ## the use of a "-prm.txt" file obtained from a flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item metadata
-x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # generate examinees abilities
 set.seed(12)
 theta <- rnorm(10)
 
 # simulate the item response data
-data <- simdat(x, theta, D=1)
+data <- simdat(x, theta, D = 1)
 
 \donttest{
 # estimate the abilities using ML
-est_score(x, data, D=1, method="ML", range=c(-4, 4), se=TRUE)
+est_score(x, data, D = 1, method = "ML", range = c(-4, 4), se = TRUE)
 
 # estimate the abilities using WL
-est_score(x, data, D=1, method="WL", range=c(-4, 4), se=TRUE)
+est_score(x, data, D = 1, method = "WL", range = c(-4, 4), se = TRUE)
 
 # estimate the abilities using MLF with default fences of item difficulty parameters
-est_score(x, data, D=1, method="MLF", fence.a=3.0, fence.b=NULL, se=TRUE)
+est_score(x, data, D = 1, method = "MLF", fence.a = 3.0, fence.b = NULL, se = TRUE)
 
 # estimate the abilities using MLF with different fences of item difficulty parameters
-est_score(x, data, D=1, method="MLF", fence.a=3.0, fence.b=c(-7, 7), se=TRUE)
+est_score(x, data, D = 1, method = "MLF", fence.a = 3.0, fence.b = c(-7, 7), se = TRUE)
 
 # estimate the abilities using MAP
-est_score(x, data, D=1, method="MAP", norm.prior=c(0, 1), nquad=30, se=TRUE)
+est_score(x, data, D = 1, method = "MAP", norm.prior = c(0, 1), nquad = 30, se = TRUE)
 
 # estimate the abilities using EAP
-est_score(x, data, D=1, method="EAP", norm.prior=c(0, 1), nquad=30, se=TRUE)
+est_score(x, data, D = 1, method = "EAP", norm.prior = c(0, 1), nquad = 30, se = TRUE)
 
 # estimate the abilities using EAP summed scoring
-est_score(x, data, D=1, method="EAP.SUM", norm.prior=c(0, 1), nquad=30)
+est_score(x, data, D = 1, method = "EAP.SUM", norm.prior = c(0, 1), nquad = 30)
 
 # estimate the abilities using inverse TCC scoring
-est_score(x, data, D=1, method="INV.TCC", intpol=TRUE, range.tcc=c(-7, 7))
-
+est_score(x, data, D = 1, method = "INV.TCC", intpol = TRUE, range.tcc = c(-7, 7))
 }
 
 }
@@ -235,7 +234,7 @@ Kolen, M. J. & Tong, Y. (2010). Psychometric properties of IRT proficiency estim
 \emph{Educational Measurement: Issues and Practice, 29}(3), 8-14.
 
 Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
-\emph{Journal of Educational Measurement}. DOI: 10.1111/jedm.12276.
+\emph{Journal of Educational Measurement, 58}(2), 154-178.
 
 Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
 \emph{Journal of Statistical Software, 76}, 1-19.

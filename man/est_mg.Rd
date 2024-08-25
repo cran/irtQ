@@ -281,7 +281,7 @@ need to be fixed across multiple test forms,
 
 In MG IRT analyses, it is commonly seen that the test forms of multiple groups share some common (or anchor) items between the groups.
 By default the common items that have the same item IDs between different groups are automatically constrained so that they can have the same
-item parameter estimates across the groups in the code{\link{est_mg}} function.
+item parameter estimates across the groups in the \code{\link{est_mg}} function.
 
 Most of the features of the \code{\link{est_mg}} function are similar with those of the \code{\link{est_irt}} function. The main difference is
 that several arguments in the \code{\link{est_mg}} functions take an object of a list format which contains several internal objects
@@ -324,7 +324,7 @@ set. Note that when the information of item IDs supplied in the \code{fix.id} ar
 }
 \examples{
 \donttest{
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 1. MG-calibration using simMG data
 #  - Details :
 #    (a) constrain the common items between the groups to have
@@ -333,7 +333,7 @@ set. Note that when the information of item IDs supplied in the \code{fix.id} ar
 #    (b) freely estimate the means and variances of ability
 #        distributions except the reference group in which mean
 #        and variance are fixed to 0 and 1, respectively.
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 1-(1). freely estimates the means and variances of groups 2 and 3
 # import the true item metadata of the three groups
 x <- simMG$item.prm
@@ -362,25 +362,27 @@ free.group <- c(2, 3) # or use 'free.group <- group.name[2:3]'
 # their item parameters will be constrained to be the same between
 # the groups unless the FIPC is not implemented
 fit.1 <-
- est_mg(data=data, group.name=group.name, model=model,
- cats=cats, item.id=item.id, D=1, free.group=free.group,
- use.gprior=TRUE, gprior=list(dist="beta", params=c(5, 16)),
- group.mean=0, group.var=1, EmpHist=TRUE, Etol=0.001, MaxE=500)
+  est_mg(
+    data = data, group.name = group.name, model = model,
+    cats = cats, item.id = item.id, D = 1, free.group = free.group,
+    use.gprior = TRUE, gprior = list(dist = "beta", params = c(5, 16)),
+    group.mean = 0, group.var = 1, EmpHist = TRUE, Etol = 0.001, MaxE = 500
+  )
 
 # summary of the estimation
 summary(fit.1)
 
 # extract the item parameter estimates
-getirt(fit.1, what="par.est")
+getirt(fit.1, what = "par.est")
 
 # extract the standard error estimates
-getirt(fit.1, what="se.est")
+getirt(fit.1, what = "se.est")
 
 # extract the group parameter estimates (i.e., scale parameters)
-getirt(fit.1, what="group.par")
+getirt(fit.1, what = "group.par")
 
 # extract the posterior latent ability distributions of the groups
-getirt(fit.1, what="weights")
+getirt(fit.1, what = "weights")
 
 # 1-(2). or the same parameter estimation can be implemented by
 # inserting a list of item metadata for the groups into the 'x'
@@ -391,16 +393,18 @@ getirt(fit.1, what="weights")
 # will be freely estimated using the group names
 free.group <- group.name[2:3]
 fit.2 <-
- est_mg(x=x, data=data, group.name=group.name, D=1,
- free.group=free.group, use.gprior=TRUE,
- gprior=list(dist="beta", params=c(5, 16)),
- group.mean=0, group.var=1, EmpHist=TRUE, use.startval=TRUE,
- Etol=0.001, MaxE=500)
+  est_mg(
+    x = x, data = data, group.name = group.name, D = 1,
+    free.group = free.group, use.gprior = TRUE,
+    gprior = list(dist = "beta", params = c(5, 16)),
+    group.mean = 0, group.var = 1, EmpHist = TRUE, use.startval = TRUE,
+    Etol = 0.001, MaxE = 500
+  )
 
 # summary of the estimation
 summary(fit.2)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 2. MG-calibration with the FIPC using simMG data
 #  - Details :
 #    (a) fix the parameters of the common items between the groups
@@ -408,7 +412,7 @@ summary(fit.2)
 #        items C2I1 - C2I10 between Groups 2 and 3)
 #    (b) freely estimate the means and variances of ability
 #        distributions of all three groups
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 2-(1). freely estimates the means and variances of all three groups
 # set all three groups as the free groups in which scale
 # of the ability distributions will be freely estimated.
@@ -423,9 +427,11 @@ free.group <- 1:3 # or use 'free.group <- group.name'
 # in the 41st - 50th rows of the second group's item metadata
 # for the third group, the common items C2I1 - C2I10 are located
 # in the 1st - 10th rows of the third group's item metadata
-fix.loc <- list(c(1:10, 49:50),
-                c(1:12, 41:50),
-                c(1:10))
+fix.loc <- list(
+  c(1:10, 49:50),
+  c(1:12, 41:50),
+  c(1:10)
+)
 
 # estimate the IRT parameters using FIPC:
 # when the FIPC is implemented, a list of the item metadata for all
@@ -436,26 +442,28 @@ fix.loc <- list(c(1:10, 49:50),
 # in the item metadata
 # also, set fipc = TRUE and fipc.method = "MEM"
 fit.3 <-
- est_mg(x=x, data=data, group.name=group.name, D=1,
- free.group=free.group, use.gprior=TRUE,
- gprior=list(dist="beta", params=c(5, 16)),
- EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
- fipc.method="MEM", fix.loc=fix.loc)
+  est_mg(
+    x = x, data = data, group.name = group.name, D = 1,
+    free.group = free.group, use.gprior = TRUE,
+    gprior = list(dist = "beta", params = c(5, 16)),
+    EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+    fipc.method = "MEM", fix.loc = fix.loc
+  )
 
 # summary of the estimation
 summary(fit.3)
 
 # extract the item parameter estimates
-getirt(fit.3, what="par.est")
+getirt(fit.3, what = "par.est")
 
 # extract the standard error estimates
-getirt(fit.3, what="se.est")
+getirt(fit.3, what = "se.est")
 
 # extract the group parameter estimates (i.e., scale parameters)
-getirt(fit.3, what="group.par")
+getirt(fit.3, what = "group.par")
 
 # extract the posterior latent ability distributions of the groups
-getirt(fit.3, what="weights")
+getirt(fit.3, what = "weights")
 
 # 2-(2). or the FIPC can be implemented by providing which items
 # will be fixed in a different way using the 'fix.id' argument.
@@ -463,23 +471,25 @@ getirt(fit.3, what="weights")
 # 'fix.id' argument as such.
 fix.id <- c(paste0("C1I", 1:12), paste0("C2I", 1:10))
 fit.4 <-
- est_mg(x=x, data=data, group.name=group.name, D=1,
- free.group=free.group, use.gprior=TRUE,
- gprior=list(dist="beta", params=c(5, 16)),
- EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
- fipc.method="MEM", fix.id=fix.id)
+  est_mg(
+    x = x, data = data, group.name = group.name, D = 1,
+    free.group = free.group, use.gprior = TRUE,
+    gprior = list(dist = "beta", params = c(5, 16)),
+    EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+    fipc.method = "MEM", fix.id = fix.id
+  )
 
 # summary of the estimation
 summary(fit.4)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 3. MG-calibration with the FIPC using simMG data
 #    (estimate the group parameters only)
 #  - Details :
 #    (a) fix all item parameters across all three groups
 #    (b) freely estimate the means and variances of ability
 #        distributions of all three groups
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 3-(1). freely estimates the means and variances of all three groups
 # set all three groups as the free groups in which scale
 # of the ability distributions will be freely estimated.
@@ -491,19 +501,21 @@ fix.loc <- list(1:50, 1:50, 1:38)
 
 # estimate the group parameters only using FIPC:
 fit.5 <-
- est_mg(x=x, data=data, group.name=group.name, D=1,
- free.group=free.group, use.gprior=TRUE,
- gprior=list(dist="beta", params=c(5, 16)),
- EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
- fipc.method="MEM", fix.loc=fix.loc)
+  est_mg(
+    x = x, data = data, group.name = group.name, D = 1,
+    free.group = free.group, use.gprior = TRUE,
+    gprior = list(dist = "beta", params = c(5, 16)),
+    EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+    fipc.method = "MEM", fix.loc = fix.loc
+  )
 
 # summary of the estimation
 summary(fit.5)
 
 # extract the group parameter estimates (i.e., scale parameters)
-getirt(fit.5, what="group.par")
+getirt(fit.5, what = "group.par")
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 4. MG-calibration with the FIPC using simMG data
 #    (fix the unique items of the group 1 only)
 #  - Details :
@@ -513,7 +525,7 @@ getirt(fit.5, what="group.par")
 #        Groups 1 and 2, and items C2I1 - C2I10 between Groups 2 and 3)
 #    (c) freely estimate the means and variances of ability
 #        distributions of all three groups
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 4-(1). freely estimates the means and variances of all three groups
 # set all three groups as the free groups in which scale
 # of the ability distributions will be freely estimated.
@@ -527,19 +539,21 @@ fix.id <- paste0("G1I", 1:38)
 
 # estimate the IRT parameters using FIPC:
 fit.6 <-
- est_mg(x=x, data=data, group.name=group.name, D=1,
- free.group=free.group, use.gprior=TRUE,
- gprior=list(dist="beta", params=c(5, 16)),
- EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
- fipc.method="MEM", fix.loc=NULL, fix.id=fix.id)
+  est_mg(
+    x = x, data = data, group.name = group.name, D = 1,
+    free.group = free.group, use.gprior = TRUE,
+    gprior = list(dist = "beta", params = c(5, 16)),
+    EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+    fipc.method = "MEM", fix.loc = NULL, fix.id = fix.id
+  )
 
 # summary of the estimation
 summary(fit.6)
 
 # extract the group parameter estimates (i.e., scale parameters)
-getirt(fit.6, what="group.par")
-
+getirt(fit.6, what = "group.par")
 }
+
 
 }
 \references{

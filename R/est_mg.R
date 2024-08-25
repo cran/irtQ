@@ -145,7 +145,7 @@
 #'
 #' In MG IRT analyses, it is commonly seen that the test forms of multiple groups share some common (or anchor) items between the groups.
 #' By default the common items that have the same item IDs between different groups are automatically constrained so that they can have the same
-#' item parameter estimates across the groups in the code{\link{est_mg}} function.
+#' item parameter estimates across the groups in the \code{\link{est_mg}} function.
 #'
 #' Most of the features of the \code{\link{est_mg}} function are similar with those of the \code{\link{est_irt}} function. The main difference is
 #' that several arguments in the \code{\link{est_mg}} functions take an object of a list format which contains several internal objects
@@ -265,7 +265,7 @@
 #'
 #' @examples
 #' \donttest{
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 1. MG-calibration using simMG data
 #' #  - Details :
 #' #    (a) constrain the common items between the groups to have
@@ -274,7 +274,7 @@
 #' #    (b) freely estimate the means and variances of ability
 #' #        distributions except the reference group in which mean
 #' #        and variance are fixed to 0 and 1, respectively.
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 1-(1). freely estimates the means and variances of groups 2 and 3
 #' # import the true item metadata of the three groups
 #' x <- simMG$item.prm
@@ -303,25 +303,27 @@
 #' # their item parameters will be constrained to be the same between
 #' # the groups unless the FIPC is not implemented
 #' fit.1 <-
-#'  est_mg(data=data, group.name=group.name, model=model,
-#'  cats=cats, item.id=item.id, D=1, free.group=free.group,
-#'  use.gprior=TRUE, gprior=list(dist="beta", params=c(5, 16)),
-#'  group.mean=0, group.var=1, EmpHist=TRUE, Etol=0.001, MaxE=500)
+#'   est_mg(
+#'     data = data, group.name = group.name, model = model,
+#'     cats = cats, item.id = item.id, D = 1, free.group = free.group,
+#'     use.gprior = TRUE, gprior = list(dist = "beta", params = c(5, 16)),
+#'     group.mean = 0, group.var = 1, EmpHist = TRUE, Etol = 0.001, MaxE = 500
+#'   )
 #'
 #' # summary of the estimation
 #' summary(fit.1)
 #'
 #' # extract the item parameter estimates
-#' getirt(fit.1, what="par.est")
+#' getirt(fit.1, what = "par.est")
 #'
 #' # extract the standard error estimates
-#' getirt(fit.1, what="se.est")
+#' getirt(fit.1, what = "se.est")
 #'
 #' # extract the group parameter estimates (i.e., scale parameters)
-#' getirt(fit.1, what="group.par")
+#' getirt(fit.1, what = "group.par")
 #'
 #' # extract the posterior latent ability distributions of the groups
-#' getirt(fit.1, what="weights")
+#' getirt(fit.1, what = "weights")
 #'
 #' # 1-(2). or the same parameter estimation can be implemented by
 #' # inserting a list of item metadata for the groups into the 'x'
@@ -332,16 +334,18 @@
 #' # will be freely estimated using the group names
 #' free.group <- group.name[2:3]
 #' fit.2 <-
-#'  est_mg(x=x, data=data, group.name=group.name, D=1,
-#'  free.group=free.group, use.gprior=TRUE,
-#'  gprior=list(dist="beta", params=c(5, 16)),
-#'  group.mean=0, group.var=1, EmpHist=TRUE, use.startval=TRUE,
-#'  Etol=0.001, MaxE=500)
+#'   est_mg(
+#'     x = x, data = data, group.name = group.name, D = 1,
+#'     free.group = free.group, use.gprior = TRUE,
+#'     gprior = list(dist = "beta", params = c(5, 16)),
+#'     group.mean = 0, group.var = 1, EmpHist = TRUE, use.startval = TRUE,
+#'     Etol = 0.001, MaxE = 500
+#'   )
 #'
 #' # summary of the estimation
 #' summary(fit.2)
 #'
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 2. MG-calibration with the FIPC using simMG data
 #' #  - Details :
 #' #    (a) fix the parameters of the common items between the groups
@@ -349,7 +353,7 @@
 #' #        items C2I1 - C2I10 between Groups 2 and 3)
 #' #    (b) freely estimate the means and variances of ability
 #' #        distributions of all three groups
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 2-(1). freely estimates the means and variances of all three groups
 #' # set all three groups as the free groups in which scale
 #' # of the ability distributions will be freely estimated.
@@ -364,9 +368,11 @@
 #' # in the 41st - 50th rows of the second group's item metadata
 #' # for the third group, the common items C2I1 - C2I10 are located
 #' # in the 1st - 10th rows of the third group's item metadata
-#' fix.loc <- list(c(1:10, 49:50),
-#'                 c(1:12, 41:50),
-#'                 c(1:10))
+#' fix.loc <- list(
+#'   c(1:10, 49:50),
+#'   c(1:12, 41:50),
+#'   c(1:10)
+#' )
 #'
 #' # estimate the IRT parameters using FIPC:
 #' # when the FIPC is implemented, a list of the item metadata for all
@@ -377,26 +383,28 @@
 #' # in the item metadata
 #' # also, set fipc = TRUE and fipc.method = "MEM"
 #' fit.3 <-
-#'  est_mg(x=x, data=data, group.name=group.name, D=1,
-#'  free.group=free.group, use.gprior=TRUE,
-#'  gprior=list(dist="beta", params=c(5, 16)),
-#'  EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
-#'  fipc.method="MEM", fix.loc=fix.loc)
+#'   est_mg(
+#'     x = x, data = data, group.name = group.name, D = 1,
+#'     free.group = free.group, use.gprior = TRUE,
+#'     gprior = list(dist = "beta", params = c(5, 16)),
+#'     EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+#'     fipc.method = "MEM", fix.loc = fix.loc
+#'   )
 #'
 #' # summary of the estimation
 #' summary(fit.3)
 #'
 #' # extract the item parameter estimates
-#' getirt(fit.3, what="par.est")
+#' getirt(fit.3, what = "par.est")
 #'
 #' # extract the standard error estimates
-#' getirt(fit.3, what="se.est")
+#' getirt(fit.3, what = "se.est")
 #'
 #' # extract the group parameter estimates (i.e., scale parameters)
-#' getirt(fit.3, what="group.par")
+#' getirt(fit.3, what = "group.par")
 #'
 #' # extract the posterior latent ability distributions of the groups
-#' getirt(fit.3, what="weights")
+#' getirt(fit.3, what = "weights")
 #'
 #' # 2-(2). or the FIPC can be implemented by providing which items
 #' # will be fixed in a different way using the 'fix.id' argument.
@@ -404,23 +412,25 @@
 #' # 'fix.id' argument as such.
 #' fix.id <- c(paste0("C1I", 1:12), paste0("C2I", 1:10))
 #' fit.4 <-
-#'  est_mg(x=x, data=data, group.name=group.name, D=1,
-#'  free.group=free.group, use.gprior=TRUE,
-#'  gprior=list(dist="beta", params=c(5, 16)),
-#'  EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
-#'  fipc.method="MEM", fix.id=fix.id)
+#'   est_mg(
+#'     x = x, data = data, group.name = group.name, D = 1,
+#'     free.group = free.group, use.gprior = TRUE,
+#'     gprior = list(dist = "beta", params = c(5, 16)),
+#'     EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+#'     fipc.method = "MEM", fix.id = fix.id
+#'   )
 #'
 #' # summary of the estimation
 #' summary(fit.4)
 #'
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 3. MG-calibration with the FIPC using simMG data
 #' #    (estimate the group parameters only)
 #' #  - Details :
 #' #    (a) fix all item parameters across all three groups
 #' #    (b) freely estimate the means and variances of ability
 #' #        distributions of all three groups
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 3-(1). freely estimates the means and variances of all three groups
 #' # set all three groups as the free groups in which scale
 #' # of the ability distributions will be freely estimated.
@@ -432,19 +442,21 @@
 #'
 #' # estimate the group parameters only using FIPC:
 #' fit.5 <-
-#'  est_mg(x=x, data=data, group.name=group.name, D=1,
-#'  free.group=free.group, use.gprior=TRUE,
-#'  gprior=list(dist="beta", params=c(5, 16)),
-#'  EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
-#'  fipc.method="MEM", fix.loc=fix.loc)
+#'   est_mg(
+#'     x = x, data = data, group.name = group.name, D = 1,
+#'     free.group = free.group, use.gprior = TRUE,
+#'     gprior = list(dist = "beta", params = c(5, 16)),
+#'     EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+#'     fipc.method = "MEM", fix.loc = fix.loc
+#'   )
 #'
 #' # summary of the estimation
 #' summary(fit.5)
 #'
 #' # extract the group parameter estimates (i.e., scale parameters)
-#' getirt(fit.5, what="group.par")
+#' getirt(fit.5, what = "group.par")
 #'
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 4. MG-calibration with the FIPC using simMG data
 #' #    (fix the unique items of the group 1 only)
 #' #  - Details :
@@ -454,7 +466,7 @@
 #' #        Groups 1 and 2, and items C2I1 - C2I10 between Groups 2 and 3)
 #' #    (c) freely estimate the means and variances of ability
 #' #        distributions of all three groups
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 4-(1). freely estimates the means and variances of all three groups
 #' # set all three groups as the free groups in which scale
 #' # of the ability distributions will be freely estimated.
@@ -468,99 +480,102 @@
 #'
 #' # estimate the IRT parameters using FIPC:
 #' fit.6 <-
-#'  est_mg(x=x, data=data, group.name=group.name, D=1,
-#'  free.group=free.group, use.gprior=TRUE,
-#'  gprior=list(dist="beta", params=c(5, 16)),
-#'  EmpHist=TRUE, Etol=0.001, MaxE=500, fipc=TRUE,
-#'  fipc.method="MEM", fix.loc=NULL, fix.id=fix.id)
+#'   est_mg(
+#'     x = x, data = data, group.name = group.name, D = 1,
+#'     free.group = free.group, use.gprior = TRUE,
+#'     gprior = list(dist = "beta", params = c(5, 16)),
+#'     EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
+#'     fipc.method = "MEM", fix.loc = NULL, fix.id = fix.id
+#'   )
 #'
 #' # summary of the estimation
 #' summary(fit.6)
 #'
 #' # extract the group parameter estimates (i.e., scale parameters)
-#' getirt(fit.6, what="group.par")
+#' getirt(fit.6, what = "group.par")
+#' }
 #'
-#'}
-#'
-#' @import purrr
-#' @import dplyr
 #'
 #' @export
-est_mg <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL, item.id=NULL,
-                   free.group=NULL, fix.a.1pl=FALSE, fix.a.gpcm=FALSE, fix.g=FALSE, a.val.1pl=1,
-                   a.val.gpcm=1, g.val=.2, use.aprior=FALSE, use.bprior=FALSE, use.gprior=TRUE,
-                   aprior=list(dist="lnorm", params=c(0.0, 0.5)), bprior=list(dist="norm", params=c(0.0, 1.0)),
-                   gprior=list(dist="beta", params=c(5, 16)), missing=NA, Quadrature=c(49, 6.0), weights=NULL,
-                   group.mean=0, group.var=1, EmpHist=FALSE, use.startval=FALSE, Etol=1e-03, MaxE=500,
-                   control=list(eval.max=200, iter.max=200), fipc=FALSE, fipc.method="MEM",
-                   fix.loc=NULL, fix.id=NULL, se=TRUE, verbose=TRUE) {
-
+est_mg <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats = NULL, item.id = NULL,
+                   free.group = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1,
+                   a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
+                   aprior = list(dist = "lnorm", params = c(0.0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                   gprior = list(dist = "beta", params = c(5, 16)), missing = NA, Quadrature = c(49, 6.0), weights = NULL,
+                   group.mean = 0, group.var = 1, EmpHist = FALSE, use.startval = FALSE, Etol = 1e-03, MaxE = 500,
+                   control = list(eval.max = 200, iter.max = 200), fipc = FALSE, fipc.method = "MEM",
+                   fix.loc = NULL, fix.id = NULL, se = TRUE, verbose = TRUE) {
   # match.call
   cl <- match.call()
 
   # item parameter estimation
-  if(!fipc) {
+  if (!fipc) {
     # item parameter estimation using MMLE-EM algorithm
-    est_par <- est_mg_em(x=x, data=data, group.name=group.name, D=D, model=model, cats=cats, item.id=item.id,
-                         free.group=free.group, fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g, a.val.1pl=a.val.1pl,
-                         a.val.gpcm=a.val.gpcm, g.val=g.val, use.aprior=use.aprior, use.bprior=use.bprior, use.gprior=use.gprior,
-                         aprior=aprior, bprior=bprior, gprior=gprior, missing=missing, Quadrature=Quadrature, weights=weights,
-                         group.mean=group.mean, group.var=group.var, EmpHist=EmpHist, use.startval=use.startval, Etol=Etol, MaxE=MaxE,
-                         control=control, se=se, verbose=verbose)
-
+    est_par <- est_mg_em(
+      x = x, data = data, group.name = group.name, D = D, model = model, cats = cats, item.id = item.id,
+      free.group = free.group, fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g, a.val.1pl = a.val.1pl,
+      a.val.gpcm = a.val.gpcm, g.val = g.val, use.aprior = use.aprior, use.bprior = use.bprior, use.gprior = use.gprior,
+      aprior = aprior, bprior = bprior, gprior = gprior, missing = missing, Quadrature = Quadrature, weights = weights,
+      group.mean = group.mean, group.var = group.var, EmpHist = EmpHist, use.startval = use.startval, Etol = Etol, MaxE = MaxE,
+      control = control, se = se, verbose = verbose
+    )
   } else {
     # implement FIPC method
-    est_par <- est_mg_fipc(x=x, data=data, group.name=group.name, D=D, model=model, cats=cats, item.id=item.id,
-                           free.group=free.group, fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g, a.val.1pl=a.val.1pl,
-                           a.val.gpcm=a.val.gpcm, g.val=g.val, use.aprior=use.aprior, use.bprior=use.bprior, use.gprior=use.gprior,
-                           aprior=aprior, bprior=bprior, gprior=gprior, missing=missing, Quadrature=Quadrature, weights=weights,
-                           group.mean=group.mean, group.var=group.var, EmpHist=EmpHist, use.startval=use.startval, Etol=Etol, MaxE=MaxE,
-                           control=control, fipc=fipc, fipc.method=fipc.method, fix.loc=fix.loc, fix.id=fix.id, se=se, verbose=verbose)
-
+    est_par <- est_mg_fipc(
+      x = x, data = data, group.name = group.name, D = D, model = model, cats = cats, item.id = item.id,
+      free.group = free.group, fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g, a.val.1pl = a.val.1pl,
+      a.val.gpcm = a.val.gpcm, g.val = g.val, use.aprior = use.aprior, use.bprior = use.bprior, use.gprior = use.gprior,
+      aprior = aprior, bprior = bprior, gprior = gprior, missing = missing, Quadrature = Quadrature, weights = weights,
+      group.mean = group.mean, group.var = group.var, EmpHist = EmpHist, use.startval = use.startval, Etol = Etol, MaxE = MaxE,
+      control = control, fipc = fipc, fipc.method = fipc.method, fix.loc = fix.loc, fix.id = fix.id, se = se, verbose = verbose
+    )
   }
 
   # return the estimation results
   class(est_par) <- "est_mg"
   est_par$call <- cl
   est_par
-
 }
 
 
 # multiple group calibration via EM
-est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL, item.id=NULL,
-                      free.group=NULL, fix.a.1pl=FALSE, fix.a.gpcm=FALSE, fix.g=FALSE, a.val.1pl=1,
-                      a.val.gpcm=1, g.val=.2, use.aprior=FALSE, use.bprior=FALSE, use.gprior=TRUE,
-                      aprior=list(dist="lnorm", params=c(0.0, 0.5)), bprior=list(dist="norm", params=c(0.0, 1.0)),
-                      gprior=list(dist="beta", params=c(5, 16)), missing=NA, Quadrature=c(49, 6.0), weights=NULL,
-                      group.mean=0, group.var=1, EmpHist=FALSE, use.startval=FALSE, Etol=1e-03, MaxE=500,
-                      control=list(eval.max=200, iter.max=200), se=TRUE, verbose=TRUE) {
-
+#' @import dplyr
+est_mg_em <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats = NULL, item.id = NULL,
+                      free.group = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1,
+                      a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
+                      aprior = list(dist = "lnorm", params = c(0.0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                      gprior = list(dist = "beta", params = c(5, 16)), missing = NA, Quadrature = c(49, 6.0), weights = NULL,
+                      group.mean = 0, group.var = 1, EmpHist = FALSE, use.startval = FALSE, Etol = 1e-03, MaxE = 500,
+                      control = list(eval.max = 200, iter.max = 200), se = TRUE, verbose = TRUE) {
   # check start time
   start.time <- Sys.time()
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # prepare the item parameter estimation
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # check if the starting values are available
-  if(use.startval & is.null(x)) {
-    stop(paste0("To use starting values for item parameter estimation, \n",
-                "the item metadata must be specified in the argument 'x'."), call.=FALSE)
+  if (use.startval & is.null(x)) {
+    stop(paste0(
+      "To use starting values for item parameter estimation, \n",
+      "the item metadata must be specified in the argument 'x'."
+    ), call. = FALSE)
   }
 
   # start parsing inputs
-  if(verbose) {
-    cat("Parsing input...", '\n')
+  if (verbose) {
+    cat("Parsing input...", "\n")
   }
 
   # count the number of groups
   ngroup <- length(data)
-  if(ngroup == 1) {
-    stop("Use the est_irt() function when a single-group item calibration needs to be implemented.", call.=FALSE)
+  if (ngroup == 1) {
+    stop("Use the est_irt() function when a single-group item calibration needs to be implemented.", call. = FALSE)
   }
 
   # create a group name vector when group.name = NULL
-  if(is.null(group.name)) {group.name <- paste0("g", 1:ngroup)}
+  if (is.null(group.name)) {
+    group.name <- paste0("g", 1:ngroup)
+  }
 
   # test length of each group
   nitem.gr <- purrr::map_dbl(.x = data, ncol)
@@ -571,28 +586,38 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   names(nstd.gr) <- group.name
 
   # extract information about the number of score categories and models
-  if(!is.null(x)) {
-
+  if (!is.null(x)) {
     # confirm and correct all item metadata information
-    x.gr <- purrr::map(.x = x, ~{confirm_df(.x)})
+    x.gr <- purrr::map(.x = x, ~ {
+      confirm_df(.x)
+    })
     names(x.gr) <- group.name
 
     # item, cats, model information for each group
-    item.id <- purrr::map(.x = x.gr, ~{.x$id})
-    cats.gr <- purrr::map(.x = x.gr, ~{.x$cats})
-    model.gr <- purrr::map(.x = x.gr, ~{.x$model})
-    if(!use.startval) {
+    item.id <- purrr::map(.x = x.gr, ~ {
+      .x$id
+    })
+    cats.gr <- purrr::map(.x = x.gr, ~ {
+      .x$cats
+    })
+    model.gr <- purrr::map(.x = x.gr, ~ {
+      .x$model
+    })
+    if (!use.startval) {
       x.gr <-
-        purrr::map(.x = x.gr,
-                   ~{startval_df(cats=.x$cats, model=.x$model, item.id=.x$id)})
+        purrr::map(
+          .x = x.gr,
+          ~ {
+            startval_df(cats = .x$cats, model = .x$model, item.id = .x$id)
+          }
+        )
     }
-
   } else {
-
     # check if the item IDs are specified when x = NULL
-    if(is.null(item.id)) {
+    if (is.null(item.id)) {
       stop("A list containing the vectors of the item IDs across all groups must be specified in the argument 'item.id'.",
-           call.=FALSE)
+        call. = FALSE
+      )
     }
 
     # assign group name to the item id list
@@ -600,64 +625,77 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
     # IRT models for each group test form
     model.gr <-
-      purrr::map2(.x = model, .y = nitem.gr,
-                  .f = function(x, y) {
-                    if(length(x) == 1) {
-                      rep(x, y)
-                    } else {
-                      x
-                    }
-                  }) %>%
-      purrr::map(~{toupper(.x)})
+      purrr::map2(
+        .x = model, .y = nitem.gr,
+        .f = function(x, y) {
+          if (length(x) == 1) {
+            rep(x, y)
+          } else {
+            x
+          }
+        }
+      ) %>%
+      purrr::map(~ {
+        toupper(.x)
+      })
     names(model.gr) <- group.name
 
     # score categories for each group test form
     cats.gr <-
-      purrr::map2(.x = cats, .y = nitem.gr,
-                  .f = function(x, y) {
-                    if(length(x) == 1) {
-                      rep(x, y)
-                    } else {
-                      x
-                    }
-                  })
+      purrr::map2(
+        .x = cats, .y = nitem.gr,
+        .f = function(x, y) {
+          if (length(x) == 1) {
+            rep(x, y)
+          } else {
+            x
+          }
+        }
+      )
 
     # create score category vectors when cats = NULL & all models are dichotomous item models
-    if(is.null(cats)) {
+    if (is.null(cats)) {
       cats.gr <-
-        purrr::map2(.x = nitem.gr, .y = model.gr,
-                    .f = function(x, y) {
-                      if(all(y %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
-                        rep(2, x)
-                      } else {
-                        stop("The number of score categories for the items should be specified in the argument 'cats'.", call.=FALSE)
-                      }
-                    })
+        purrr::map2(
+          .x = nitem.gr, .y = model.gr,
+          .f = function(x, y) {
+            if (all(y %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
+              rep(2, x)
+            } else {
+              stop("The number of score categories for the items should be specified in the argument 'cats'.", call. = FALSE)
+            }
+          }
+        )
     }
 
     # create score category vectors when any of internal objects is Null in the cats argument &
     # all models are dichotomous item models
     cats.gr <-
-      purrr::pmap(.l = list(x = cats.gr, y = nitem.gr, z = model.gr),
-                  .f = function(x, y, z) {
-                    if(is.null(x)) {
-                      if(all(z %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
-                        rep(2, y)
-                      } else {
-                        stop("The number of score categories for the items should be specified in the argument 'cats'.", call.=FALSE)
-                      }
-                    } else {
-                      x
-                    }
-                  })
+      purrr::pmap(
+        .l = list(x = cats.gr, y = nitem.gr, z = model.gr),
+        .f = function(x, y, z) {
+          if (is.null(x)) {
+            if (all(z %in% c("1PLM", "2PLM", "3PLM", "DRM"))) {
+              rep(2, y)
+            } else {
+              stop("The number of score categories for the items should be specified in the argument 'cats'.", call. = FALSE)
+            }
+          } else {
+            x
+          }
+        }
+      )
     names(cats.gr) <- group.name
 
     # create the item metadata for each group test form containing starting values
     x.gr <-
-      purrr::pmap(.l = list(x = cats.gr, y = model.gr, z = item.id),
-                  ~{startval_df(cats = ..1, model = ..2, item.id = ..3)})
+      purrr::pmap(
+        .l = list(x = cats.gr, y = model.gr, z = item.id),
+        ~ {
+          startval_df(cats = ..1, model = ..2, item.id = ..3)
+        }
+      )
     names(x.gr) <- group.name
-
   }
 
   # copy data to data.gr object
@@ -668,10 +706,12 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   # and assign item IDs
   data <-
     purrr::map(.x = data.gr, data.frame) %>%
-    purrr::map2(.y = item.id,
-                .f = function(x, y) {
-                  dplyr::rename_all(.tbl = x, .funs = function(x) y)
-                }) %>%
+    purrr::map2(
+      .y = item.id,
+      .f = function(x, y) {
+        dplyr::rename_all(.tbl = x, .funs = function(x) y)
+      }
+    ) %>%
     dplyr::bind_rows()
 
   # a vector of item ID for the combined data set
@@ -681,7 +721,7 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   x <-
     dplyr::bind_rows(x.gr) %>%
     dplyr::distinct(.data$id, .keep_all = TRUE)
-  if(!all(id == x$id)) {
+  if (!all(id == x$id)) {
     x <- x[match(id, x$id), ]
   }
   rownames(x) <- 1:nrow(x)
@@ -691,7 +731,7 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   cats <- x$cats
 
   # recode missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
@@ -705,18 +745,18 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   nitem <- ncol(data)
 
   # designate a reference group whose group parameters will be fixed
-  if(is.null(free.group)) {
+  if (is.null(free.group)) {
     ref.group <- 1:ngroup
   } else {
-    if(is.character(free.group)) {
+    if (is.character(free.group)) {
       free.group <- which(group.name %in% free.group)
-      if(length(free.group) == 0) {
-        stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group.name argument.", call.=FALSE)
+      if (length(free.group) == 0) {
+        stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group.name argument.", call. = FALSE)
       }
       ref.group <- c(1:ngroup)[-free.group]
     } else {
-      if(sum(1:ngroup %in% free.group) == 0) {
-        stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group name list.", call.=FALSE)
+      if (sum(1:ngroup %in% free.group) == 0) {
+        stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group name list.", call. = FALSE)
       }
       ref.group <- c(1:ngroup)[-free.group]
     }
@@ -724,10 +764,10 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
   # find the groups that have no common items with other groups
   pair <-
-    t(utils::combn(group.name, m=2)) %>%
+    t(utils::combn(group.name, m = 2)) %>%
     data.frame()
   overlap <- c()
-  for(i in 1:nrow(pair)) {
+  for (i in 1:nrow(pair)) {
     freq.tmp <-
       unlist(item.id[unlist(pair[i, ])]) %>%
       table()
@@ -746,12 +786,14 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
   # when there exist free groups that do not share any common items,
   # stop the further process
-  if(length(nolink.free) > 0) {
+  if (length(nolink.free) > 0) {
     warning.memo <-
-      paste0(paste(group.name[nolink.free], collapse = ", "),
-             " group(s) whose ability distribution(s) is(are) freely estimated do(does) share common items with other groups. \n",
-             "Please specify the freely estimated group(s) correctly.")
-    stop(paste0(warning.memo, " \n"), call.=FALSE)
+      paste0(
+        paste(group.name[nolink.free], collapse = ", "),
+        " group(s) whose ability distribution(s) is(are) freely estimated do(does) share common items with other groups. \n",
+        "Please specify the freely estimated group(s) correctly."
+      )
+    stop(paste0(warning.memo, " \n"), call. = FALSE)
   }
 
   # check the number of item responses across all items
@@ -759,21 +801,20 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
   # check the items which have all missing responses
   loc_allmiss <- which(n.resp == 0L)
-  if(length(loc_allmiss) > 0L) {
+  if (length(loc_allmiss) > 0L) {
     allmiss_item <- id[loc_allmiss]
     memo2 <- paste0(paste0(allmiss_item, collapse = ", "), " has/have no item response data across all groups. \n")
-    stop(memo2, call.=FALSE)
+    stop(memo2, call. = FALSE)
   }
 
   # find the location of 1PLM items in which slope parameters should be constrained to be equal
   # also, find the location of other items
-  if("1PLM" %in% model & !fix.a.1pl) {
+  if ("1PLM" %in% model & !fix.a.1pl) {
     loc_1p_const <- which(model == "1PLM")
     loc_else <- which(model != "1PLM")
 
     # count the number of 1PLM items to be constrained
     n.1PLM <- length(loc_1p_const)
-
   } else {
     loc_1p_const <- NULL
     loc_else <- 1:nrow(x)
@@ -783,51 +824,57 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   # record the original location of item parameters to be estimated, and
   # the relocated position of item parameters when computing
   # the variance-covariance matrix of item parameter estimates
-  param_loc <- parloc(x=x, loc_1p_const=loc_1p_const, loc_else=loc_else,
-                      fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g)
+  param_loc <- parloc(
+    x = x, loc_1p_const = loc_1p_const, loc_else = loc_else,
+    fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g
+  )
 
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # conduct item parameter estimation using MMLE-EM algorithm
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # create initial weights of prior ability distribution when it is not specified
-  if(is.null(weights)) {
+  if (is.null(weights)) {
     # create quadrature points
-    quadpt <- seq(-Quadrature[2], Quadrature[2], length.out=Quadrature[1])
+    quadpt <- seq(-Quadrature[2], Quadrature[2], length.out = Quadrature[1])
 
     # create the data.frame containing the quadrature points and weights
-    weights <- gen.weight(dist="norm", mu=group.mean, sigma=sqrt(group.var), theta=quadpt)
+    weights <- gen.weight(dist = "norm", mu = group.mean, sigma = sqrt(group.var), theta = quadpt)
     n.quad <- length(quadpt)
-
   } else {
     quadpt <- weights[, 1]
     n.quad <- length(quadpt)
-    moments.tmp <- cal_moment(node=quadpt, weight=weights[, 2])
+    moments.tmp <- cal_moment(node = quadpt, weight = weights[, 2])
     group.mean <- moments.tmp[1]
     group.var <- moments.tmp[2]
   }
 
   # a list containing the weights and densities for each group
-  weights.gr <- replicate(n=ngroup, expr=weights, simplify = FALSE)
+  weights.gr <- replicate(n = ngroup, expr = weights, simplify = FALSE)
   names(weights.gr) <- group.name
 
   # factorize the response values
-  resp <- purrr::map2(.x=data.frame(data, stringsAsFactors = FALSE), .y=cats,
-                      .f=function(k, m) factor(k, levels=(seq_len(m) - 1)))
+  resp <- purrr::map2(
+    .x = data.frame(data, stringsAsFactors = FALSE), .y = cats,
+    .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
+  )
 
   # create a contingency table of score categories for each item
   # and then, transform the table to a matrix format
   std.id <- 1:nstd
   freq.cat <-
-    purrr::map(.x=resp,
-               .f=function(k) {
-                 stats::xtabs(~ std.id + k,
-                              na.action=stats::na.pass, addNA = FALSE) %>%
-                   matrix(nrow = length(k))
-               })
+    purrr::map(
+      .x = resp,
+      .f = function(k) {
+        stats::xtabs(~ std.id + k,
+          na.action = stats::na.pass, addNA = FALSE
+        ) %>%
+          matrix(nrow = length(k))
+      }
+    )
 
   # delete 'resp' object
-  rm(resp, envir=environment(), inherits = FALSE)
+  rm(resp, envir = environment(), inherits = FALSE)
 
   # break down the item metadata into several elements
   elm_item <- breakdown(x)
@@ -841,19 +888,25 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   # (1) DRM 1PL items with the constrained slop
   # (2) other DRM items
   # (3) PRM items
-  if(sum(loc_else) == 0) {drm.else <- NULL} else {drm.else <- loc_else}
-  idx4est <- list(drm.slc = loc_1p_const,
-                  drm.else = drm.else,
-                  prm = idx.prm)
+  if (sum(loc_else) == 0) {
+    drm.else <- NULL
+  } else {
+    drm.else <- loc_else
+  }
+  idx4est <- list(
+    drm.slc = loc_1p_const,
+    drm.else = drm.else,
+    prm = idx.prm
+  )
 
   # divide the data set for the mixed-item format
-  datlist <- divide_data(data=data, idx.item=idx.item, freq.cat=freq.cat)
+  datlist <- divide_data(data = data, idx.item = idx.item, freq.cat = freq.cat)
   data_drm <- cbind(datlist$data_drm_q, datlist$data_drm_p)
   data_prm <- datlist$data_prm
   data_all <- datlist$data_all
 
   # delete 'datlist' object
-  rm(datlist, envir=environment(), inherits = FALSE)
+  rm(datlist, envir = environment(), inherits = FALSE)
 
   # create the lower and upper bounds of the item parameters
   parbd <- lubound(model, cats, n.1PLM, idx4est, fix.a.1pl, fix.g, fix.a.gpcm)
@@ -864,45 +917,52 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   # create indices of samples (examinees) who belong to each group
   idx.tmp2 <- as.numeric(cumsum(nstd.gr))
   idx.tmp1 <- dplyr::lag(idx.tmp2, default = 0) + 1
-  idx.std <- purrr::map2(.x = idx.tmp1, .y = idx.tmp2, ~{.x:.y})
+  idx.std <- purrr::map2(.x = idx.tmp1, .y = idx.tmp2, ~ {
+    .x:.y
+  })
   names(idx.std) <- group.name
 
   # estimation
-  if(verbose) {
-    cat("Estimating item parameters...", '\n')
+  if (verbose) {
+    cat("Estimating item parameters...", "\n")
   }
 
   # implement EM algorithm
   time1 <- Sys.time()
-  for(r in 1:MaxE) {
-
+  for (r in 1:MaxE) {
     # implement E-step
-    estep <- Estep(elm_item=elm_item, idx.drm=idx.drm, idx.prm=idx.prm,
-                   data_drm=data_drm, data_prm=data_prm, data_all=data_all,
-                   weights=weights.gr, D=D, idx.std=idx.std)
+    estep <- Estep(
+      elm_item = elm_item, idx.drm = idx.drm, idx.prm = idx.prm,
+      data_drm = data_drm, data_prm = data_prm, data_all = data_all,
+      weights = weights.gr, D = D, idx.std = idx.std
+    )
 
     # implement M-step
-    mstep <- Mstep(estep=estep, id=id, cats=cats, model=model, quadpt=quadpt, n.quad=n.quad,
-                   D=D, cols.item=cols.item, loc_1p_const=loc_1p_const, loc_else=loc_else, idx4est=idx4est,
-                   n.1PLM=n.1PLM, EmpHist=EmpHist, weights=weights.gr, fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g,
-                   a.val.1pl=a.val.1pl, a.val.gpcm=a.val.gpcm, g.val=g.val, use.aprior=use.aprior, use.bprior=use.bprior,
-                   use.gprior=use.gprior, aprior=aprior, bprior=bprior, gprior=gprior,  group.mean=group.mean,
-                   group.var=group.var, nstd=nstd.gr, Quadrature=Quadrature, control=control,
-                   iter=r, fipc=FALSE, reloc.par=param_loc$reloc.par, ref.group=ref.group,
-                   free.group=free.group, parbd=parbd)
+    mstep <- Mstep(
+      estep = estep, id = id, cats = cats, model = model, quadpt = quadpt, n.quad = n.quad,
+      D = D, cols.item = cols.item, loc_1p_const = loc_1p_const, loc_else = loc_else, idx4est = idx4est,
+      n.1PLM = n.1PLM, EmpHist = EmpHist, weights = weights.gr, fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g,
+      a.val.1pl = a.val.1pl, a.val.gpcm = a.val.gpcm, g.val = g.val, use.aprior = use.aprior, use.bprior = use.bprior,
+      use.gprior = use.gprior, aprior = aprior, bprior = bprior, gprior = gprior, group.mean = group.mean,
+      group.var = group.var, nstd = nstd.gr, Quadrature = Quadrature, control = control,
+      iter = r, fipc = FALSE, reloc.par = param_loc$reloc.par, ref.group = ref.group,
+      free.group = free.group, parbd = parbd
+    )
 
     # compute the difference between previous and updated item parameter estimates
     diff_par <- mstep$elm_item$pars - elm_item$pars
-    max.diff <- abs(max(diff_par, na.rm=TRUE))
+    max.diff <- abs(max(diff_par, na.rm = TRUE))
 
     # loglikelihood value
-    llike <- do.call(what="sum", args=mstep$loglike)
+    llike <- do.call(what = "sum", args = mstep$loglike)
 
     # print
-    if(verbose) {
-      cat("\r", paste0("EM iteration: ", r, ", Loglike: ",
-                       format(round(llike, 4), nsmall=4), ", Max-Change: ",
-                       format(round(max.diff, 6), nsmall=5)))
+    if (verbose) {
+      cat("\r", paste0(
+        "EM iteration: ", r, ", Loglike: ",
+        format(round(llike, 4), nsmall = 4), ", Max-Change: ",
+        format(round(max.diff, 6), nsmall = 5)
+      ))
     }
 
     # check the convergence of EM algorithm
@@ -915,13 +975,12 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
     weights.gr <- mstep$weights
 
     # terminate the EM step if the convergence criterion is satisfied
-    if(converge | r == MaxE) {
+    if (converge | r == MaxE) {
       break
     }
-
   }
 
-  if(verbose) {
+  if (verbose) {
     cat("", "\n")
   }
   time2 <- Sys.time()
@@ -931,49 +990,64 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
   # the first order test: check convergence-criteria test
   test_1st <- all(c(all(mstep$convergence == 0L), r < MaxE))
-  if(test_1st) {
+  if (test_1st) {
     memo3 <- "Convergence criteria are satisfied."
   } else {
     memo3 <- "Convergence criteria are not satisfied."
-    warning(paste0(memo3,  " \n"), call.=FALSE)
+    warning(paste0(memo3, " \n"), call. = FALSE)
   }
 
   # conduct one more E-step to update the posterior distribution
   # using the final item parameter estimates
-  estep <- Estep(elm_item=elm_item, idx.drm=idx.drm, idx.prm=idx.prm,
-                 data_drm=data_drm, data_prm=data_prm, data_all=data_all,
-                 weights=weights.gr, D=D, idx.std=idx.std)
+  estep <- Estep(
+    elm_item = elm_item, idx.drm = idx.drm, idx.prm = idx.prm,
+    data_drm = data_drm, data_prm = data_prm, data_all = data_all,
+    weights = weights.gr, D = D, idx.std = idx.std
+  )
 
   # compute the final log of marginal likelihood
-  likehd.gr <- purrr::map(.x = idx.std, ~{estep$likehd[.x, ]})
-  llike.gr <- purrr::map2(.x = likehd.gr, .y = weights.gr,
-                          .f = ~{sum(log(.x %*% matrix(.y[, 2])))})
-  llike <- do.call(what="sum", args=llike.gr)
+  likehd.gr <- purrr::map(.x = idx.std, ~ {
+    estep$likehd[.x, ]
+  })
+  llike.gr <- purrr::map2(
+    .x = likehd.gr, .y = weights.gr,
+    .f = ~ {
+      sum(log(.x %*% matrix(.y[, 2])))
+    }
+  )
+  llike <- do.call(what = "sum", args = llike.gr)
 
   # compute the mean and variance of the estimated density distributions
   pop_moments <-
-    purrr::map(.x = weights.gr, ~{cal_moment(node=quadpt, weight=.x[, 2])}) %>%
-    purrr::map(~{c(.x, sigma=sqrt(as.numeric(.x[2])))})
-  if(length(ref.group) > 0) {
+    purrr::map(.x = weights.gr, ~ {
+      cal_moment(node = quadpt, weight = .x[, 2])
+    }) %>%
+    purrr::map(~ {
+      c(.x, sigma = sqrt(as.numeric(.x[2])))
+    })
+  if (length(ref.group) > 0) {
     pop_moments[ref.group] <-
-      purrr::map(.x = 1:length(ref.group),
-                 ~{c(mu=group.mean, sigma2=group.var, sigma=sqrt(group.var))})
+      purrr::map(
+        .x = 1:length(ref.group),
+        ~ {
+          c(mu = group.mean, sigma2 = group.var, sigma = sqrt(group.var))
+        }
+      )
   }
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # estimates the information matrix and standard errors of item parameter estimates
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # extract the finalized posterior density
   post_dist <- estep$post_dist
 
   # delete 'estep' and 'mstep' object
-  rm(estep, mstep, data_drm, data_prm, data_all, envir=environment(), inherits = FALSE)
+  rm(estep, mstep, data_drm, data_prm, data_all, envir = environment(), inherits = FALSE)
 
   # compute the information matrix of item parameter estimates using the cross-product method
-  if(se) {
-
-    if(verbose) {
-      cat("Computing item parameter var-covariance matrix...", '\n')
+  if (se) {
+    if (verbose) {
+      cat("Computing item parameter var-covariance matrix...", "\n")
     }
     time1 <- Sys.time()
 
@@ -982,51 +1056,62 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
     quadpt.vec <- rep(quadpt, each = nstd)
 
     # compute the information matrix of item parameters
-    info.data <- info_xpd(elm_item=elm_item, freq.cat=freq.cat, post_dist=post_dist,
-                          quadpt.vec=quadpt.vec, n.quadpt.vec=length(quadpt.vec), nstd=nstd,
-                          D=D, loc_1p_const=loc_1p_const, loc_else=loc_else, n.1PLM=n.1PLM,
-                          fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g, a.val.1pl=a.val.1pl,
-                          a.val.gpcm=a.val.gpcm, g.val=g.val, reloc.par=param_loc$reloc.par)
+    info.data <- info_xpd(
+      elm_item = elm_item, freq.cat = freq.cat, post_dist = post_dist,
+      quadpt.vec = quadpt.vec, n.quadpt.vec = length(quadpt.vec), nstd = nstd,
+      D = D, loc_1p_const = loc_1p_const, loc_else = loc_else, n.1PLM = n.1PLM,
+      fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g, a.val.1pl = a.val.1pl,
+      a.val.gpcm = a.val.gpcm, g.val = g.val, reloc.par = param_loc$reloc.par
+    )
 
     # compute the information matrix of item parameter priors
-    info.prior <- info_prior(elm_item=elm_item, D=D, loc_1p_const=loc_1p_const,
-                             loc_else=loc_else, n.1PLM=n.1PLM, fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g,
-                             a.val.1pl=a.val.1pl, a.val.gpcm=a.val.gpcm, g.val=g.val, aprior=aprior, bprior=bprior,
-                             gprior=gprior, use.aprior=use.aprior, use.bprior=use.bprior, use.gprior=use.gprior,
-                             reloc.par=param_loc$reloc.par)
+    info.prior <- info_prior(
+      elm_item = elm_item, D = D, loc_1p_const = loc_1p_const,
+      loc_else = loc_else, n.1PLM = n.1PLM, fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g,
+      a.val.1pl = a.val.1pl, a.val.gpcm = a.val.gpcm, g.val = g.val, aprior = aprior, bprior = bprior,
+      gprior = gprior, use.aprior = use.aprior, use.bprior = use.bprior, use.gprior = use.gprior,
+      reloc.par = param_loc$reloc.par
+    )
 
     # sum of two information matrices
     info.mat <- info.data + info.prior
 
     # the second-order test: check if the information matrix is positive definite
-    test_2nd <- all(eigen(info.mat, only.values=TRUE)$values > 1e-20)
-    if(test_2nd) {
-      if(test_1st) {
+    test_2nd <- all(eigen(info.mat, only.values = TRUE)$values > 1e-20)
+    if (test_2nd) {
+      if (test_1st) {
         memo4 <- "Solution is a possible local maximum."
       } else {
         memo4 <- "Information matrix of item parameter estimates is positive definite."
       }
     } else {
       memo4 <- "Information matrix of item parameter estimates is not positive definite; unstable solution."
-      warning(paste0(memo4, " \n"), call.=FALSE)
+      warning(paste0(memo4, " \n"), call. = FALSE)
     }
 
     # compute the variance-covariance matrix of the item parameter estimates, and
     # check if the hessian matrix can be inversed
-    cov_mat <- suppressWarnings(tryCatch({solve(info.mat, tol=1e-200)}, error = function(e) {NULL}))
+    cov_mat <- suppressWarnings(tryCatch(
+      {
+        solve(info.mat, tol = 1e-200)
+      },
+      error = function(e) {
+        NULL
+      }
+    ))
 
     # compute the standard errors of item parameter estimates
-    if(is.null(cov_mat)) {
+    if (is.null(cov_mat)) {
       se_par <- rep(99999, length(diag(info.mat)))
       memo5 <- "Variance-covariance matrix of item parameter estimates is not obtainable; unstable solution."
-      warning(paste0(memo5, " \n"), call.=FALSE)
+      warning(paste0(memo5, " \n"), call. = FALSE)
     } else {
       se_par <- suppressWarnings(sqrt(diag(cov_mat)))
       memo5 <- "Variance-covariance matrix of item parameter estimates is obtainable."
     }
 
     # prevent showing NaN values of standard errors
-    if(any(is.nan(se_par))) {
+    if (any(is.nan(se_par))) {
       se_par[is.nan(se_par)] <- 99999
     }
 
@@ -1036,15 +1121,12 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
     # record the standard error computation time
     est_time2 <- round(as.numeric(difftime(time2, time1, units = "secs")), 2)
-
   } else {
-
     memo4 <- "Information matrix of item parameter estimates is not computed."
     memo5 <- "Variance-covariance matrix of item parameter estimates is not computed."
     cov_mat <- NULL
     se_par <- NULL
     est_time2 <- NULL
-
   }
 
   # create an item metadata including the final item parameter estimates
@@ -1054,10 +1136,10 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
 
   # deploy the standard errors on the location of matrix as the item parameter estimates
   se_df <- loc.par <- param_loc$loc.par
-  for(i in 1:nrow(loc.par)) {
+  for (i in 1:nrow(loc.par)) {
     num.loc <- which(!is.na(loc.par[i, ]))
     se.loc <- loc.par[i, ][num.loc]
-    if(se) {
+    if (se) {
       se_df[i, num.loc] <- se_par[se.loc]
     } else {
       se_df[i, num.loc] <- NA_real_
@@ -1075,58 +1157,64 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
     data.frame(x[, 1:3], loc.par) %>%
     confirm_df(g2na = TRUE)
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # summarize the estimation results
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # create a full data.frame including both the item parameter estimates and standard error estimates
-  all_df <- data.frame(matrix(NA, nrow=nrow(loc.par), ncol=2*ncol(loc.par)))
-  all_df[, seq(1, 2*ncol(loc.par), 2)] <- par_df[, -c(1:3)]
-  all_df[, seq(2, 2*ncol(loc.par), 2)] <- se_df[, -c(1:3)]
-  col.names <- rep(NA, 2*ncol(loc.par))
-  col.names[seq(1, 2*ncol(loc.par), 2)] <- paste0("par.", 1:ncol(loc.par))
-  col.names[seq(2, 2*ncol(loc.par), 2)] <- paste0("se.", 1:ncol(loc.par))
+  all_df <- data.frame(matrix(NA, nrow = nrow(loc.par), ncol = 2 * ncol(loc.par)))
+  all_df[, seq(1, 2 * ncol(loc.par), 2)] <- par_df[, -c(1:3)]
+  all_df[, seq(2, 2 * ncol(loc.par), 2)] <- se_df[, -c(1:3)]
+  col.names <- rep(NA, 2 * ncol(loc.par))
+  col.names[seq(1, 2 * ncol(loc.par), 2)] <- paste0("par.", 1:ncol(loc.par))
+  col.names[seq(2, 2 * ncol(loc.par), 2)] <- paste0("se.", 1:ncol(loc.par))
   colnames(all_df) <- col.names
   full_all_df <- data.frame(x[, 1:3], all_df)
 
   # divide the parameter estimation results to each group
   full_all_df_gr <-
-    purrr::map(.x = item.id,
-               .f = function(x) {
-                 df.tmp <-
-                   full_all_df %>%
-                   dplyr::filter(.data$id %in% x)
-                 df.tmp <- df.tmp[match(x, df.tmp$id), ]
-                 rownames(df.tmp) <- 1:nrow(df.tmp)
-                 df.tmp
-               })
+    purrr::map(
+      .x = item.id,
+      .f = function(x) {
+        df.tmp <-
+          full_all_df %>%
+          dplyr::filter(.data$id %in% x)
+        df.tmp <- df.tmp[match(x, df.tmp$id), ]
+        rownames(df.tmp) <- 1:nrow(df.tmp)
+        df.tmp
+      }
+    )
   names(full_all_df_gr) <- group.name
   par_df_gr <-
-    purrr::map(.x = item.id,
-               .f = function(x) {
-                 df.tmp <-
-                   par_df %>%
-                   dplyr::filter(.data$id %in% x)
-                 df.tmp <- df.tmp[match(x, df.tmp$id), ]
-                 rownames(df.tmp) <- 1:nrow(df.tmp)
-                 df.tmp
-               })
+    purrr::map(
+      .x = item.id,
+      .f = function(x) {
+        df.tmp <-
+          par_df %>%
+          dplyr::filter(.data$id %in% x)
+        df.tmp <- df.tmp[match(x, df.tmp$id), ]
+        rownames(df.tmp) <- 1:nrow(df.tmp)
+        df.tmp
+      }
+    )
   names(par_df_gr) <- group.name
   se_df_gr <-
-    purrr::map(.x = item.id,
-               .f = function(x) {
-                 df.tmp <-
-                   se_df %>%
-                   dplyr::filter(.data$id %in% x)
-                 df.tmp <- df.tmp[match(x, df.tmp$id), ]
-                 rownames(df.tmp) <- 1:nrow(df.tmp)
-                 df.tmp
-               })
+    purrr::map(
+      .x = item.id,
+      .f = function(x) {
+        df.tmp <-
+          se_df %>%
+          dplyr::filter(.data$id %in% x)
+        df.tmp <- df.tmp[match(x, df.tmp$id), ]
+        rownames(df.tmp) <- 1:nrow(df.tmp)
+        df.tmp
+      }
+    )
   names(se_df_gr) <- group.name
 
   # population density parameters
-  group.par <- vector('list', ngroup)
-  for(i in 1:ngroup) {
-    if(i %in% ref.group) {
+  group.par <- vector("list", ngroup)
+  for (i in 1:ngroup) {
+    if (i %in% ref.group) {
       moments.se <- rep(NA_real_, 3)
       group.par.tmp <- data.frame(rbind(pop_moments[[i]], moments.se))
     } else {
@@ -1144,76 +1232,81 @@ est_mg_em <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL,
   names(group.par) <- group.name
 
   # prior information
-  if(use.aprior) aprior.dist <- aprior else aprior.dist <- NULL
-  if(use.bprior) bprior.dist <- bprior else bprior.dist <- NULL
-  if(use.gprior) gprior.dist <- gprior else gprior.dist <- NULL
+  if (use.aprior) aprior.dist <- aprior else aprior.dist <- NULL
+  if (use.bprior) bprior.dist <- bprior else bprior.dist <- NULL
+  if (use.gprior) gprior.dist <- gprior else gprior.dist <- NULL
 
   # statistics based on the loglikelihood of the fitted model:
   npar.est <- length(param_loc$reloc.par) + length(free.group) * 2
-  neg2llke <- - 2 * llike
+  neg2llke <- -2 * llike
   aic <- 2 * npar.est + neg2llke
   bic <- npar.est * log(nstd) + neg2llke
 
-  ##---------------------------------------------------------------
+  ## ---------------------------------------------------------------
   # check end time
   end.time <- Sys.time()
 
   # record total computation time
   est_time3 <- round(as.numeric(difftime(end.time, start.time, units = "secs")), 2)
 
-  rst <- list(estimates=list(overall=full_all_df, group=full_all_df_gr),
-              par.est=list(overall=par_df, group=par_df_gr),
-              se.est=list(overall=se_df, group=se_df_gr),
-              pos.par=loc_df, covariance=cov_mat, loglikelihood=list(overall=llike, group=llike.gr), aic=aic, bic=bic,
-              group.par=group.par, weights=weights.gr, posterior.dist=post_dist, data=list(overall=data, group=data.gr),
-              scale.D=D, ncase=list(overall=nstd, group=nstd.gr), nitem=list(overall=nitem, group=nitem.gr),
-              Etol=Etol, MaxE=MaxE, aprior=aprior.dist, bprior=bprior.dist, gprior=gprior.dist, npar.est=npar.est,
-              niter=r, maxpar.diff=max.diff, EMtime=est_time1, SEtime=est_time2, TotalTime=est_time3, test.1=memo3,
-              test.2=memo4, var.note=memo5, fipc=FALSE, fipc.method=NULL, fix.loc=list(overall=NULL, group=NULL))
+  rst <- list(
+    estimates = list(overall = full_all_df, group = full_all_df_gr),
+    par.est = list(overall = par_df, group = par_df_gr),
+    se.est = list(overall = se_df, group = se_df_gr),
+    pos.par = loc_df, covariance = cov_mat, loglikelihood = list(overall = llike, group = llike.gr), aic = aic, bic = bic,
+    group.par = group.par, weights = weights.gr, posterior.dist = post_dist, data = list(overall = data, group = data.gr),
+    scale.D = D, ncase = list(overall = nstd, group = nstd.gr), nitem = list(overall = nitem, group = nitem.gr),
+    Etol = Etol, MaxE = MaxE, aprior = aprior.dist, bprior = bprior.dist, gprior = gprior.dist, npar.est = npar.est,
+    niter = r, maxpar.diff = max.diff, EMtime = est_time1, SEtime = est_time2, TotalTime = est_time3, test.1 = memo3,
+    test.2 = memo4, var.note = memo5, fipc = FALSE, fipc.method = NULL, fix.loc = list(overall = NULL, group = NULL)
+  )
 
-  if(verbose) {
-    cat("Estimation is finished in", est_time3, "seconds.",'\n')
+  if (verbose) {
+    cat("Estimation is finished in", est_time3, "seconds.", "\n")
   }
   return(rst)
-
 }
 
 
 # multiple group FIPC via EM
-est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NULL, item.id=NULL,
-                        free.group=NULL, fix.a.1pl=FALSE, fix.a.gpcm=FALSE, fix.g=FALSE, a.val.1pl=1,
-                        a.val.gpcm=1, g.val=.2, use.aprior=FALSE, use.bprior=FALSE, use.gprior=TRUE,
-                        aprior=list(dist="lnorm", params=c(0.0, 0.5)), bprior=list(dist="norm", params=c(0.0, 1.0)),
-                        gprior=list(dist="beta", params=c(5, 16)), missing=NA, Quadrature=c(49, 6.0), weights=NULL,
-                        group.mean=0, group.var=1, EmpHist=FALSE, use.startval=FALSE, Etol=1e-04, MaxE=500,
-                        control=list(eval.max=200, iter.max=200), fipc=TRUE, fipc.method="MEM", fix.loc=NULL,
-                        fix.id=NULL, se=TRUE, verbose=TRUE) {
-
+#' @import dplyr
+est_mg_fipc <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats = NULL, item.id = NULL,
+                        free.group = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1,
+                        a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
+                        aprior = list(dist = "lnorm", params = c(0.0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                        gprior = list(dist = "beta", params = c(5, 16)), missing = NA, Quadrature = c(49, 6.0), weights = NULL,
+                        group.mean = 0, group.var = 1, EmpHist = FALSE, use.startval = FALSE, Etol = 1e-04, MaxE = 500,
+                        control = list(eval.max = 200, iter.max = 200), fipc = TRUE, fipc.method = "MEM", fix.loc = NULL,
+                        fix.id = NULL, se = TRUE, verbose = TRUE) {
   # check start time
   start.time <- Sys.time()
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # prepare the item parameter estimation
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # check if item metadata argument of 'x' is provided
-  if(is.null(x)) {
-    stop(paste0("To implement the fixed item parameter calibration, \n",
-                "the item metadata must be specified in the argument 'x'."), call.=FALSE)
+  if (is.null(x)) {
+    stop(paste0(
+      "To implement the fixed item parameter calibration, \n",
+      "the item metadata must be specified in the argument 'x'."
+    ), call. = FALSE)
   }
 
   # start parsing inputs
-  if(verbose) {
-    cat("Parsing input...", '\n')
+  if (verbose) {
+    cat("Parsing input...", "\n")
   }
 
   # count the number of groups
   ngroup <- length(data)
-  if(ngroup == 1) {
-    stop("Use the est_irt() function when a single-group item calibration is implemented.", call.=FALSE)
+  if (ngroup == 1) {
+    stop("Use the est_irt() function when a single-group item calibration is implemented.", call. = FALSE)
   }
 
   # create a group name vector when group.name = NULL
-  if(is.null(group.name)) {group.name <- paste0("g", 1:ngroup)}
+  if (is.null(group.name)) {
+    group.name <- paste0("g", 1:ngroup)
+  }
 
   # test length of each group
   nitem.gr <- purrr::map_dbl(.x = data, ncol)
@@ -1224,35 +1317,52 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   names(nstd.gr) <- group.name
 
   # confirm and correct all item metadata information
-  x.gr <- purrr::map(.x = x, ~{confirm_df(.x)})
+  x.gr <- purrr::map(.x = x, ~ {
+    confirm_df(.x)
+  })
   names(x.gr) <- group.name
 
   # item, cats, model information for each group
-  if(is.null(item.id)) {
-    item.id <- purrr::map(.x = x.gr, ~{.x$id})
+  if (is.null(item.id)) {
+    item.id <- purrr::map(.x = x.gr, ~ {
+      .x$id
+    })
   } else {
     item.id <- item.id
   }
-  cats.gr <- purrr::map(.x = x.gr, ~{.x$cats})
-  model.gr <- purrr::map(.x = x.gr, ~{.x$model})
+  cats.gr <- purrr::map(.x = x.gr, ~ {
+    .x$cats
+  })
+  model.gr <- purrr::map(.x = x.gr, ~ {
+    .x$model
+  })
 
   # find the items that should be fixed
-  if(is.null(fix.loc) & is.null(fix.id)) {
+  if (is.null(fix.loc) & is.null(fix.id)) {
     stop("When 'FIPC = TRUE', the information of which items are fixed \n",
-         "must be provided via the 'fix.loc' or 'fix.id' argument.", call.=FALSE)
-
+      "must be provided via the 'fix.loc' or 'fix.id' argument.",
+      call. = FALSE
+    )
   }
-  if(!is.null(fix.loc) & !is.null(fix.id)) {
-    warning(paste0("The information given to the 'fix.id' argument was used to fix the item parameters and \n",
-                   "the information given to the 'fix.loc' argument was ignored."), call.=FALSE)
+  if (!is.null(fix.loc) & !is.null(fix.id)) {
+    warning(paste0(
+      "The information given to the 'fix.id' argument was used to fix the item parameters and \n",
+      "the information given to the 'fix.loc' argument was ignored."
+    ), call. = FALSE)
   }
-  if(!is.null(fix.id)) {
+  if (!is.null(fix.id)) {
     fix.item <- unique(fix.id)
-    fix.item.gr <- purrr::map(.x = item.id, ~{.x[.x %in% fix.item]})
-    fix.loc.gr <- purrr::map(.x = item.id, ~{which(.x %in% fix.item)})
+    fix.item.gr <- purrr::map(.x = item.id, ~ {
+      .x[.x %in% fix.item]
+    })
+    fix.loc.gr <- purrr::map(.x = item.id, ~ {
+      which(.x %in% fix.item)
+    })
     names(fix.loc.gr) <- group.name
   } else {
-    fix.item.gr <- purrr::map2(.x = item.id, .y = fix.loc, ~{.x[.y]})
+    fix.item.gr <- purrr::map2(.x = item.id, .y = fix.loc, ~ {
+      .x[.y]
+    })
     fix.item <- unique(unlist(fix.item.gr))
     fix.loc.gr <- fix.loc
     names(fix.loc.gr) <- group.name
@@ -1266,10 +1376,12 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   # and assign item IDs
   data <-
     purrr::map(.x = data.gr, data.frame) %>%
-    purrr::map2(.y = item.id,
-                .f = function(x, y) {
-                  dplyr::rename_all(.tbl = x, .funs = function(x) y)
-                }) %>%
+    purrr::map2(
+      .y = item.id,
+      .f = function(x, y) {
+        dplyr::rename_all(.tbl = x, .funs = function(x) y)
+      }
+    ) %>%
     dplyr::bind_rows()
 
   # a vector of item ID for the combined data set
@@ -1282,13 +1394,13 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   x <-
     dplyr::bind_rows(x.gr) %>%
     dplyr::distinct(.data$id, .keep_all = TRUE)
-  if(!all(id == x$id)) {
+  if (!all(id == x$id)) {
     x <- x[match(id, x$id), ]
   }
   rownames(x) <- 1:nrow(x)
 
   # recode missing values
-  if(!is.na(missing)) {
+  if (!is.na(missing)) {
     data[data == missing] <- NA
   }
 
@@ -1303,12 +1415,14 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
 
   # check the location of items whose item parameters are estimated
   nofix.loc <- c(1:nitem.all)[!c(1:nitem.all) %in% fix.loc]
-  if(length(nofix.loc) == 0L) {nofix.loc <- NULL}
+  if (length(nofix.loc) == 0L) {
+    nofix.loc <- NULL
+  }
 
   # divide the item metadata into two groups: fixed (x_fix) and non-fixed (x_new)
   x_fix <- x[fix.loc, ]
   nitem.fix <- nrow(x_fix)
-  if(!is.null(nofix.loc)) {
+  if (!is.null(nofix.loc)) {
     x_new <- x[nofix.loc, ]
     nitem.new <- nrow(x_new)
   } else {
@@ -1317,12 +1431,12 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
 
   # clean the two item metadata sets
   x_fix <- confirm_df(x_fix)
-  if(!is.null(nofix.loc)) {
+  if (!is.null(nofix.loc)) {
     x_new <- confirm_df(x_new)
   }
 
   # record the score categories and model information of the new items to be estimated
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     id <- x_new$id
     cats <- x_new$cats
     model <- x_new$model
@@ -1333,14 +1447,14 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   }
 
   # generate the empty metadata with starting values
-  if(!is.null(x_new) && !use.startval) {
-    x_new <- startval_df(cats=cats, model=model, item.id=id)
+  if (!is.null(x_new) && !use.startval) {
+    x_new <- startval_df(cats = cats, model = model, item.id = id)
   }
 
   # create the total item metadata to be used in the further estimation process
-  x_all <- startval_df(cats=x$cats, model=x$model, item.id=x$id)
+  x_all <- startval_df(cats = x$cats, model = x$model, item.id = x$id)
   x_all[fix.loc, 1:ncol(x_fix)] <- x_fix
-  if(!is.null(nofix.loc)) {
+  if (!is.null(nofix.loc)) {
     x_all[nofix.loc, 1:ncol(x_new)] <- x_new
   }
 
@@ -1348,28 +1462,28 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   # if(nitem.all != ncol(data)) stop("The number of items included in 'x' and 'data' must be the same.", call.=FALSE)
 
   # designate a reference group whose group parameters will be fixed
-  if(is.null(free.group)) {
-    stop("The free.group argument should not be NULL when FIPC = TRUE.", call.=FALSE)
+  if (is.null(free.group)) {
+    stop("The free.group argument should not be NULL when FIPC = TRUE.", call. = FALSE)
   }
-  if(is.character(free.group)) {
+  if (is.character(free.group)) {
     free.group <- which(group.name %in% free.group)
-    if(length(free.group) == 0) {
-      stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group.name argument.", call.=FALSE)
+    if (length(free.group) == 0) {
+      stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group.name argument.", call. = FALSE)
     }
     ref.group <- c(1:ngroup)[-free.group]
   } else {
-    if(sum(1:ngroup %in% free.group) == 0) {
-      stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group name list.", call.=FALSE)
+    if (sum(1:ngroup %in% free.group) == 0) {
+      stop("The group(s) in which abiltiy distribution(s) is(are) freely estimated do(does) not exist in the group name list.", call. = FALSE)
     }
     ref.group <- c(1:ngroup)[-free.group]
   }
 
   # find the groups that have no common items with other groups
   pair <-
-    t(utils::combn(group.name, m=2)) %>%
+    t(utils::combn(group.name, m = 2)) %>%
     data.frame()
   overlap <- c()
-  for(i in 1:nrow(pair)) {
+  for (i in 1:nrow(pair)) {
     freq.tmp <-
       unlist(item.id[unlist(pair[i, ])]) %>%
       table()
@@ -1387,16 +1501,20 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   nolink.free <- free.group[free.group %in% nolink.gr]
 
   # count the number of fixed items in each group
-  n.fix.gr <- purrr::map_dbl(.x = fix.item.gr, ~{length(.x)})
+  n.fix.gr <- purrr::map_dbl(.x = fix.item.gr, ~ {
+    length(.x)
+  })
 
   # when there exist groups that are specified as free groups but not have fixed items,
   # stop the further process
-  if(!all(nolink.free %in% which(n.fix.gr != 0))) {
+  if (!all(nolink.free %in% which(n.fix.gr != 0))) {
     warning.memo <-
-      paste0(paste(group.name[nolink.free[nolink.free %in% which(n.fix.gr != 0)]], collapse = ", "),
-             " group(s) in which ability distribution(s) is(are) freely estimated do(does) not share common items with other groups \n",
-             "nor include fixed items. Please specify the freely estimated group(s) correctly.")
-    stop(paste0(warning.memo, " \n"), call.=FALSE)
+      paste0(
+        paste(group.name[nolink.free[nolink.free %in% which(n.fix.gr != 0)]], collapse = ", "),
+        " group(s) in which ability distribution(s) is(are) freely estimated do(does) not share common items with other groups \n",
+        "nor include fixed items. Please specify the freely estimated group(s) correctly."
+      )
+    stop(paste0(warning.memo, " \n"), call. = FALSE)
   }
 
   # check the number of item responses across all items
@@ -1404,37 +1522,36 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
 
   # check the items which have all missing responses
   loc_allmiss <- which(n.resp == 0L)
-  if(length(loc_allmiss) > 0L) {
+  if (length(loc_allmiss) > 0L) {
     allmiss_item <- id[loc_allmiss]
     memo2 <- paste0(paste0(allmiss_item, collapse = ", "), " has/have no item response data across all groups. \n")
-    stop(memo2, call.=FALSE)
+    stop(memo2, call. = FALSE)
   }
 
   # save the item response data into the different object
   data_all <- data
-  rm(data, envir=environment(), inherits = FALSE)
+  rm(data, envir = environment(), inherits = FALSE)
 
   # divide the item response data into two groups: fixed (x_fix) and non-fixed (x)
-  data_fix <- data_all[, fix.loc, drop=FALSE]
-  if(!is.null(x_new)) {
-    data_new <- data_all[, nofix.loc, drop=FALSE]
+  data_fix <- data_all[, fix.loc, drop = FALSE]
+  if (!is.null(x_new)) {
+    data_new <- data_all[, nofix.loc, drop = FALSE]
   } else {
     data_new <- NULL
   }
 
   # find the location of 1PLM items in which slope parameters should be constrained to be equal
   # also, find the location of other items
-  if("1PLM" %in% model & !fix.a.1pl) {
+  if ("1PLM" %in% model & !fix.a.1pl) {
     loc_1p_const <- which(model == "1PLM")
     loc_else <- which(model != "1PLM")
 
     # count the number of 1PLM items to be constrained
     n.1PLM <- length(loc_1p_const)
-
   } else {
     loc_1p_const <- NULL
     n.1PLM <- NULL
-    if(!is.null(x_new)) {
+    if (!is.null(x_new)) {
       loc_else <- 1:nrow(x_new)
     } else {
       loc_else <- 1:nrow(x_all)
@@ -1444,99 +1561,117 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   # record the original location of item parameters to be estimated, and
   # the relocated position of item parameters when computing
   # the variance-covariance matrix of item parameter estimates
-  if(!is.null(x_new)) {
-    param_loc <- parloc(x=x_new, loc_1p_const=loc_1p_const, loc_else=loc_else,
-                        fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g)
+  if (!is.null(x_new)) {
+    param_loc <- parloc(
+      x = x_new, loc_1p_const = loc_1p_const, loc_else = loc_else,
+      fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g
+    )
   } else {
-    param_loc <- parloc(x=x_all, loc_1p_const=loc_1p_const, loc_else=loc_else,
-                        fix.a.1pl=FALSE, fix.a.gpcm=FALSE, fix.g=FALSE)
+    param_loc <- parloc(
+      x = x_all, loc_1p_const = loc_1p_const, loc_else = loc_else,
+      fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE
+    )
     param_loc$loc.par[!is.na(param_loc$loc.par)] <- NA_real_
     param_loc$reloc.par <- NULL
   }
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # conduct item parameter estimation using MMLE-EM algorithm
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # create initial weights of prior ability distribution when it is not specified
-  if(is.null(weights)) {
+  if (is.null(weights)) {
     # create quadrature points
-    quadpt <- seq(-Quadrature[2], Quadrature[2], length.out=Quadrature[1])
+    quadpt <- seq(-Quadrature[2], Quadrature[2], length.out = Quadrature[1])
 
     # create the data.frame containing the quadrature points and weights
-    weights <- gen.weight(dist="norm", mu=group.mean, sigma=sqrt(group.var), theta=quadpt)
+    weights <- gen.weight(dist = "norm", mu = group.mean, sigma = sqrt(group.var), theta = quadpt)
     n.quad <- length(quadpt)
-
   } else {
     quadpt <- weights[, 1]
     n.quad <- length(quadpt)
-    moments.tmp <- cal_moment(node=quadpt, weight=weights[, 2])
+    moments.tmp <- cal_moment(node = quadpt, weight = weights[, 2])
     group.mean <- moments.tmp[1]
     group.var <- moments.tmp[2]
   }
 
   # a list containing the weights and densities for each group
-  weights.gr <- replicate(n=ngroup, expr=weights, simplify = FALSE)
+  weights.gr <- replicate(n = ngroup, expr = weights, simplify = FALSE)
   names(weights.gr) <- group.name
 
   # factorize the response values
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     resp_new <-
-      purrr::map2(.x=data.frame(data_new,  stringsAsFactors = FALSE), .y=cats,
-                  .f=function(k, m) factor(k, levels=(seq_len(m) - 1)))
+      purrr::map2(
+        .x = data.frame(data_new, stringsAsFactors = FALSE), .y = cats,
+        .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
+      )
     resp_fix <-
-      purrr::map2(.x=data.frame(data_fix,  stringsAsFactors = FALSE), .y=x_fix$cats,
-                  .f=function(k, m) factor(k, levels=(seq_len(m) - 1)))
+      purrr::map2(
+        .x = data.frame(data_fix, stringsAsFactors = FALSE), .y = x_fix$cats,
+        .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
+      )
   } else {
     resp_new <- NULL
     resp_fix <- NULL
   }
   resp_all <-
-    purrr::map2(.x=data.frame(data_all,  stringsAsFactors = FALSE), .y=x_all$cats,
-                .f=function(k, m) factor(k, levels=(seq_len(m) - 1)))
+    purrr::map2(
+      .x = data.frame(data_all, stringsAsFactors = FALSE), .y = x_all$cats,
+      .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
+    )
 
   # create a contingency table of score categories for each item
   # and then, transform the table to a matrix format
   std.id <- 1:nstd
-  if(!is.null(x_new)) {
-    freq_new.cat <- purrr::map(.x=resp_new,
-                               .f=function(k) {
-                                 stats::xtabs(~ std.id + k,
-                                              na.action=stats::na.pass, addNA = FALSE) %>%
-                                   matrix(nrow = length(k))
-                               })
-    freq_fix.cat <- purrr::map(.x=resp_fix,
-                               .f=function(k) {
-                                 stats::xtabs(~ std.id + k,
-                                              na.action=stats::na.pass, addNA = FALSE) %>%
-                                   matrix(nrow = length(k))
-                               })
+  if (!is.null(x_new)) {
+    freq_new.cat <- purrr::map(
+      .x = resp_new,
+      .f = function(k) {
+        stats::xtabs(~ std.id + k,
+          na.action = stats::na.pass, addNA = FALSE
+        ) %>%
+          matrix(nrow = length(k))
+      }
+    )
+    freq_fix.cat <- purrr::map(
+      .x = resp_fix,
+      .f = function(k) {
+        stats::xtabs(~ std.id + k,
+          na.action = stats::na.pass, addNA = FALSE
+        ) %>%
+          matrix(nrow = length(k))
+      }
+    )
   } else {
     freq_new.cat <- NULL
     freq_fix.cat <- NULL
   }
-  freq_all.cat <- purrr::map(.x=resp_all,
-                             .f=function(k) {
-                               stats::xtabs(~ std.id + k,
-                                            na.action=stats::na.pass, addNA = FALSE) %>%
-                                 matrix(nrow = length(k))
-                             })
+  freq_all.cat <- purrr::map(
+    .x = resp_all,
+    .f = function(k) {
+      stats::xtabs(~ std.id + k,
+        na.action = stats::na.pass, addNA = FALSE
+      ) %>%
+        matrix(nrow = length(k))
+    }
+  )
 
   # delete 'resp' object
-  if(!is.null(x_new)) {
-    rm(resp_new, envir=environment(), inherits = FALSE)
-    rm(resp_fix, envir=environment(), inherits = FALSE)
+  if (!is.null(x_new)) {
+    rm(resp_new, envir = environment(), inherits = FALSE)
+    rm(resp_fix, envir = environment(), inherits = FALSE)
   }
-  rm(resp_all, envir=environment(), inherits = FALSE)
+  rm(resp_all, envir = environment(), inherits = FALSE)
 
   # break down the item metadata into several elements
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     elm_item_new <- breakdown(x_new)
     elm_item_fix <- breakdown(x_fix)
   }
   elm_item_all <- breakdown(x_all)
 
   # classify the items into DRM and PRM item groups
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     idx.item.new <- idxfinder(elm_item_new)
     idx.item.fix <- idxfinder(elm_item_fix)
     idx.drm.new <- idx.item.new$idx.drm
@@ -1552,19 +1687,25 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   # (1) DRM 1PL items with the constrained slop
   # (2) other DRM items
   # (3) PRM items
-  if(!is.null(x_new)) {
-    if(sum(loc_else) == 0) {drm.else <- NULL} else {drm.else <- loc_else}
-    idx4est <- list(drm.slc = loc_1p_const,
-                    drm.else = drm.else,
-                    prm = idx.prm.new)
+  if (!is.null(x_new)) {
+    if (sum(loc_else) == 0) {
+      drm.else <- NULL
+    } else {
+      drm.else <- loc_else
+    }
+    idx4est <- list(
+      drm.slc = loc_1p_const,
+      drm.else = drm.else,
+      prm = idx.prm.new
+    )
   } else {
     idx4est <- NULL
   }
 
   # divide the data set for the mixed-item format
-  if(!is.null(x_new)) {
-    datlist.new <- divide_data(data=data_new, idx.item=idx.item.new, freq.cat=freq_new.cat)
-    datlist.fix <- divide_data(data=data_fix, idx.item=idx.item.fix, freq.cat=freq_fix.cat)
+  if (!is.null(x_new)) {
+    datlist.new <- divide_data(data = data_new, idx.item = idx.item.new, freq.cat = freq_new.cat)
+    datlist.fix <- divide_data(data = data_fix, idx.item = idx.item.fix, freq.cat = freq_fix.cat)
     data_drm.new <- cbind(datlist.new$data_drm_q, datlist.new$data_drm_p)
     data_drm.fix <- cbind(datlist.fix$data_drm_q, datlist.fix$data_drm_p)
     data_prm.new <- datlist.new$data_prm
@@ -1572,31 +1713,31 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
     data.new <- datlist.new$data_all
     data.fix <- datlist.fix$data_all
   }
-  datlist.all <- divide_data(data=data_all, idx.item=idx.item.all, freq.cat=freq_all.cat)
+  datlist.all <- divide_data(data = data_all, idx.item = idx.item.all, freq.cat = freq_all.cat)
   data_drm.all <- cbind(datlist.all$data_drm_q, datlist.all$data_drm_p)
   data_prm.all <- datlist.all$data_prm
   data.all <- datlist.all$data_all
 
   # delete 'datlist' object
-  if(!is.null(x_new)) {
-    rm(datlist.new, datlist.fix, freq_fix.cat, envir=environment(), inherits = FALSE)
+  if (!is.null(x_new)) {
+    rm(datlist.new, datlist.fix, freq_fix.cat, envir = environment(), inherits = FALSE)
   }
-  rm(datlist.all, freq_all.cat, envir=environment(), inherits = FALSE)
+  rm(datlist.all, freq_all.cat, envir = environment(), inherits = FALSE)
 
   # moments of population prior distribution
-  if(is.null(x_new)) {
-    mmt_dist_old <- matrix(rep(c(group.mean, group.var), ngroup), ncol=ngroup)
+  if (is.null(x_new)) {
+    mmt_dist_old <- matrix(rep(c(group.mean, group.var), ngroup), ncol = ngroup)
   }
 
   # create the lower and upper bounds of the item parameters
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     parbd <- lubound(model, cats, n.1PLM, idx4est, fix.a.1pl, fix.g, fix.a.gpcm)
   } else {
     parbd <- NULL
   }
 
   # find the columns of the frequency matrix corresponding to all items
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     cols.item <- cols4item(nitem.new, cats, loc_1p_const)
   } else {
     cols.item <- NULL
@@ -1605,73 +1746,82 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   # create indices of samples (examinees) who belong to each group
   idx.tmp2 <- as.numeric(cumsum(nstd.gr))
   idx.tmp1 <- dplyr::lag(idx.tmp2, default = 0) + 1
-  idx.std <- purrr::map2(.x = idx.tmp1, .y = idx.tmp2, ~{.x:.y})
+  idx.std <- purrr::map2(.x = idx.tmp1, .y = idx.tmp2, ~ {
+    .x:.y
+  })
   names(idx.std) <- group.name
 
   # estimation
-  if(verbose) {
-    cat("Estimating item parameters...", '\n')
+  if (verbose) {
+    cat("Estimating item parameters...", "\n")
   }
 
   # set the number of EM iteration to one when OEM (Wainer & Mislevy, 1990) method is used
-  if(fipc.method=="OEM") MaxE <- 1
+  if (fipc.method == "OEM") MaxE <- 1
 
   # implement EM algorithm
   time1 <- Sys.time()
-  for(r in 1:MaxE) {
-
+  for (r in 1:MaxE) {
     # implement E-step
-    if(!is.null(x_new)) {
-      if(r == 1L) {
-        estep <- Estep_fipc(elm_item1=elm_item_new, elm_item2=elm_item_fix, idx.drm2=idx.drm.fix,
-                            idx.prm2=idx.prm.fix, data_drm2=data_drm.fix, data_prm2=data_prm.fix,
-                            data_all1=data.new, weights=weights.gr, D=D, idx.std=idx.std)
+    if (!is.null(x_new)) {
+      if (r == 1L) {
+        estep <- Estep_fipc(
+          elm_item1 = elm_item_new, elm_item2 = elm_item_fix, idx.drm2 = idx.drm.fix,
+          idx.prm2 = idx.prm.fix, data_drm2 = data_drm.fix, data_prm2 = data_prm.fix,
+          data_all1 = data.new, weights = weights.gr, D = D, idx.std = idx.std
+        )
       } else {
-        estep <- Estep_fipc(elm_item1=elm_item_new, elm_item2=elm_item_all, idx.drm2=idx.drm.all,
-                            idx.prm2=idx.prm.all, data_drm2=data_drm.all, data_prm2=data_prm.all,
-                            data_all1=data.new, weights=weights.gr, D=D, idx.std=idx.std)
+        estep <- Estep_fipc(
+          elm_item1 = elm_item_new, elm_item2 = elm_item_all, idx.drm2 = idx.drm.all,
+          idx.prm2 = idx.prm.all, data_drm2 = data_drm.all, data_prm2 = data_prm.all,
+          data_all1 = data.new, weights = weights.gr, D = D, idx.std = idx.std
+        )
       }
     } else {
-      estep <- Estep_fipc(elm_item1=elm_item_all, elm_item2=elm_item_all, idx.drm2=idx.drm.all,
-                          idx.prm2=idx.prm.all, data_drm2=data_drm.all, data_prm2=data_prm.all,
-                          data_all1=data.all, weights=weights.gr, D=D, idx.std=idx.std)
+      estep <- Estep_fipc(
+        elm_item1 = elm_item_all, elm_item2 = elm_item_all, idx.drm2 = idx.drm.all,
+        idx.prm2 = idx.prm.all, data_drm2 = data_drm.all, data_prm2 = data_prm.all,
+        data_all1 = data.all, weights = weights.gr, D = D, idx.std = idx.std
+      )
       estep$elm_item <- NULL
     }
 
     # implement M-step
-    mstep <- Mstep(estep=estep, id=id, cats=cats, model=model, quadpt=quadpt, n.quad=n.quad,
-                   D=D, cols.item=cols.item, loc_1p_const=loc_1p_const, loc_else=loc_else, idx4est=idx4est,
-                   n.1PLM=n.1PLM, EmpHist=EmpHist, weights=weights.gr, fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g,
-                   a.val.1pl=a.val.1pl, a.val.gpcm=a.val.gpcm, g.val=g.val, use.aprior=use.aprior, use.bprior=use.bprior,
-                   use.gprior=use.gprior, aprior=aprior, bprior=bprior, gprior=gprior,  group.mean=group.mean,
-                   group.var=group.var, nstd=nstd.gr, Quadrature=Quadrature, control=control,
-                   iter=r, fipc=TRUE, reloc.par=param_loc$reloc.par, ref.group=ref.group,
-                   free.group=free.group, parbd=parbd)
+    mstep <- Mstep(
+      estep = estep, id = id, cats = cats, model = model, quadpt = quadpt, n.quad = n.quad,
+      D = D, cols.item = cols.item, loc_1p_const = loc_1p_const, loc_else = loc_else, idx4est = idx4est,
+      n.1PLM = n.1PLM, EmpHist = EmpHist, weights = weights.gr, fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g,
+      a.val.1pl = a.val.1pl, a.val.gpcm = a.val.gpcm, g.val = g.val, use.aprior = use.aprior, use.bprior = use.bprior,
+      use.gprior = use.gprior, aprior = aprior, bprior = bprior, gprior = gprior, group.mean = group.mean,
+      group.var = group.var, nstd = nstd.gr, Quadrature = Quadrature, control = control,
+      iter = r, fipc = TRUE, reloc.par = param_loc$reloc.par, ref.group = ref.group,
+      free.group = free.group, parbd = parbd
+    )
 
-    if(!is.null(x_new)) {
-
+    if (!is.null(x_new)) {
       # compute the difference between previous and updated item parameter estimates
       diff_par <- mstep$elm_item$pars - elm_item_new$pars
-      max.diff <- abs(max(diff_par, na.rm=TRUE))
-
+      max.diff <- abs(max(diff_par, na.rm = TRUE))
     } else {
-
       # compute the mean and sd of the updated prior distribution
       mmt_dist_new <-
-        as.matrix(purrr::map_dfc(.x = mstep$weights, ~{cal_moment(node=.x$theta, weight=.x$weight)}))
+        as.matrix(purrr::map_dfc(.x = mstep$weights, ~ {
+          cal_moment(node = .x$theta, weight = .x$weight)
+        }))
       diff_par <- mmt_dist_new - mmt_dist_old
-      max.diff <- abs(max(diff_par, na.rm=TRUE))
-
+      max.diff <- abs(max(diff_par, na.rm = TRUE))
     }
 
     # loglikelihood value
-    llike <- do.call(what="sum", args=mstep$loglike)
+    llike <- do.call(what = "sum", args = mstep$loglike)
 
     # print
-    if(verbose) {
-      cat("\r", paste0("EM iteration: ", r, ", Loglike: ",
-                       format(round(llike, 4), nsmall=4), ", Max-Change: ",
-                       format(round(max.diff, 6), nsmall=5)))
+    if (verbose) {
+      cat("\r", paste0(
+        "EM iteration: ", r, ", Loglike: ",
+        format(round(llike, 4), nsmall = 4), ", Max-Change: ",
+        format(round(max.diff, 6), nsmall = 5)
+      ))
     }
 
     # check the convergence of EM algorithm
@@ -1679,7 +1829,7 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
 
     # extract the updated item (or group) parameter estimates
     # and update the new and all item parameters
-    if(!is.null(x_new)) {
+    if (!is.null(x_new)) {
       elm_item_new$pars <- mstep$elm_item$pars
       elm_item_all$pars[nofix.loc, 1:ncol(elm_item_new$pars)] <- elm_item_new$pars
     } else {
@@ -1691,13 +1841,12 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
     weights.gr <- mstep$weights
 
     # terminate the EM step if the convergence criterion is satisfied
-    if(converge | r == MaxE) {
+    if (converge | r == MaxE) {
       break
     }
-
   }
 
-  if(verbose) {
+  if (verbose) {
     cat("", "\n")
   }
   time2 <- Sys.time()
@@ -1707,58 +1856,76 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
 
   # the first order test: check convergence-criteria test
   test_1st <- all(c(all(mstep$convergence == 0L), r < MaxE))
-  if(test_1st) {
+  if (test_1st) {
     memo3 <- "Convergence criteria are satisfied."
   } else {
     memo3 <- "Convergence criteria are not satisfied."
-    warning(paste0(memo3,  " \n"), call.=FALSE)
+    warning(paste0(memo3, " \n"), call. = FALSE)
   }
 
   # conduct one more E-step to update the posterior distribution using the final item parameter estimates
-  if(!is.null(x_new)) {
-    estep <- Estep_fipc(elm_item1=elm_item_new, elm_item2=elm_item_all, idx.drm2=idx.drm.all,
-                        idx.prm2=idx.prm.all, data_drm2=data_drm.all, data_prm2=data_prm.all,
-                        data_all1=data.new, weights=weights.gr, D=D, idx.std=idx.std)
+  if (!is.null(x_new)) {
+    estep <- Estep_fipc(
+      elm_item1 = elm_item_new, elm_item2 = elm_item_all, idx.drm2 = idx.drm.all,
+      idx.prm2 = idx.prm.all, data_drm2 = data_drm.all, data_prm2 = data_prm.all,
+      data_all1 = data.new, weights = weights.gr, D = D, idx.std = idx.std
+    )
   } else {
-    estep <- Estep_fipc(elm_item1=elm_item_all, elm_item2=elm_item_all, idx.drm2=idx.drm.all,
-                        idx.prm2=idx.prm.all, data_drm2=data_drm.all, data_prm2=data_prm.all,
-                        data_all1=data.all, weights=weights.gr, D=D, idx.std=idx.std)
+    estep <- Estep_fipc(
+      elm_item1 = elm_item_all, elm_item2 = elm_item_all, idx.drm2 = idx.drm.all,
+      idx.prm2 = idx.prm.all, data_drm2 = data_drm.all, data_prm2 = data_prm.all,
+      data_all1 = data.all, weights = weights.gr, D = D, idx.std = idx.std
+    )
   }
 
   # compute the final log of marginal likelihood
-  likehd.gr <- purrr::map(.x = idx.std, ~{estep$likehd[.x, ]})
-  llike.gr <- purrr::map2(.x = likehd.gr, .y = weights.gr,
-                          .f = ~{sum(log(.x %*% matrix(.y[, 2])))})
-  llike <- do.call(what="sum", args=llike.gr)
+  likehd.gr <- purrr::map(.x = idx.std, ~ {
+    estep$likehd[.x, ]
+  })
+  llike.gr <- purrr::map2(
+    .x = likehd.gr, .y = weights.gr,
+    .f = ~ {
+      sum(log(.x %*% matrix(.y[, 2])))
+    }
+  )
+  llike <- do.call(what = "sum", args = llike.gr)
 
   # compute the mean and variance of the estimated density distributions
   pop_moments <-
-    purrr::map(.x = weights.gr, ~{cal_moment(node=quadpt, weight=.x[, 2])}) %>%
-    purrr::map(~{c(.x, sigma=sqrt(as.numeric(.x[2])))})
-  if(length(ref.group) > 0) {
+    purrr::map(.x = weights.gr, ~ {
+      cal_moment(node = quadpt, weight = .x[, 2])
+    }) %>%
+    purrr::map(~ {
+      c(.x, sigma = sqrt(as.numeric(.x[2])))
+    })
+  if (length(ref.group) > 0) {
     pop_moments[ref.group] <-
-      purrr::map(.x = 1:length(ref.group),
-                 ~{c(mu=group.mean, sigma2=group.var, sigma=sqrt(group.var))})
+      purrr::map(
+        .x = 1:length(ref.group),
+        ~ {
+          c(mu = group.mean, sigma2 = group.var, sigma = sqrt(group.var))
+        }
+      )
   }
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # estimates the information matrix and standard errors of item parameter estimates
-  ##---------------------------------------------------------------------
-  if(!is.null(x_new)) {
-
+  ## ---------------------------------------------------------------------
+  if (!is.null(x_new)) {
     # extract the finalized posterior density
     post_dist <- estep$post_dist
 
     # delete 'estep' and 'mstep' object
     rm(estep, mstep, data_drm.new, data_drm.fix,
-       data_prm.new, data_prm.fix, data.new, data.fix,
-       data_drm.all, data_prm.all, data.all, envir=environment(), inherits = FALSE)
+      data_prm.new, data_prm.fix, data.new, data.fix,
+      data_drm.all, data_prm.all, data.all,
+      envir = environment(), inherits = FALSE
+    )
 
     # compute the information matrix of item parameter estimates using the cross-product method
-    if(se) {
-
-      if(verbose) {
-        cat("Computing item parameter var-covariance matrix...", '\n')
+    if (se) {
+      if (verbose) {
+        cat("Computing item parameter var-covariance matrix...", "\n")
       }
       time1 <- Sys.time()
 
@@ -1766,51 +1933,62 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
       quadpt.vec <- rep(quadpt, each = nstd)
 
       # compute the information matrix of item parameters
-      info.data <- info_xpd(elm_item=elm_item_new, freq.cat=freq_new.cat, post_dist=post_dist,
-                            quadpt.vec=quadpt.vec, n.quadpt.vec=length(quadpt.vec), nstd=nstd,
-                            D=D, loc_1p_const=loc_1p_const, loc_else=loc_else, n.1PLM=n.1PLM,
-                            fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g, a.val.1pl=a.val.1pl,
-                            a.val.gpcm=a.val.gpcm, g.val=g.val, reloc.par=param_loc$reloc.par)
+      info.data <- info_xpd(
+        elm_item = elm_item_new, freq.cat = freq_new.cat, post_dist = post_dist,
+        quadpt.vec = quadpt.vec, n.quadpt.vec = length(quadpt.vec), nstd = nstd,
+        D = D, loc_1p_const = loc_1p_const, loc_else = loc_else, n.1PLM = n.1PLM,
+        fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g, a.val.1pl = a.val.1pl,
+        a.val.gpcm = a.val.gpcm, g.val = g.val, reloc.par = param_loc$reloc.par
+      )
 
       # compute the information matrix of item parameter priors
-      info.prior <- info_prior(elm_item=elm_item_new, D=D, loc_1p_const=loc_1p_const,
-                               loc_else=loc_else, n.1PLM=n.1PLM, fix.a.1pl=fix.a.1pl, fix.a.gpcm=fix.a.gpcm, fix.g=fix.g,
-                               a.val.1pl=a.val.1pl, a.val.gpcm=a.val.gpcm, g.val=g.val, aprior=aprior, bprior=bprior,
-                               gprior=gprior, use.aprior=use.aprior, use.bprior=use.bprior, use.gprior=use.gprior,
-                               reloc.par=param_loc$reloc.par)
+      info.prior <- info_prior(
+        elm_item = elm_item_new, D = D, loc_1p_const = loc_1p_const,
+        loc_else = loc_else, n.1PLM = n.1PLM, fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g,
+        a.val.1pl = a.val.1pl, a.val.gpcm = a.val.gpcm, g.val = g.val, aprior = aprior, bprior = bprior,
+        gprior = gprior, use.aprior = use.aprior, use.bprior = use.bprior, use.gprior = use.gprior,
+        reloc.par = param_loc$reloc.par
+      )
 
       # sum of two information matrices
       info.mat <- info.data + info.prior
 
       # the second-order test: check if the information matrix is positive definite
-      test_2nd <- all(eigen(info.mat, only.values=TRUE)$values > 1e-20)
-      if(test_2nd) {
-        if(test_1st) {
+      test_2nd <- all(eigen(info.mat, only.values = TRUE)$values > 1e-20)
+      if (test_2nd) {
+        if (test_1st) {
           memo4 <- "Solution is a possible local maximum."
         } else {
           memo4 <- "Information matrix of item parameter estimates is positive definite."
         }
       } else {
         memo4 <- "Information matrix of item parameter estimates is not positive definite; unstable solution."
-        warning(paste0(memo4, " \n"), call.=FALSE)
+        warning(paste0(memo4, " \n"), call. = FALSE)
       }
 
       # compute the variance-covariance matrix of the item parameter estimates, and
       # check if the hessian matrix can be inversed
-      cov_mat <- suppressWarnings(tryCatch({solve(info.mat, tol=1e-200)}, error = function(e) {NULL}))
+      cov_mat <- suppressWarnings(tryCatch(
+        {
+          solve(info.mat, tol = 1e-200)
+        },
+        error = function(e) {
+          NULL
+        }
+      ))
 
       # compute the standard errors of item parameter estimates
-      if(is.null(cov_mat)) {
+      if (is.null(cov_mat)) {
         se_par <- rep(99999, length(diag(info.mat)))
         memo5 <- "Variance-covariance matrix of item parameter estimates is not obtainable; unstable solution."
-        warning(paste0(memo5, " \n"), call.=FALSE)
+        warning(paste0(memo5, " \n"), call. = FALSE)
       } else {
         se_par <- suppressWarnings(sqrt(diag(cov_mat)))
         memo5 <- "Variance-covariance matrix of item parameter estimates is obtainable."
       }
 
       # prevent showing NaN values of standard errors
-      if(any(is.nan(se_par))) {
+      if (any(is.nan(se_par))) {
         se_par[is.nan(se_par)] <- 99999
       }
 
@@ -1820,15 +1998,12 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
 
       # record the standard error computation time
       est_time2 <- round(as.numeric(difftime(time2, time1, units = "secs")), 2)
-
     } else {
-
       memo4 <- "Information matrix of item parameter estimates is not computed."
       memo5 <- "Variance-covariance matrix of item parameter estimates is not computed."
       cov_mat <- NULL
       se_par <- NULL
       est_time2 <- NULL
-
     }
 
     # create an item metadata including the final item parameter estimates for all items
@@ -1840,10 +2015,10 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
     # deploy the standard errors on the location of matrix as the item parameter estimates
     # 1) for the only new items
     se_df <- loc.par <- param_loc$loc.par
-    for(i in 1:nrow(loc.par)) {
+    for (i in 1:nrow(loc.par)) {
       num.loc <- which(!is.na(loc.par[i, ]))
       se.loc <- loc.par[i, ][num.loc]
-      if(se) {
+      if (se) {
         se_df[i, num.loc] <- se_par[se.loc]
       } else {
         se_df[i, num.loc] <- NA_real_
@@ -1853,10 +2028,10 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
     # 2) for the a total test form
     all.col <- max(x_all$cats)
     all.col <- ifelse(all.col == 2, 3, all.col)
-    se_all_df <- loc_all.par <- matrix(NA, nrow=nitem.all, ncol=all.col)
-    if(ncol(se_df) < ncol(se_all_df)) {
+    se_all_df <- loc_all.par <- matrix(NA, nrow = nitem.all, ncol = all.col)
+    if (ncol(se_df) < ncol(se_all_df)) {
       n2add <- ncol(se_all_df) - ncol(se_df)
-      se_df <- cbind(se_df, matrix(NA, nrow=nrow(se_df), ncol=n2add))
+      se_df <- cbind(se_df, matrix(NA, nrow = nrow(se_df), ncol = n2add))
     }
     se_all_df[nofix.loc, 1:ncol(se_df)] <- se_df
     loc_all.par[nofix.loc, 1:ncol(loc.par)] <- loc.par
@@ -1871,14 +2046,12 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
     loc_all_df <-
       data.frame(x_all[, 1:3], loc_all.par) %>%
       confirm_df(g2na = TRUE)
-
   } else {
-
     # extract the finalized posterior density
     post_dist <- estep$post_dist
 
     # the second-order test
-    if(test_1st) {
+    if (test_1st) {
       memo4 <- "Solution is a possible local maximum."
     } else {
       memo4 <- "Solution is not a possible local maximum because convergence criteria are not satisfied."
@@ -1903,61 +2076,66 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
     # create a full data.frame containing the position of item parameter estimates
     # however, this should be NULL when only group parameters are estimated
     loc_all_df <- NULL
-
   }
 
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # summarize the estimation results
-  ##---------------------------------------------------------------------
+  ## ---------------------------------------------------------------------
   # create a full data.frame including both the item parameter estimates and standard error estimates
-  all_df <- data.frame(matrix(NA, nrow=nrow(loc_all.par), ncol=2*ncol(loc_all.par)))
-  all_df[, seq(1, 2*ncol(loc_all.par), 2)] <- x_all[, -c(1:3)]
-  all_df[, seq(2, 2*ncol(loc_all.par), 2)] <- se_all_df[, -c(1:3)]
-  col.names <- rep(NA, 2*ncol(loc_all.par))
-  col.names[seq(1, 2*ncol(loc_all.par), 2)] <- paste0("par.", 1:ncol(loc_all.par))
-  col.names[seq(2, 2*ncol(loc_all.par), 2)] <- paste0("se.", 1:ncol(loc_all.par))
+  all_df <- data.frame(matrix(NA, nrow = nrow(loc_all.par), ncol = 2 * ncol(loc_all.par)))
+  all_df[, seq(1, 2 * ncol(loc_all.par), 2)] <- x_all[, -c(1:3)]
+  all_df[, seq(2, 2 * ncol(loc_all.par), 2)] <- se_all_df[, -c(1:3)]
+  col.names <- rep(NA, 2 * ncol(loc_all.par))
+  col.names[seq(1, 2 * ncol(loc_all.par), 2)] <- paste0("par.", 1:ncol(loc_all.par))
+  col.names[seq(2, 2 * ncol(loc_all.par), 2)] <- paste0("se.", 1:ncol(loc_all.par))
   colnames(all_df) <- col.names
   full_all_df <- data.frame(x_all[, 1:3], all_df)
 
   # divide the parameter estimation results to each group
   full_all_df_gr <-
-    purrr::map(.x = item.id,
-               .f = function(x) {
-                 df.tmp <-
-                   full_all_df %>%
-                   dplyr::filter(.data$id %in% x)
-                 df.tmp <- df.tmp[match(x, df.tmp$id), ]
-                 rownames(df.tmp) <- 1:nrow(df.tmp)
-                 df.tmp
-               })
+    purrr::map(
+      .x = item.id,
+      .f = function(x) {
+        df.tmp <-
+          full_all_df %>%
+          dplyr::filter(.data$id %in% x)
+        df.tmp <- df.tmp[match(x, df.tmp$id), ]
+        rownames(df.tmp) <- 1:nrow(df.tmp)
+        df.tmp
+      }
+    )
   names(full_all_df_gr) <- group.name
   par_df_gr <-
-    purrr::map(.x = item.id,
-               .f = function(x) {
-                 df.tmp <-
-                   x_all %>%
-                   dplyr::filter(.data$id %in% x)
-                 df.tmp <- df.tmp[match(x, df.tmp$id), ]
-                 rownames(df.tmp) <- 1:nrow(df.tmp)
-                 df.tmp
-               })
+    purrr::map(
+      .x = item.id,
+      .f = function(x) {
+        df.tmp <-
+          x_all %>%
+          dplyr::filter(.data$id %in% x)
+        df.tmp <- df.tmp[match(x, df.tmp$id), ]
+        rownames(df.tmp) <- 1:nrow(df.tmp)
+        df.tmp
+      }
+    )
   names(par_df_gr) <- group.name
   se_df_gr <-
-    purrr::map(.x = item.id,
-               .f = function(x) {
-                 df.tmp <-
-                   se_all_df %>%
-                   dplyr::filter(.data$id %in% x)
-                 df.tmp <- df.tmp[match(x, df.tmp$id), ]
-                 rownames(df.tmp) <- 1:nrow(df.tmp)
-                 df.tmp
-               })
+    purrr::map(
+      .x = item.id,
+      .f = function(x) {
+        df.tmp <-
+          se_all_df %>%
+          dplyr::filter(.data$id %in% x)
+        df.tmp <- df.tmp[match(x, df.tmp$id), ]
+        rownames(df.tmp) <- 1:nrow(df.tmp)
+        df.tmp
+      }
+    )
   names(se_df_gr) <- group.name
 
   # population density parameters
-  group.par <- vector('list', ngroup)
-  for(i in 1:ngroup) {
-    if(i %in% ref.group) {
+  group.par <- vector("list", ngroup)
+  for (i in 1:ngroup) {
+    if (i %in% ref.group) {
       moments.se <- rep(NA_real_, 3)
       group.par.tmp <- data.frame(rbind(pop_moments[[i]], moments.se))
     } else {
@@ -1975,44 +2153,41 @@ est_mg_fipc <- function(x=NULL, data, group.name=NULL, D=1, model=NULL, cats=NUL
   names(group.par) <- group.name
 
   # prior information
-  if(use.aprior) aprior.dist <- aprior else aprior.dist <- NULL
-  if(use.bprior) bprior.dist <- bprior else bprior.dist <- NULL
-  if(use.gprior) gprior.dist <- gprior else gprior.dist <- NULL
+  if (use.aprior) aprior.dist <- aprior else aprior.dist <- NULL
+  if (use.bprior) bprior.dist <- bprior else bprior.dist <- NULL
+  if (use.gprior) gprior.dist <- gprior else gprior.dist <- NULL
 
   # statistics based on the loglikelihood of the fitted model:
-  if(!is.null(x_new)) {
+  if (!is.null(x_new)) {
     npar.est <- length(param_loc$reloc.par) + length(free.group) * 2
   } else {
     npar.est <- length(free.group) * 2
   }
-  neg2llke <- - 2 * llike
+  neg2llke <- -2 * llike
   aic <- 2 * npar.est + neg2llke
   bic <- npar.est * log(nstd) + neg2llke
 
-  ##---------------------------------------------------------------
+  ## ---------------------------------------------------------------
   # check end time
   end.time <- Sys.time()
 
   # record total computation time
   est_time3 <- round(as.numeric(difftime(end.time, start.time, units = "secs")), 2)
 
-  rst <- list(estimates=list(overall=full_all_df, group=full_all_df_gr),
-              par.est=list(overall=x_all, group=par_df_gr),
-              se.est=list(overall=se_all_df, group=se_df_gr),
-              pos.par=loc_all_df, covariance=cov_mat, loglikelihood=list(overall=llike, group=llike.gr), aic=aic, bic=bic,
-              group.par=group.par, weights=weights.gr, posterior.dist=post_dist, data=list(overall=data_all, group=data.gr),
-              scale.D=D, ncase=list(overall=nstd, group=nstd.gr), nitem=list(overall=nitem.all, group=nitem.gr),
-              Etol=Etol, MaxE=MaxE, aprior=aprior.dist, bprior=bprior.dist, gprior=gprior.dist, npar.est=npar.est,
-              niter=r, maxpar.diff=max.diff, EMtime=est_time1, SEtime=est_time2, TotalTime=est_time3, test.1=memo3,
-              test.2=memo4, var.note=memo5, fipc=TRUE, fipc.method=fipc.method, fix.loc=list(overall=fix.loc, group=fix.loc.gr))
+  rst <- list(
+    estimates = list(overall = full_all_df, group = full_all_df_gr),
+    par.est = list(overall = x_all, group = par_df_gr),
+    se.est = list(overall = se_all_df, group = se_df_gr),
+    pos.par = loc_all_df, covariance = cov_mat, loglikelihood = list(overall = llike, group = llike.gr), aic = aic, bic = bic,
+    group.par = group.par, weights = weights.gr, posterior.dist = post_dist, data = list(overall = data_all, group = data.gr),
+    scale.D = D, ncase = list(overall = nstd, group = nstd.gr), nitem = list(overall = nitem.all, group = nitem.gr),
+    Etol = Etol, MaxE = MaxE, aprior = aprior.dist, bprior = bprior.dist, gprior = gprior.dist, npar.est = npar.est,
+    niter = r, maxpar.diff = max.diff, EMtime = est_time1, SEtime = est_time2, TotalTime = est_time3, test.1 = memo3,
+    test.2 = memo4, var.note = memo5, fipc = TRUE, fipc.method = fipc.method, fix.loc = list(overall = fix.loc, group = fix.loc.gr)
+  )
 
-  if(verbose) {
-    cat("Estimation is finished in", est_time3, "seconds.",'\n')
+  if (verbose) {
+    cat("Estimation is finished in", est_time3, "seconds.", "\n")
   }
   return(rst)
-
 }
-
-
-
-

@@ -66,18 +66,18 @@
 #' flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # select the item metadata
-#' x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+#' x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 #'
 #' # generate examinees' abilities from N(0, 1)
 #' set.seed(23)
-#' score <- rnorm(500, mean=0, sd=1)
+#' score <- rnorm(500, mean = 0, sd = 1)
 #'
 #' # simulate the response data
-#' data <- simdat(x=x, theta=score, D=1)
+#' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' \donttest{
 #' # compute fit statistics
-#' fit1 <- sx2_fit(x=x, data=data, nquad=30)
+#' fit1 <- sx2_fit(x = x, data = data, nquad = 30)
 #'
 #' # fit statistics
 #' fit1$fit_stat
@@ -92,14 +92,14 @@
 #'
 #' # generate examinees' abilities from N(0, 1)
 #' set.seed(25)
-#' score <- rnorm(1000, mean=0, sd=1)
+#' score <- rnorm(1000, mean = 0, sd = 1)
 #'
 #' # simulate the response data
-#' data <- simdat(x=x, theta=score, D=1)
+#' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' \donttest{
 #' # compute fit statistics
-#' fit2 <- sx2_fit(x=x, data=data, nquad=30, pcm.loc=53:55)
+#' fit2 <- sx2_fit(x = x, data = data, nquad = 30, pcm.loc = 53:55)
 #'
 #' # fit statistics
 #' fit2$fit_stat
@@ -111,18 +111,18 @@ sx2_fit <- function(x, ...) UseMethod("sx2_fit")
 
 #' @describeIn sx2_fit Default method to compute \eqn{S-X^{2}} fit statistics for a data frame \code{x} containing the item metadata.
 #' @importFrom Rfast rowsums
+#' @import dplyr
 #' @export
-sx2_fit.default <- function(x, data, D=1, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
-                            nquad=30, weights, pcm.loc=NULL, ...) {
-
-  ##------------------------------------------------------------------------------------------------
+sx2_fit.default <- function(x, data, D = 1, alpha = 0.05, min.collapse = 1, norm.prior = c(0, 1),
+                            nquad = 30, weights, pcm.loc = NULL, ...) {
+  ## ------------------------------------------------------------------------------------------------
   # check missing data
   # replace NAs with 0
   na.lg <- is.na(data)
-  if(any(na.lg)) {
+  if (any(na.lg)) {
     data[na.lg] <- 0
     memo <- "Any missing responses are replaced with 0s. \n"
-    warning(memo, call.=FALSE)
+    warning(memo, call. = FALSE)
   }
 
   # confirm and correct all item metadata information
@@ -136,9 +136,9 @@ sx2_fit.default <- function(x, data, D=1, alpha=0.05, min.collapse=1, norm.prior
   idx.drm <- idx.item$idx.drm
   idx.prm <- idx.item$idx.prm
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 1. data preparation
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # save item metadata to another objective
   full_df <- x
 
@@ -149,8 +149,8 @@ sx2_fit.default <- function(x, data, D=1, alpha=0.05, min.collapse=1, norm.prior
   rawscore <- Rfast::rowsums(data)
 
   # generate weights and thetas
-  if(missing(weights)) {
-    wts <- gen.weight(n=nquad, dist="norm", mu=norm.prior[1], sigma=norm.prior[2])
+  if (missing(weights)) {
+    wts <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
   } else {
     wts <- data.frame(weights)
     nquad <- nrow(wts)
@@ -163,139 +163,148 @@ sx2_fit.default <- function(x, data, D=1, alpha=0.05, min.collapse=1, norm.prior
   t.score <- sum(cats - 1)
 
   # frequencies of raw sum scores
-  score.freq <- as.numeric(table(factor(rawscore, levels=c(0:t.score))))
+  score.freq <- as.numeric(table(factor(rawscore, levels = c(0:t.score))))
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 2. calculate the likelihoods
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # compute category probabilities for all items
-  prob.cats <- trace(elm_item=elm_item, theta=wts[, 1], D=D, tcc=FALSE)$prob.cats
+  prob.cats <- trace(elm_item = elm_item, theta = wts[, 1], D = D, tcc = FALSE)$prob.cats
 
   # estimate likelihoods of getting raw sum scores using lord-wingersky algorithm
-  lkhd <- t(lwRecurive(prob.cats=prob.cats, cats=cats, n.theta=nquad))
+  lkhd <- t(lwRecurive(prob.cats = prob.cats, cats = cats, n.theta = nquad))
 
   # estimate likelihoods of getting raw sum scores except the examined item using lord-wingersky algorithm
   lkhd_noitem <-
-    purrr::map(.x=1:nitem,
-               .f=function(i) {t(lwRecurive(prob.cats=prob.cats[-i], cats=cats[-i], n.theta=nquad))})
+    purrr::map(
+      .x = 1:nitem,
+      .f = function(i) {
+        t(lwRecurive(prob.cats = prob.cats[-i], cats = cats[-i], n.theta = nquad))
+      }
+    )
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 3. prepare the contingency tables
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # contingency tables of the expected frequencies for all items
   exp_freq <-
-    purrr::pmap(.l=list(x=cats, y=prob.cats, z=lkhd_noitem),
-                .f=function(x, y, z) {expFreq(t.score, cats=x, prob.cats=y,
-                                              lkhd_noitem=z, lkhd, wts, score.freq)})
+    purrr::pmap(
+      .l = list(x = cats, y = prob.cats, z = lkhd_noitem),
+      .f = function(x, y, z) {
+        expFreq(t.score,
+          cats = x, prob.cats = y,
+          lkhd_noitem = z, lkhd, wts, score.freq
+        )
+      }
+    )
 
   # contingency tables of the observed frequencies for all items
   obs_freq <-
-    purrr::map2(.x=data.frame(data), .y=cats,
-                .f=function(x, y) {obsFreq(rawscore=rawscore, response=x,
-                                           t.score=t.score, cats=y)})
+    purrr::map2(
+      .x = data.frame(data), .y = cats,
+      .f = function(x, y) {
+        obsFreq(
+          rawscore = rawscore, response = x,
+          t.score = t.score, cats = y
+        )
+      }
+    )
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 4. collapse cells in the contingency tables
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # cbind two lists of the expected frequency tables and the observed frequency tables
   ftable_info <- cbind(exp_freq, obs_freq)
 
   # collapse the expected and observed frequency tables
   # (1) DRM items
-  if(!is.null(idx.drm)) {
-
+  if (!is.null(idx.drm)) {
     # select frequency tables of dichotomous items
-    if(length(idx.drm) > 1) {
+    if (length(idx.drm) > 1) {
       ftable_info_drm <- ftable_info[idx.drm, ]
     } else {
       ftable_info_drm <- rbind(ftable_info[idx.drm, ])
     }
 
     # collapse the frequency tables for all dichotomous items
-    for(i in 1:length(idx.drm)) {
-
+    for (i in 1:length(idx.drm)) {
       x <- data.frame(ftable_info_drm[i, ])
 
       # collapse based on the column of the incorrect responses
-      tmp1 <- collapse_ftable(x=x, col=1, min.collapse=min.collapse)
+      tmp1 <- collapse_ftable(x = x, col = 1, min.collapse = min.collapse)
 
       # collapse based on the column of the correct responses
-      tmp2 <- collapse_ftable(x=tmp1, col=2, min.collapse=min.collapse)
+      tmp2 <- collapse_ftable(x = tmp1, col = 2, min.collapse = min.collapse)
 
       # replace the frequency tables with the collapsed frequency tables
       ftable_info_drm[i, ][[1]] <- tmp2[, 1:2]
       ftable_info_drm[i, ][[2]] <- tmp2[, 3:4]
-
     }
 
     ftable_info[idx.drm, ] <- ftable_info_drm
-
   }
 
   # (2) PRM items
-  if(!is.null(idx.prm)) {
-
+  if (!is.null(idx.prm)) {
     # select frequency tables of polytomous items
-    if(length(idx.prm) > 1) {
+    if (length(idx.prm) > 1) {
       ftable_info_plm <- ftable_info[idx.prm, ]
     } else {
       ftable_info_plm <- rbind(ftable_info[idx.prm, ])
     }
 
     # collapse the frequency tables for all polytomous items
-    for(i in 1:length(idx.prm)) {
-
+    for (i in 1:length(idx.prm)) {
       # select the expected and observed frequency tables for the corresponding items
       exp_tmp <- data.frame(ftable_info_plm[i, 1])
       obs_tmp <- data.frame(ftable_info_plm[i, 2])
 
       # check if there are any rows a sum of the number of examinees across all score categories are zero
       # if so, delete them
-      if(any(rowSums(exp_tmp) == 0L)) {
+      if (any(rowSums(exp_tmp) == 0L)) {
         exp_tmp <- exp_tmp[rowSums(exp_tmp) != 0L, ]
         obs_tmp <- obs_tmp[rowSums(obs_tmp) != 0L, ]
       }
       col.name <- colnames(exp_tmp)
 
       # create two empty list to contain the collapsed results
-      exp_table <- vector('list', nrow(exp_tmp))
-      obs_table <- vector('list', nrow(obs_tmp))
+      exp_table <- vector("list", nrow(exp_tmp))
+      obs_table <- vector("list", nrow(obs_tmp))
 
       # collapsing cells of each frequency table
-      for(j in 1:nrow(exp_tmp)) {
-        x <- data.frame(exp=as.numeric(exp_tmp[j, ]), obs=as.numeric(obs_tmp[j, ]))
-        tmp <- collapse_ftable(x=x, col=1, min.collapse=min.collapse)
+      for (j in 1:nrow(exp_tmp)) {
+        x <- data.frame(exp = as.numeric(exp_tmp[j, ]), obs = as.numeric(obs_tmp[j, ]))
+        tmp <- collapse_ftable(x = x, col = 1, min.collapse = min.collapse)
         exp_table[[j]] <- tmp$exp
         obs_table[[j]] <- tmp$obs
       }
 
       ftable_info_plm[i, ][[1]] <-
-        data.frame(bind.fill(exp_table, type="rbind")) %>%
+        data.frame(bind.fill(exp_table, type = "rbind")) %>%
         stats::setNames(nm = col.name)
-      ftable_info_plm[i, ][[2]] <- data.frame(bind.fill(obs_table, type="rbind")) %>%
+      ftable_info_plm[i, ][[2]] <- data.frame(bind.fill(obs_table, type = "rbind")) %>%
         stats::setNames(nm = col.name)
     }
 
     ftable_info[idx.prm, ] <- ftable_info_plm
-
   }
 
   # replace the two frequency tables with the collapsed two frequency tables
   exp_freq2 <-
     ftable_info[, 1] %>%
-    purrr::map(.f=function(x) {
-      dplyr::rename_all(x, .funs =list("gsub"), pattern="exp_freq.", replacement="")
+    purrr::map(.f = function(x) {
+      dplyr::rename_all(x, .funs = list("gsub"), pattern = "exp_freq.", replacement = "")
     })
 
   obs_freq2 <-
     ftable_info[, 2] %>%
-    purrr::map(.f=function(x) {
-      dplyr::rename_all(x, .funs =list("gsub"), pattern="obs_freq.", replacement="")
+    purrr::map(.f = function(x) {
+      dplyr::rename_all(x, .funs = list("gsub"), pattern = "obs_freq.", replacement = "")
     })
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 5. calculate the fit statistics
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # check the number of parameters for each item
   model <- full_df$model
   model[pcm.loc] <- "PCM"
@@ -309,53 +318,54 @@ sx2_fit.default <- function(x, data, D=1, alpha=0.05, min.collapse=1, norm.prior
 
   # compute the fit statistics for all items
   infoList <- list(exp_freq2, obs_freq2, as.list(count_prm))
-  fitstat_list <- purrr::pmap(.l=infoList, .f=chisq_stat, crt.delta=0.0, alpha=alpha)
+  fitstat_list <- purrr::pmap(.l = infoList, .f = chisq_stat, crt.delta = 0.0, alpha = alpha)
 
   # make a data.frame for the fit statistics results
-  fit_stat <- list(chisq=NULL, df=NULL, crit.val=NULL)
-  for(i in 1:3) {
-    fit_stat[[i]] <- purrr::map_dbl(fitstat_list, .f=function(x) x[[i]])
+  fit_stat <- list(chisq = NULL, df = NULL, crit.val = NULL)
+  for (i in 1:3) {
+    fit_stat[[i]] <- purrr::map_dbl(fitstat_list, .f = function(x) x[[i]])
   }
-  pval <- purrr::pmap_dbl(.l=list(x=fit_stat[[1]], y=fit_stat[[2]]),
-                          .f=function(x, y) 1 - stats::pchisq(q=x, df=y, lower.tail = TRUE))
-  fit_stat <- data.frame(id=full_df$id, fit_stat, p=round(pval, 3), stringsAsFactors = FALSE)
+  pval <- purrr::pmap_dbl(
+    .l = list(x = fit_stat[[1]], y = fit_stat[[2]]),
+    .f = function(x, y) 1 - stats::pchisq(q = x, df = y, lower.tail = TRUE)
+  )
+  fit_stat <- data.frame(id = full_df$id, fit_stat, p = round(pval, 3), stringsAsFactors = FALSE)
   fit_stat$chisq <- round(fit_stat$chisq, 3)
   fit_stat$crit.val <- round(fit_stat$crit.val, 3)
   rownames(fit_stat) <- NULL
 
   # extract the expected and observed proportion tables
-  exp_prob <- purrr::map(fitstat_list, .f=function(x) x$exp.prop)
-  obs_prop <- purrr::map(fitstat_list, .f=function(x) x$obs.prop)
+  exp_prob <- purrr::map(fitstat_list, .f = function(x) x$exp.prop)
+  obs_prop <- purrr::map(fitstat_list, .f = function(x) x$obs.prop)
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 3. return the results
-  ##------------------------------------------------------------------
-  list(fit_stat=fit_stat, item_df=full_df, exp_freq=exp_freq2, obs_freq=obs_freq2,
-       exp_prob=exp_prob, obs_prop=obs_prop)
-
+  ## ------------------------------------------------------------------
+  list(
+    fit_stat = fit_stat, item_df = full_df, exp_freq = exp_freq2, obs_freq = obs_freq2,
+    exp_prob = exp_prob, obs_prop = obs_prop
+  )
 }
 
 
 #' @describeIn sx2_fit An object created by the function \code{\link{est_item}}.
-#' @importFrom Rfast rowsums
+#' @import dplyr
 #' @export
-sx2_fit.est_item <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
-                             nquad=30, weights, pcm.loc=NULL, ...) {
-
-
+sx2_fit.est_item <- function(x, alpha = 0.05, min.collapse = 1, norm.prior = c(0, 1),
+                             nquad = 30, weights, pcm.loc = NULL, ...) {
   # extract information from an object
   data <- x$data
   D <- x$scale.D
   x <- x$par.est
 
-  ##------------------------------------------------------------------------------------------------
+  ## ------------------------------------------------------------------------------------------------
   # check missing data
   # replace NAs with 0
   na.lg <- is.na(data)
-  if(any(na.lg)) {
+  if (any(na.lg)) {
     data[na.lg] <- 0
     memo <- "Any missing responses are replaced with 0s. \n"
-    warning(memo, call.=FALSE)
+    warning(memo, call. = FALSE)
   }
 
   # confirm and correct all item metadata information
@@ -369,9 +379,9 @@ sx2_fit.est_item <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
   idx.drm <- idx.item$idx.drm
   idx.prm <- idx.item$idx.prm
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 1. data preparation
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # save item metadata to another objective
   full_df <- x
 
@@ -382,8 +392,8 @@ sx2_fit.est_item <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
   rawscore <- Rfast::rowsums(data)
 
   # generate weights and thetas
-  if(missing(weights)) {
-    wts <- gen.weight(n=nquad, dist="norm", mu=norm.prior[1], sigma=norm.prior[2])
+  if (missing(weights)) {
+    wts <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
   } else {
     wts <- data.frame(weights)
     nquad <- nrow(wts)
@@ -396,139 +406,148 @@ sx2_fit.est_item <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
   t.score <- sum(cats - 1)
 
   # frequencies of raw sum scores
-  score.freq <- as.numeric(table(factor(rawscore, levels=c(0:t.score))))
+  score.freq <- as.numeric(table(factor(rawscore, levels = c(0:t.score))))
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 2. calculate the likelihoods
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # compute category probabilities for all items
-  prob.cats <- trace(elm_item=elm_item, theta=wts[, 1], D=D, tcc=FALSE)$prob.cats
+  prob.cats <- trace(elm_item = elm_item, theta = wts[, 1], D = D, tcc = FALSE)$prob.cats
 
   # estimate likelihoods of getting raw sum scores using lord-wingersky algorithm
-  lkhd <- t(lwRecurive(prob.cats=prob.cats, cats=cats, n.theta=nquad))
+  lkhd <- t(lwRecurive(prob.cats = prob.cats, cats = cats, n.theta = nquad))
 
   # estimate likelihoods of getting raw sum scores except the examined item using lord-wingersky algorithm
   lkhd_noitem <-
-    purrr::map(.x=1:nitem,
-               .f=function(i) {t(lwRecurive(prob.cats=prob.cats[-i], cats=cats[-i], n.theta=nquad))})
+    purrr::map(
+      .x = 1:nitem,
+      .f = function(i) {
+        t(lwRecurive(prob.cats = prob.cats[-i], cats = cats[-i], n.theta = nquad))
+      }
+    )
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 3. prepare the contingency tables
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # contingency tables of the expected frequencies for all items
   exp_freq <-
-    purrr::pmap(.l=list(x=cats, y=prob.cats, z=lkhd_noitem),
-                .f=function(x, y, z) {expFreq(t.score, cats=x, prob.cats=y,
-                                              lkhd_noitem=z, lkhd, wts, score.freq)})
+    purrr::pmap(
+      .l = list(x = cats, y = prob.cats, z = lkhd_noitem),
+      .f = function(x, y, z) {
+        expFreq(t.score,
+          cats = x, prob.cats = y,
+          lkhd_noitem = z, lkhd, wts, score.freq
+        )
+      }
+    )
 
   # contingency tables of the observed frequencies for all items
   obs_freq <-
-    purrr::map2(.x=data.frame(data), .y=cats,
-                .f=function(x, y) {obsFreq(rawscore=rawscore, response=x,
-                                           t.score=t.score, cats=y)})
+    purrr::map2(
+      .x = data.frame(data), .y = cats,
+      .f = function(x, y) {
+        obsFreq(
+          rawscore = rawscore, response = x,
+          t.score = t.score, cats = y
+        )
+      }
+    )
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 4. collapse cells in the contingency tables
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # cbind two lists of the expected frequency tables and the observed frequency tables
   ftable_info <- cbind(exp_freq, obs_freq)
 
   # collapse the expected and observed frequency tables
   # (1) DRM items
-  if(!is.null(idx.drm)) {
-
+  if (!is.null(idx.drm)) {
     # select frequency tables of dichotomous items
-    if(length(idx.drm) > 1) {
+    if (length(idx.drm) > 1) {
       ftable_info_drm <- ftable_info[idx.drm, ]
     } else {
       ftable_info_drm <- rbind(ftable_info[idx.drm, ])
     }
 
     # collapse the frequency tables for all dichotomous items
-    for(i in 1:length(idx.drm)) {
-
+    for (i in 1:length(idx.drm)) {
       x <- data.frame(ftable_info_drm[i, ])
 
       # collapse based on the column of the incorrect responses
-      tmp1 <- collapse_ftable(x=x, col=1, min.collapse=min.collapse)
+      tmp1 <- collapse_ftable(x = x, col = 1, min.collapse = min.collapse)
 
       # collapse based on the column of the correct responses
-      tmp2 <- collapse_ftable(x=tmp1, col=2, min.collapse=min.collapse)
+      tmp2 <- collapse_ftable(x = tmp1, col = 2, min.collapse = min.collapse)
 
       # replace the frequency tables with the collapsed frequency tables
       ftable_info_drm[i, ][[1]] <- tmp2[, 1:2]
       ftable_info_drm[i, ][[2]] <- tmp2[, 3:4]
-
     }
 
     ftable_info[idx.drm, ] <- ftable_info_drm
-
   }
 
   # (2) PRM items
-  if(!is.null(idx.prm)) {
-
+  if (!is.null(idx.prm)) {
     # select frequency tables of polytomous items
-    if(length(idx.prm) > 1) {
+    if (length(idx.prm) > 1) {
       ftable_info_plm <- ftable_info[idx.prm, ]
     } else {
       ftable_info_plm <- rbind(ftable_info[idx.prm, ])
     }
 
     # collapse the frequency tables for all polytomous items
-    for(i in 1:length(idx.prm)) {
-
+    for (i in 1:length(idx.prm)) {
       # select the expected and observed frequency tables for the corresponding items
       exp_tmp <- data.frame(ftable_info_plm[i, 1])
       obs_tmp <- data.frame(ftable_info_plm[i, 2])
 
       # check if there are any rows a sum of the number of examinees across all score categories are zero
       # if so, delete them
-      if(any(rowSums(exp_tmp) == 0L)) {
+      if (any(rowSums(exp_tmp) == 0L)) {
         exp_tmp <- exp_tmp[rowSums(exp_tmp) != 0L, ]
         obs_tmp <- obs_tmp[rowSums(obs_tmp) != 0L, ]
       }
       col.name <- colnames(exp_tmp)
 
       # create two empty list to contain the collapsed results
-      exp_table <- vector('list', nrow(exp_tmp))
-      obs_table <- vector('list', nrow(obs_tmp))
+      exp_table <- vector("list", nrow(exp_tmp))
+      obs_table <- vector("list", nrow(obs_tmp))
 
       # collapsing cells of each frequency table
-      for(j in 1:nrow(exp_tmp)) {
-        x <- data.frame(exp=as.numeric(exp_tmp[j, ]), obs=as.numeric(obs_tmp[j, ]))
-        tmp <- collapse_ftable(x=x, col=1, min.collapse=min.collapse)
+      for (j in 1:nrow(exp_tmp)) {
+        x <- data.frame(exp = as.numeric(exp_tmp[j, ]), obs = as.numeric(obs_tmp[j, ]))
+        tmp <- collapse_ftable(x = x, col = 1, min.collapse = min.collapse)
         exp_table[[j]] <- tmp$exp
         obs_table[[j]] <- tmp$obs
       }
 
       ftable_info_plm[i, ][[1]] <-
-        data.frame(bind.fill(exp_table, type="rbind")) %>%
+        data.frame(bind.fill(exp_table, type = "rbind")) %>%
         stats::setNames(nm = col.name)
-      ftable_info_plm[i, ][[2]] <- data.frame(bind.fill(obs_table, type="rbind")) %>%
+      ftable_info_plm[i, ][[2]] <- data.frame(bind.fill(obs_table, type = "rbind")) %>%
         stats::setNames(nm = col.name)
     }
 
     ftable_info[idx.prm, ] <- ftable_info_plm
-
   }
 
   # replace the two frequency tables with the collapsed two frequency tables
   exp_freq2 <-
     ftable_info[, 1] %>%
-    purrr::map(.f=function(x) {
-      dplyr::rename_all(x, .funs =list("gsub"), pattern="exp_freq.", replacement="")
+    purrr::map(.f = function(x) {
+      dplyr::rename_all(x, .funs = list("gsub"), pattern = "exp_freq.", replacement = "")
     })
 
   obs_freq2 <-
     ftable_info[, 2] %>%
-    purrr::map(.f=function(x) {
-      dplyr::rename_all(x, .funs =list("gsub"), pattern="obs_freq.", replacement="")
+    purrr::map(.f = function(x) {
+      dplyr::rename_all(x, .funs = list("gsub"), pattern = "obs_freq.", replacement = "")
     })
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 5. calculate the fit statistics
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # check the number of parameters for each item
   model <- full_df$model
   model[pcm.loc] <- "PCM"
@@ -542,52 +561,54 @@ sx2_fit.est_item <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
 
   # compute the fit statistics for all items
   infoList <- list(exp_freq2, obs_freq2, as.list(count_prm))
-  fitstat_list <- purrr::pmap(.l=infoList, .f=chisq_stat, crt.delta=0.0, alpha=alpha)
+  fitstat_list <- purrr::pmap(.l = infoList, .f = chisq_stat, crt.delta = 0.0, alpha = alpha)
 
   # make a data.frame for the fit statistics results
-  fit_stat <- list(chisq=NULL, df=NULL, crit.val=NULL)
-  for(i in 1:3) {
-    fit_stat[[i]] <- purrr::map_dbl(fitstat_list, .f=function(x) x[[i]])
+  fit_stat <- list(chisq = NULL, df = NULL, crit.val = NULL)
+  for (i in 1:3) {
+    fit_stat[[i]] <- purrr::map_dbl(fitstat_list, .f = function(x) x[[i]])
   }
-  pval <- purrr::pmap_dbl(.l=list(x=fit_stat[[1]], y=fit_stat[[2]]),
-                          .f=function(x, y) 1 - stats::pchisq(q=x, df=y, lower.tail = TRUE))
-  fit_stat <- data.frame(id=full_df$id, fit_stat, p=round(pval, 3), stringsAsFactors = FALSE)
+  pval <- purrr::pmap_dbl(
+    .l = list(x = fit_stat[[1]], y = fit_stat[[2]]),
+    .f = function(x, y) 1 - stats::pchisq(q = x, df = y, lower.tail = TRUE)
+  )
+  fit_stat <- data.frame(id = full_df$id, fit_stat, p = round(pval, 3), stringsAsFactors = FALSE)
   fit_stat$chisq <- round(fit_stat$chisq, 3)
   fit_stat$crit.val <- round(fit_stat$crit.val, 3)
   rownames(fit_stat) <- NULL
 
   # extract the expected and observed proportion tables
-  exp_prob <- purrr::map(fitstat_list, .f=function(x) x$exp.prop)
-  obs_prop <- purrr::map(fitstat_list, .f=function(x) x$obs.prop)
+  exp_prob <- purrr::map(fitstat_list, .f = function(x) x$exp.prop)
+  obs_prop <- purrr::map(fitstat_list, .f = function(x) x$obs.prop)
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 3. return the results
-  ##------------------------------------------------------------------
-  list(fit_stat=fit_stat, item_df=full_df, exp_freq=exp_freq2, obs_freq=obs_freq2,
-       exp_prob=exp_prob, obs_prop=obs_prop)
-
+  ## ------------------------------------------------------------------
+  list(
+    fit_stat = fit_stat, item_df = full_df, exp_freq = exp_freq2, obs_freq = obs_freq2,
+    exp_prob = exp_prob, obs_prop = obs_prop
+  )
 }
 
 #' @describeIn sx2_fit An object created by the function \code{\link{est_irt}}.
 #' @importFrom Rfast rowsums
+#' @import dplyr
 #' @export
-sx2_fit.est_irt <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
-                            nquad=30, weights, pcm.loc=NULL, ...) {
-
-
+sx2_fit.est_irt <- function(x, alpha = 0.05, min.collapse = 1, norm.prior = c(0, 1),
+                            nquad = 30, weights, pcm.loc = NULL, ...) {
   # extract information from an object
   data <- x$data
   D <- x$scale.D
   x <- x$par.est
 
-  ##------------------------------------------------------------------------------------------------
+  ## ------------------------------------------------------------------------------------------------
   # check missing data
   # replace NAs with 0
   na.lg <- is.na(data)
-  if(any(na.lg)) {
+  if (any(na.lg)) {
     data[na.lg] <- 0
     memo <- "Any missing responses are replaced with 0s. \n"
-    warning(memo, call.=FALSE)
+    warning(memo, call. = FALSE)
   }
 
   # confirm and correct all item metadata information
@@ -601,9 +622,9 @@ sx2_fit.est_irt <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
   idx.drm <- idx.item$idx.drm
   idx.prm <- idx.item$idx.prm
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 1. data preparation
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # save item metadata to another objective
   full_df <- x
 
@@ -614,8 +635,8 @@ sx2_fit.est_irt <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
   rawscore <- Rfast::rowsums(data)
 
   # generate weights and thetas
-  if(missing(weights)) {
-    wts <- gen.weight(n=nquad, dist="norm", mu=norm.prior[1], sigma=norm.prior[2])
+  if (missing(weights)) {
+    wts <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
   } else {
     wts <- data.frame(weights)
     nquad <- nrow(wts)
@@ -628,139 +649,148 @@ sx2_fit.est_irt <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
   t.score <- sum(cats - 1)
 
   # frequencies of raw sum scores
-  score.freq <- as.numeric(table(factor(rawscore, levels=c(0:t.score))))
+  score.freq <- as.numeric(table(factor(rawscore, levels = c(0:t.score))))
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 2. calculate the likelihoods
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # compute category probabilities for all items
-  prob.cats <- trace(elm_item=elm_item, theta=wts[, 1], D=D, tcc=FALSE)$prob.cats
+  prob.cats <- trace(elm_item = elm_item, theta = wts[, 1], D = D, tcc = FALSE)$prob.cats
 
   # estimate likelihoods of getting raw sum scores using lord-wingersky algorithm
-  lkhd <- t(lwRecurive(prob.cats=prob.cats, cats=cats, n.theta=nquad))
+  lkhd <- t(lwRecurive(prob.cats = prob.cats, cats = cats, n.theta = nquad))
 
   # estimate likelihoods of getting raw sum scores except the examined item using lord-wingersky algorithm
   lkhd_noitem <-
-    purrr::map(.x=1:nitem,
-               .f=function(i) {t(lwRecurive(prob.cats=prob.cats[-i], cats=cats[-i], n.theta=nquad))})
+    purrr::map(
+      .x = 1:nitem,
+      .f = function(i) {
+        t(lwRecurive(prob.cats = prob.cats[-i], cats = cats[-i], n.theta = nquad))
+      }
+    )
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 3. prepare the contingency tables
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # contingency tables of the expected frequencies for all items
   exp_freq <-
-    purrr::pmap(.l=list(x=cats, y=prob.cats, z=lkhd_noitem),
-                .f=function(x, y, z) {expFreq(t.score, cats=x, prob.cats=y,
-                                              lkhd_noitem=z, lkhd, wts, score.freq)})
+    purrr::pmap(
+      .l = list(x = cats, y = prob.cats, z = lkhd_noitem),
+      .f = function(x, y, z) {
+        expFreq(t.score,
+          cats = x, prob.cats = y,
+          lkhd_noitem = z, lkhd, wts, score.freq
+        )
+      }
+    )
 
   # contingency tables of the observed frequencies for all items
   obs_freq <-
-    purrr::map2(.x=data.frame(data), .y=cats,
-                .f=function(x, y) {obsFreq(rawscore=rawscore, response=x,
-                                           t.score=t.score, cats=y)})
+    purrr::map2(
+      .x = data.frame(data), .y = cats,
+      .f = function(x, y) {
+        obsFreq(
+          rawscore = rawscore, response = x,
+          t.score = t.score, cats = y
+        )
+      }
+    )
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 4. collapse cells in the contingency tables
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # cbind two lists of the expected frequency tables and the observed frequency tables
   ftable_info <- cbind(exp_freq, obs_freq)
 
   # collapse the expected and observed frequency tables
   # (1) DRM items
-  if(!is.null(idx.drm)) {
-
+  if (!is.null(idx.drm)) {
     # select frequency tables of dichotomous items
-    if(length(idx.drm) > 1) {
+    if (length(idx.drm) > 1) {
       ftable_info_drm <- ftable_info[idx.drm, ]
     } else {
       ftable_info_drm <- rbind(ftable_info[idx.drm, ])
     }
 
     # collapse the frequency tables for all dichotomous items
-    for(i in 1:length(idx.drm)) {
-
+    for (i in 1:length(idx.drm)) {
       x <- data.frame(ftable_info_drm[i, ])
 
       # collapse based on the column of the incorrect responses
-      tmp1 <- collapse_ftable(x=x, col=1, min.collapse=min.collapse)
+      tmp1 <- collapse_ftable(x = x, col = 1, min.collapse = min.collapse)
 
       # collapse based on the column of the correct responses
-      tmp2 <- collapse_ftable(x=tmp1, col=2, min.collapse=min.collapse)
+      tmp2 <- collapse_ftable(x = tmp1, col = 2, min.collapse = min.collapse)
 
       # replace the frequency tables with the collapsed frequency tables
       ftable_info_drm[i, ][[1]] <- tmp2[, 1:2]
       ftable_info_drm[i, ][[2]] <- tmp2[, 3:4]
-
     }
 
     ftable_info[idx.drm, ] <- ftable_info_drm
-
   }
 
   # (2) PRM items
-  if(!is.null(idx.prm)) {
-
+  if (!is.null(idx.prm)) {
     # select frequency tables of polytomous items
-    if(length(idx.prm) > 1) {
+    if (length(idx.prm) > 1) {
       ftable_info_plm <- ftable_info[idx.prm, ]
     } else {
       ftable_info_plm <- rbind(ftable_info[idx.prm, ])
     }
 
     # collapse the frequency tables for all polytomous items
-    for(i in 1:length(idx.prm)) {
-
+    for (i in 1:length(idx.prm)) {
       # select the expected and observed frequency tables for the corresponding items
       exp_tmp <- data.frame(ftable_info_plm[i, 1])
       obs_tmp <- data.frame(ftable_info_plm[i, 2])
 
       # check if there are any rows a sum of the number of examinees across all score categories are zero
       # if so, delete them
-      if(any(rowSums(exp_tmp) == 0L)) {
+      if (any(rowSums(exp_tmp) == 0L)) {
         exp_tmp <- exp_tmp[rowSums(exp_tmp) != 0L, ]
         obs_tmp <- obs_tmp[rowSums(obs_tmp) != 0L, ]
       }
       col.name <- colnames(exp_tmp)
 
       # create two empty list to contain the collapsed results
-      exp_table <- vector('list', nrow(exp_tmp))
-      obs_table <- vector('list', nrow(obs_tmp))
+      exp_table <- vector("list", nrow(exp_tmp))
+      obs_table <- vector("list", nrow(obs_tmp))
 
       # collapsing cells of each frequency table
-      for(j in 1:nrow(exp_tmp)) {
-        x <- data.frame(exp=as.numeric(exp_tmp[j, ]), obs=as.numeric(obs_tmp[j, ]))
-        tmp <- collapse_ftable(x=x, col=1, min.collapse=min.collapse)
+      for (j in 1:nrow(exp_tmp)) {
+        x <- data.frame(exp = as.numeric(exp_tmp[j, ]), obs = as.numeric(obs_tmp[j, ]))
+        tmp <- collapse_ftable(x = x, col = 1, min.collapse = min.collapse)
         exp_table[[j]] <- tmp$exp
         obs_table[[j]] <- tmp$obs
       }
 
       ftable_info_plm[i, ][[1]] <-
-        data.frame(bind.fill(exp_table, type="rbind")) %>%
+        data.frame(bind.fill(exp_table, type = "rbind")) %>%
         stats::setNames(nm = col.name)
-      ftable_info_plm[i, ][[2]] <- data.frame(bind.fill(obs_table, type="rbind")) %>%
+      ftable_info_plm[i, ][[2]] <- data.frame(bind.fill(obs_table, type = "rbind")) %>%
         stats::setNames(nm = col.name)
     }
 
     ftable_info[idx.prm, ] <- ftable_info_plm
-
   }
 
   # replace the two frequency tables with the collapsed two frequency tables
   exp_freq2 <-
     ftable_info[, 1] %>%
-    purrr::map(.f=function(x) {
-      dplyr::rename_all(x, .funs =list("gsub"), pattern="exp_freq.", replacement="")
+    purrr::map(.f = function(x) {
+      dplyr::rename_all(x, .funs = list("gsub"), pattern = "exp_freq.", replacement = "")
     })
 
   obs_freq2 <-
     ftable_info[, 2] %>%
-    purrr::map(.f=function(x) {
-      dplyr::rename_all(x, .funs =list("gsub"), pattern="obs_freq.", replacement="")
+    purrr::map(.f = function(x) {
+      dplyr::rename_all(x, .funs = list("gsub"), pattern = "obs_freq.", replacement = "")
     })
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 5. calculate the fit statistics
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   # check the number of parameters for each item
   model <- full_df$model
   model[pcm.loc] <- "PCM"
@@ -774,30 +804,31 @@ sx2_fit.est_irt <- function(x, alpha=0.05, min.collapse=1, norm.prior=c(0, 1),
 
   # compute the fit statistics for all items
   infoList <- list(exp_freq2, obs_freq2, as.list(count_prm))
-  fitstat_list <- purrr::pmap(.l=infoList, .f=chisq_stat, crt.delta=0.0, alpha=alpha)
+  fitstat_list <- purrr::pmap(.l = infoList, .f = chisq_stat, crt.delta = 0.0, alpha = alpha)
 
   # make a data.frame for the fit statistics results
-  fit_stat <- list(chisq=NULL, df=NULL, crit.val=NULL)
-  for(i in 1:3) {
-    fit_stat[[i]] <- purrr::map_dbl(fitstat_list, .f=function(x) x[[i]])
+  fit_stat <- list(chisq = NULL, df = NULL, crit.val = NULL)
+  for (i in 1:3) {
+    fit_stat[[i]] <- purrr::map_dbl(fitstat_list, .f = function(x) x[[i]])
   }
-  pval <- purrr::pmap_dbl(.l=list(x=fit_stat[[1]], y=fit_stat[[2]]),
-                          .f=function(x, y) 1 - stats::pchisq(q=x, df=y, lower.tail = TRUE))
-  fit_stat <- data.frame(id=full_df$id, fit_stat, p=round(pval, 3), stringsAsFactors = FALSE)
+  pval <- purrr::pmap_dbl(
+    .l = list(x = fit_stat[[1]], y = fit_stat[[2]]),
+    .f = function(x, y) 1 - stats::pchisq(q = x, df = y, lower.tail = TRUE)
+  )
+  fit_stat <- data.frame(id = full_df$id, fit_stat, p = round(pval, 3), stringsAsFactors = FALSE)
   fit_stat$chisq <- round(fit_stat$chisq, 3)
   fit_stat$crit.val <- round(fit_stat$crit.val, 3)
   rownames(fit_stat) <- NULL
 
   # extract the expected and observed proportion tables
-  exp_prob <- purrr::map(fitstat_list, .f=function(x) x$exp.prop)
-  obs_prop <- purrr::map(fitstat_list, .f=function(x) x$obs.prop)
+  exp_prob <- purrr::map(fitstat_list, .f = function(x) x$exp.prop)
+  obs_prop <- purrr::map(fitstat_list, .f = function(x) x$obs.prop)
 
-  ##------------------------------------------------------------------
+  ## ------------------------------------------------------------------
   ## 3. return the results
-  ##------------------------------------------------------------------
-  list(fit_stat=fit_stat, item_df=full_df, exp_freq=exp_freq2, obs_freq=obs_freq2,
-       exp_prob=exp_prob, obs_prop=obs_prop)
-
+  ## ------------------------------------------------------------------
+  list(
+    fit_stat = fit_stat, item_df = full_df, exp_freq = exp_freq2, obs_freq = obs_freq2,
+    exp_prob = exp_prob, obs_prop = obs_prop
+  )
 }
-
-

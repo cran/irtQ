@@ -75,25 +75,29 @@ An easier way to create a data frame for the argument \code{x} is by using the f
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default method to compute item and test information functions for
+\item \code{info(default)}: Default method to compute item and test information functions for
 a data frame \code{x} containing the item metadata.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{info(est_item)}: An object created by the function \code{\link{est_item}}.
 
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{info(est_irt)}: An object created by the function \code{\link{est_irt}}.
+
 }}
-
 \examples{
 ## example 1.
 ## using the function "shape_df" to create a data frame of test metadata
 # create a list containing the dichotomous item parameters
-par.drm <- list(a=c(1.1, 1.2, 0.9, 1.8, 1.4),
-               b=c(0.1, -1.6, -0.2, 1.0, 1.2),
-               g=rep(0.2, 5))
+par.drm <- list(
+  a = c(1.1, 1.2, 0.9, 1.8, 1.4),
+  b = c(0.1, -1.6, -0.2, 1.0, 1.2),
+  g = rep(0.2, 5)
+)
 
 # create a list containing the polytomous item parameters
-par.prm <- list(a=c(1.4, 0.6),
-               d=list(c(-1.9, 0.0, 1.2), c(0.4, -1.1, 1.5, 0.2)))
+par.prm <- list(
+  a = c(1.4, 0.6),
+  d = list(c(-1.9, 0.0, 1.2), c(0.4, -1.1, 1.5, 0.2))
+)
 
 # create a numeric vector of score categories for the items
 cats <- c(2, 4, 2, 2, 5, 2, 2)
@@ -102,31 +106,33 @@ cats <- c(2, 4, 2, 2, 5, 2, 2)
 model <- c("DRM", "GRM", "DRM", "DRM", "GPCM", "DRM", "DRM")
 
 # create an item metadata set
-test <- shape_df(par.drm=par.drm, par.prm=par.prm,
-                 cats=cats, model=model) # create a data frame
+test <- shape_df(
+  par.drm = par.drm, par.prm = par.prm,
+  cats = cats, model = model
+) # create a data frame
 
 # set theta values
 theta <- seq(-2, 2, 0.1)
 
 # compute item and test information values given the theta values
-info(x=test, theta=theta, D=1, tif=TRUE)
+info(x = test, theta = theta, D = 1, tif = TRUE)
 
 
 ## example 2.
 ## using a "-prm.txt" file obtained from a flexMIRT
 # import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt",
-                        package = "irtQ")
+  package = "irtQ"
+)
 
 # read item parameters and transform them to item metadata
-test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # set theta values
 theta <- seq(-2, 2, 0.1)
 
 # compute item and test information values given the theta values
-info(x=test_flex, theta=theta, D=1, tif=TRUE)
-
+info(x = test_flex, theta = theta, D = 1, tif = TRUE)
 
 }
 \references{

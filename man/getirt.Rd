@@ -156,26 +156,26 @@ See \code{\link{est_irt}}, \code{\link{est_mg}}, and \code{\link{est_item}} for 
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{getirt(est_irt)}: An object created by the function \code{\link{est_irt}}.
 
-\item \code{est_mg}: An object created by the function \code{\link{est_mg}}.
+\item \code{getirt(est_mg)}: An object created by the function \code{\link{est_mg}}.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{getirt(est_item)}: An object created by the function \code{\link{est_item}}.
+
 }}
-
 \examples{
 \donttest{
 # fit the 2PL model to LSAT6 data
-mod.2pl <- est_irt(data=LSAT6, D=1, model="2PLM", cats=2)
+mod.2pl <- est_irt(data = LSAT6, D = 1, model = "2PLM", cats = 2)
 
 # extract the item parameter estimates
-(est.par <- getirt(mod.2pl, what="par.est"))
+(est.par <- getirt(mod.2pl, what = "par.est"))
 
 # extract the standard error estimates
-(est.se <- getirt(mod.2pl, what="se.est"))
+(est.se <- getirt(mod.2pl, what = "se.est"))
 
 # extract the variance-covariance matrix of item parameter estimates
-(cov.mat <- getirt(mod.2pl, what="covariance"))
+(cov.mat <- getirt(mod.2pl, what = "covariance"))
 }
 
 }

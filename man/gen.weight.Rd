@@ -39,17 +39,17 @@ values of normalized weights.
 \examples{
 ## example 1
 ## generate 41 gaussian quadrature points and weights of normal distribution
-gen.weight(n=41, dist = "norm", mu = 0, sigma = 1)
+gen.weight(n = 41, dist = "norm", mu = 0, sigma = 1)
 
 ## example 2
 ## generate 41 theta values and weights from the uniform normal distribution,
 ## given the mininum value of -4 and the maximum value of 4
-gen.weight(n=41, dist = "unif", l = -4, u = 4)
+gen.weight(n = 41, dist = "unif", l = -4, u = 4)
 
 ## example 3
 ## generate the normalized weights from the standardized normal distribution,
 ## given a set of theta values
-theta <- seq(-4, 4, by=0.1)
+theta <- seq(-4, 4, by = 0.1)
 gen.weight(dist = "norm", mu = 0, sigma = 1, theta = theta)
 
 ## example 4

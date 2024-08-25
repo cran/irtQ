@@ -39,7 +39,7 @@ functions.
 
 ## Installation
 
-You can install the released version of irtplay from
+You can install the released version of irtQ from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
@@ -295,48 +295,39 @@ correction (Newcombe, 1998).
 ## 3. Examples of implementing online calibration and evaluating the IRT model-data fit
 
 ``` r
-
 library("irtQ")
 
-##----------------------------------------------------------------------------
-# 1. The example code below shows how to prepare
-# the data sets and how to implement the fixed
-# item parameter calibration (FIPC):
-##----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+# 1. The example code below shows how to prepare the data sets and how to
+#    implement the fixed item parameter calibration (FIPC):
+## ----------------------------------------------------------------------------
 
-## Step 1: prepare a data set In this example, we
-## generated examinees' true proficiency
-## parameters and simulated the item response
-## data using the function 'simdat'.
+## Step 1: prepare a data set
+## In this example, we generated examinees' true proficiency parameters and simulated
+## the item response data using the function "simdat".
 
-## import the '-prm.txt' output file from
-## flexMIRT
-flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt",
-  package = "irtQ")
+## import the "-prm.txt" output file from flexMIRT
+flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the item metadata
 x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
-# generate 1,000 examinees' latent abilities from
-# N(0.4, 1.3)
+# generate 1,000 examinees' latent abilities from N(0.4, 1.3)
 set.seed(20)
 score <- rnorm(1000, mean = 0.4, sd = 1.3)
 
 # simulate the response data
 sim.dat <- simdat(x = x, theta = score, D = 1)
 
-## Step 2: Estimate the item parameters fit the
-## 3PL model to all dichotmous items, fit the GRM
-## model to all polytomous data, fix the five 3PL
-## items (1st - 5th items) and three GRM items
-## (53th to 55th items) also, estimate the
-## empirical histogram of latent variable
+## Step 2: Estimate the item parameters
+# fit the 3PL model to all dichotmous items, fit the GRM model to all polytomous data,
+# fix the five 3PL items (1st - 5th items) and three GRM items (53th to 55th items)
+# also, estimate the empirical histogram of latent variable
 fix.loc <- c(1:5, 53:55)
-(mod.fix1 <- est_irt(x = x, data = sim.dat, D = 1,
-  use.gprior = TRUE, gprior = list(dist = "beta",
-    params = c(5, 16)), EmpHist = TRUE, Etol = 0.001,
-  fipc = TRUE, fipc.method = "MEM", fix.loc = fix.loc,
-  verbose = FALSE))
+(mod.fix1 <- est_irt(
+  x = x, data = sim.dat, D = 1, use.gprior = TRUE, gprior = list(dist = "beta", params = c(5, 16)),
+  EmpHist = TRUE, Etol = 1e-3, fipc = TRUE, fipc.method = "MEM", fix.loc = fix.loc, verbose = FALSE
+))
 #> 
 #> Call:
 #> est_irt(x = x, data = sim.dat, D = 1, use.gprior = TRUE, gprior = list(dist = "beta", 
@@ -370,12 +361,12 @@ summary(mod.fix1)
 #>  Number of free parameters: 147
 #>  Number of fixed items: 8
 #>  Number of E-step cycles completed: 36
-#>  Maximum parameter change: 0.0009203792
+#>  Maximum parameter change: 0.0009203814
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 4.73
-#>  Standard error computation: 2.65
-#>  Total computation: 7.89
+#>  EM algorithm: 2.22
+#>  Standard error computation: 1.61
+#>  Total computation: 4.07
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -505,12 +496,11 @@ summary(mod.fix1)
 #> estimates  0.40    1.88   1.37
 #> se         0.04    0.08   0.03
 
-# plot the estimated empirical histogram of
-# latent variable prior distribution
+# plot the estimated empirical histogram of latent variable prior distribution
 (emphist <- getirt(mod.fix1, what = "weights"))
 #>    theta       weight
 #> 1  -6.00 2.301252e-10
-#> 2  -5.75 1.434596e-09
+#> 2  -5.75 1.434595e-09
 #> 3  -5.50 8.649282e-09
 #> 4  -5.25 5.019868e-08
 #> 5  -5.00 2.782912e-07
@@ -540,7 +530,7 @@ summary(mod.fix1)
 #> 29  1.00 6.035964e-02
 #> 30  1.25 6.234864e-02
 #> 31  1.50 5.768393e-02
-#> 32  1.75 4.254008e-02
+#> 32  1.75 4.254007e-02
 #> 33  2.00 3.148380e-02
 #> 34  2.25 3.111071e-02
 #> 35  2.50 2.935626e-02
@@ -558,8 +548,10 @@ summary(mod.fix1)
 #> 47  5.50 6.557355e-04
 #> 48  5.75 4.168380e-04
 #> 49  6.00 2.220842e-04
-plot(emphist$weight ~ emphist$theta, xlab = "Theta",
-  ylab = "Density", type = "h")
+plot(emphist$weight ~ emphist$theta,
+  xlab = "Theta",
+  ylab = "Density", type = "h"
+)
 ```
 
 <img src="man/figures/README-example-1.png" width="70%" height="50%" />
@@ -567,30 +559,24 @@ plot(emphist$weight ~ emphist$theta, xlab = "Theta",
 ``` r
 
 
-##----------------------------------------------------------------------------
-# 2. The example code below shows how to prepare
-# the data sets and how to estimate the item
-# parameters using the FAPC:
-##----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+# 2. The example code below shows how to prepare the data sets and how to estimate
+#    the item parameters using the FAPC:
+## ----------------------------------------------------------------------------
 
-## Step 1: prepare a data set In this example, we
-## generated examinees' true proficiency
-## parameters and simulated the item response
-## data using the function 'simdat'. Because the
-## true proficiency parameters are not known in
-## reality, the true proficiencies would be
-## replaced with the proficiency estimates for
-## the calibration.
+## Step 1: prepare a data set
+## In this example, we generated examinees' true proficiency parameters and simulated
+## the item response data using the function "simdat". Because the true
+## proficiency parameters are not known in reality, the true proficiencies
+## would be replaced with the proficiency estimates for the calibration.
 
-# import the '-prm.txt' output file from flexMIRT
-flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt",
-  package = "irtQ")
+# import the "-prm.txt" output file from flexMIRT
+flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the item metadata
 x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
-# modify the item metadata so that some items
-# follow 1PLM, 2PLM and GPCM
+# modify the item metadata so that some items follow 1PLM, 2PLM and GPCM
 x[c(1:3, 5), 3] <- "1PLM"
 x[c(1:3, 5), 4] <- 1
 x[c(1:3, 5), 6] <- 0
@@ -605,12 +591,12 @@ score <- rnorm(500, mean = 0, sd = 1)
 # simulate the response data
 data <- simdat(x = x, theta = score, D = 1)
 
-## Step 2: Estimate the item parameters 1) item
-## parameter estimation: constrain the slope
-## parameters of the 1PLM to be equal
-(mod1 <- est_item(x, data, score, D = 1, fix.a.1pl = FALSE,
-  use.gprior = TRUE, gprior = list(dist = "beta",
-    params = c(5, 17)), use.startval = FALSE))
+## Step 2: Estimate the item parameters
+# 1) item parameter estimation: constrain the slope parameters of the 1PLM to be equal
+(mod1 <- est_item(x, data, score,
+  D = 1, fix.a.1pl = FALSE, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
+))
 #> Starting... 
 #> Parsing input... 
 #> Estimating item parameters... 
@@ -695,7 +681,7 @@ summary(mod1)
 #> 55   AFR3  500
 #> 
 #> Processing time (in seconds) 
-#>  Total computation: 1.42
+#>  Total computation: 0.82
 #> 
 #> Convergence of Solution 
 #>  All item parameters were successfully converged.
@@ -820,11 +806,11 @@ summary(mod1)
 #>    mu  sigma  
 #>  0.03   1.02
 
-# 2) item parameter estimation: fix the slope
-# parameters of the 1PLM to 1
-(mod2 <- est_item(x, data, score, D = 1, fix.a.1pl = TRUE,
-  a.val.1pl = 1, use.gprior = TRUE, gprior = list(dist = "beta",
-    params = c(5, 17)), use.startval = FALSE))
+# 2) item parameter estimation: fix the slope parameters of the 1PLM to 1
+(mod2 <- est_item(x, data, score,
+  D = 1, fix.a.1pl = TRUE, a.val.1pl = 1, use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
+))
 #> Starting... 
 #> Parsing input... 
 #> Estimating item parameters... 
@@ -909,7 +895,7 @@ summary(mod2)
 #> 55   AFR3  500
 #> 
 #> Processing time (in seconds) 
-#>  Total computation: 1.25
+#>  Total computation: 0.68
 #> 
 #> Convergence of Solution 
 #>  All item parameters were successfully converged.
@@ -1034,10 +1020,11 @@ summary(mod2)
 #>    mu  sigma  
 #>  0.03   1.02
 
-# 3) item parameter estimation: fix the guessing
-# parameters of the 3PLM to 0.2
-(mod3 <- est_item(x, data, score, D = 1, fix.a.1pl = TRUE,
-  fix.g = TRUE, a.val.1pl = 1, g.val = 0.2, use.startval = FALSE))
+# 3) item parameter estimation: fix the guessing parameters of the 3PLM to 0.2
+(mod3 <- est_item(x, data, score,
+  D = 1, fix.a.1pl = TRUE, fix.g = TRUE, a.val.1pl = 1, g.val = .2,
+  use.startval = FALSE
+))
 #> Starting... 
 #> Parsing input... 
 #> Estimating item parameters... 
@@ -1120,7 +1107,7 @@ summary(mod3)
 #> 55   AFR3  500
 #> 
 #> Processing time (in seconds) 
-#>  Total computation: 0.7
+#>  Total computation: 0.43
 #> 
 #> Convergence of Solution 
 #>  All item parameters were successfully converged.
@@ -1246,21 +1233,17 @@ summary(mod3)
 #>  0.03   1.02
 
 
-##----------------------------------------------------------------------------
-# 3. The example code below shows how to prepare
-# the data sets and how to conduct the IRT
-# model-data fit analysis:
-##----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
+# 3. The example code below shows how to prepare the data sets and how to conduct
+#    the IRT model-data fit analysis:
+## ----------------------------------------------------------------------------
 
-## Step 1: prepare a data set for IRT In this
-## example, we use the simulated mixed-item
-## format CAT Data But, only items that have item
-## responses more than 1,000 are assessed.
+## Step 1: prepare a data set for IRT
+## In this example, we use the simulated mixed-item format CAT Data
+## But, only items that have item responses more than 1,000 are assessed.
 
-# find the location of items that have more than
-# 1,000 item responses
-over1000 <- which(colSums(simCAT_MX$res.dat, na.rm = TRUE) >
-  1000)
+# find the location of items that have more than 1,000 item responses
+over1000 <- which(colSums(simCAT_MX$res.dat, na.rm = TRUE) > 1000)
 
 # (1) item metadata
 x <- simCAT_MX$item.prm[over1000, ]
@@ -1329,14 +1312,15 @@ print(data[1:20, 1:6])
 #> [19,]        NA         0        NA         0         1         1
 #> [20,]        NA        NA        NA        NA        NA        NA
 
-## Step 2: Compute the IRT mode-data fit
-## statistics (1) the use of 'equal.width'
-fit1 <- irtfit(x = x, score = score, data = data, group.method = "equal.width",
-  n.width = 11, loc.theta = "average", range.score = c(-4,
-    4), D = 1, alpha = 0.05, missing = NA, overSR = 2.5)
+## Step 2: Compute the IRT mode-data fit statistics
+# (1) the use of "equal.width"
+fit1 <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.width",
+  n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1, alpha = 0.05,
+  missing = NA, overSR = 2.5
+)
 
-# what kinds of internal objects does the results
-# have?
+# what kinds of internal objects does the results have?
 names(fit1)
 #> [1] "fit_stat"            "contingency.fitstat" "contingency.plot"   
 #> [4] "item_df"             "individual.info"     "ancillary"          
@@ -1367,8 +1351,7 @@ fit1$fit_stat[1:10, ]
 #> 9  1.051 12118       0.636
 #> 10 1.059 10719       0.545
 
-# show the contingency tables for the first item
-# (dichotomous)
+# show the contingency tables for the first item (dichotomous)
 fit1$contingency.fitstat[[1]]
 #>    total obs.freq.0 obs.freq.1 exp.freq.0 exp.freq.1 obs.prop.0 obs.prop.1
 #> 1      8          5          3   6.102331   1.897669  0.6250000  0.3750000
@@ -1394,85 +1377,85 @@ fit1$contingency.fitstat[[1]]
 #> 10  0.3394647  0.6605353  0.02502128 -0.02502128
 
 
-# (2) the use of 'equal.freq'
-fit2 <- irtfit(x = x, score = score, data = data, group.method = "equal.freq",
-  n.width = 11, loc.theta = "average", range.score = c(-4,
-    4), D = 1, alpha = 0.05, missing = NA)
+# (2) the use of "equal.freq"
+fit2 <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.freq",
+  n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1, alpha = 0.05,
+  missing = NA
+)
 
 # show the results of the fit statistics
 fit2$fit_stat[1:10, ]
 #>     id      X2      G2 df.X2 df.G2 crit.val.X2 crit.val.G2 p.X2 p.G2 outfit
-#> 1   V2  77.967  78.144     9    11       16.92       19.68    0    0  1.018
-#> 2   V3 202.035 181.832     9    11       16.92       19.68    0    0  1.124
-#> 3   V5 146.383 135.908     9    11       16.92       19.68    0    0  1.133
-#> 4   V6 140.038 133.287     9    11       16.92       19.68    0    0  1.056
-#> 5   V7 188.814 177.526     9    11       16.92       19.68    0    0  1.078
-#> 6   V8 211.279 196.328     9    11       16.92       19.68    0    0  1.098
-#> 7  V10 259.669 239.292     9    11       16.92       19.68    0    0  1.097
-#> 8  V11 166.427 150.419     9    11       16.92       19.68    0    0  1.129
-#> 9  V12 145.789 134.690     9    11       16.92       19.68    0    0  1.065
-#> 10 V13 141.283 132.270     9    11       16.92       19.68    0    0  1.075
+#> 1   V2  79.629  79.941     9    11       16.92       19.68    0    0  1.018
+#> 2   V3 200.266 180.620     9    11       16.92       19.68    0    0  1.124
+#> 3   V5 148.742 138.244     9    11       16.92       19.68    0    0  1.133
+#> 4   V6 141.905 135.027     9    11       16.92       19.68    0    0  1.056
+#> 5   V7 189.680 178.200     9    11       16.92       19.68    0    0  1.078
+#> 6   V8 214.014 198.621     9    11       16.92       19.68    0    0  1.098
+#> 7  V10 258.335 237.874     9    11       16.92       19.68    0    0  1.097
+#> 8  V11 162.225 146.413     9    11       16.92       19.68    0    0  1.129
+#> 9  V12 147.600 136.192     9    11       16.92       19.68    0    0  1.065
+#> 10 V13 141.090 132.064     9    11       16.92       19.68    0    0  1.075
 #>    infit     N overSR.prop
-#> 1  1.016  2018       0.727
+#> 1  1.016  2018       0.636
 #> 2  1.090 11041       0.636
 #> 3  1.111  5181       0.727
-#> 4  1.045 13599       0.545
+#> 4  1.045 13599       0.636
 #> 5  1.059 18293       0.455
 #> 6  1.075 16163       0.545
 #> 7  1.073 19702       0.636
 #> 8  1.083 13885       0.636
-#> 9  1.051 12118       0.364
+#> 9  1.051 12118       0.455
 #> 10 1.059 10719       0.636
 
-# show the contingency table for the fourth item
-# (polytomous)
+# show the contingency table for the fourth item (polytomous)
 fit2$contingency.fitstat[[4]]
 #>    total obs.freq.0 obs.freq.1 exp.freq.0 exp.freq.1 obs.prop.0 obs.prop.1
-#> 1   1241        967        274   997.5790   243.4210  0.7792103  0.2207897
-#> 2   1243        879        364   890.2108   352.7892  0.7071601  0.2928399
-#> 3   1243        784        459   817.3780   425.6220  0.6307321  0.3692679
-#> 4   1219        747        472   737.4210   481.5790  0.6127974  0.3872026
-#> 5   1236        705        531   693.8229   542.1771  0.5703883  0.4296117
-#> 6   1243        677        566   656.2493   586.7507  0.5446500  0.4553500
-#> 7   1270        662        608   625.5502   644.4498  0.5212598  0.4787402
-#> 8   1230        616        614   552.4864   677.5136  0.5008130  0.4991870
-#> 9   1207        553        654   486.1543   720.8457  0.4581607  0.5418393
-#> 10  1233        494        739   432.6918   800.3082  0.4006488  0.5993512
-#> 11  1234        465        769   324.5644   909.4356  0.3768233  0.6231767
+#> 1   1156        901        255   932.9066   223.0934  0.7794118  0.2205882
+#> 2   1304        928        376   938.1209   365.8791  0.7116564  0.2883436
+#> 3   1248        786        462   821.9101   426.0899  0.6298077  0.3701923
+#> 4   1235        760        475   747.7321   487.2679  0.6153846  0.3846154
+#> 5   1222        694        528   686.2295   535.7705  0.5679214  0.4320786
+#> 6   1249        683        566   659.9220   589.0780  0.5468375  0.4531625
+#> 7   1238        652        586   610.7195   627.2805  0.5266559  0.4733441
+#> 8   1231        612        619   554.8880   676.1120  0.4971568  0.5028432
+#> 9   1241        571        670   501.1981   739.8019  0.4601128  0.5398872
+#> 10  1238        495        743   434.7901   803.2099  0.3998384  0.6001616
+#> 11  1237        467        770   325.5017   911.4983  0.3775263  0.6224737
 #>    exp.prob.0 exp.prob.1    raw.rsd.0    raw.rsd.1
-#> 1   0.8038510  0.1961490 -0.024640641  0.024640641
-#> 2   0.7161793  0.2838207 -0.009019180  0.009019180
-#> 3   0.6575849  0.3424151 -0.026852795  0.026852795
-#> 4   0.6049393  0.3950607  0.007858099 -0.007858099
-#> 5   0.5613454  0.4386546  0.009042942 -0.009042942
-#> 6   0.5279560  0.4720440  0.016694048 -0.016694048
-#> 7   0.4925592  0.5074408  0.028700633 -0.028700633
-#> 8   0.4491759  0.5508241  0.051637085 -0.051637085
-#> 9   0.4027790  0.5972210  0.055381721 -0.055381721
-#> 10  0.3509261  0.6490739  0.049722759 -0.049722759
-#> 11  0.2630181  0.7369819  0.113805214 -0.113805214
+#> 1   0.8070127  0.1929873 -0.027600903  0.027600903
+#> 2   0.7194179  0.2805821 -0.007761448  0.007761448
+#> 3   0.6585818  0.3414182 -0.028774123  0.028774123
+#> 4   0.6054511  0.3945489  0.009933503 -0.009933503
+#> 5   0.5615626  0.4384374  0.006358826 -0.006358826
+#> 6   0.5283603  0.4716397  0.018477151 -0.018477151
+#> 7   0.4933114  0.5066886  0.033344472 -0.033344472
+#> 8   0.4507620  0.5492380  0.046394802 -0.046394802
+#> 9   0.4038663  0.5961337  0.056246491 -0.056246491
+#> 10  0.3512036  0.6487964  0.048634854 -0.048634854
+#> 11  0.2631380  0.7368620  0.114388254 -0.114388254
 
-## Step 3: Draw the IRT residual plots 1. the
-## dichotomous item (1) both raw and standardized
-## residual plots using the object 'fit1'
-plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
-  ylim.sr.adjust = TRUE)
+## Step 3: Draw the IRT residual plots
+# 1. the dichotomous item
+# (1) both raw and standardized residual plots using the object "fit1"
+plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald", ylim.sr.adjust = TRUE)
 ```
 
 <img src="man/figures/README-example-2.png" width="70%" height="50%" />
 
     #>                   interval       point total obs.freq.0 obs.freq.1 obs.prop.0
-    #> 1  [-0.1218815,0.08512996] -0.02529272     3          3          0  1.0000000
-    #> 2   (0.08512996,0.2921415]  0.18431014     5          2          3  0.4000000
-    #> 3     (0.2921415,0.499153]  0.39488272    14          8          6  0.5714286
-    #> 4     (0.499153,0.7061645]  0.60618911    60         34         26  0.5666667
-    #> 5     (0.7061645,0.913176]  0.83531169   185         99         86  0.5351351
-    #> 6      (0.913176,1.120187]  1.04723712   240        115        125  0.4791667
-    #> 7      (1.120187,1.327199]  1.25232143   349        145        204  0.4154728
-    #> 8       (1.327199,1.53421]  1.47877397   325        114        211  0.3507692
-    #> 9       (1.53421,1.741222]  1.63898436   246         82        164  0.3333333
-    #> 10     (1.741222,1.948233]  1.78810197   377        139        238  0.3687003
-    #> 11     (1.948233,2.155245]  2.11166019   214         78        136  0.3644860
+    #> 1  [-0.1218815,0.08512996) -0.02529272     3          3          0  1.0000000
+    #> 2   [0.08512996,0.2921415)  0.18431014     5          2          3  0.4000000
+    #> 3     [0.2921415,0.499153)  0.39488272    14          8          6  0.5714286
+    #> 4     [0.499153,0.7061645)  0.60618911    60         34         26  0.5666667
+    #> 5     [0.7061645,0.913176)  0.83531169   185         99         86  0.5351351
+    #> 6      [0.913176,1.120187)  1.04723712   240        115        125  0.4791667
+    #> 7      [1.120187,1.327199)  1.25232143   349        145        204  0.4154728
+    #> 8       [1.327199,1.53421)  1.47877397   325        114        211  0.3507692
+    #> 9       [1.53421,1.741222)  1.63898436   246         82        164  0.3333333
+    #> 10     [1.741222,1.948233)  1.78810197   377        139        238  0.3687003
+    #> 11     [1.948233,2.155245]  2.11166019   214         78        136  0.3644860
     #>    obs.prop.1 exp.prob.0 exp.prob.1   raw.rsd.0   raw.rsd.1       se.0
     #> 1   0.0000000  0.7841844  0.2158156  0.21581559 -0.21581559 0.23751437
     #> 2   0.6000000  0.7499556  0.2500444 -0.34995561  0.34995561 0.19366063
@@ -1498,25 +1481,23 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 0.02531791 -1.5780508  1.5780508
     #> 11 0.03236968  0.7729850 -0.7729850
 
-    # (2) the raw residual plots using the object
-    # 'fit1'
-    plot(x = fit1, item.loc = 1, type = "icc", ci.method = "wald",
-      ylim.sr.adjust = TRUE)
+    # (2) the raw residual plots using the object "fit1"
+    plot(x = fit1, item.loc = 1, type = "icc", ci.method = "wald", ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-3.png" width="70%" height="50%" />
 
     #>                   interval       point total obs.freq.0 obs.freq.1 obs.prop.0
-    #> 1  [-0.1218815,0.08512996] -0.02529272     3          3          0  1.0000000
-    #> 2   (0.08512996,0.2921415]  0.18431014     5          2          3  0.4000000
-    #> 3     (0.2921415,0.499153]  0.39488272    14          8          6  0.5714286
-    #> 4     (0.499153,0.7061645]  0.60618911    60         34         26  0.5666667
-    #> 5     (0.7061645,0.913176]  0.83531169   185         99         86  0.5351351
-    #> 6      (0.913176,1.120187]  1.04723712   240        115        125  0.4791667
-    #> 7      (1.120187,1.327199]  1.25232143   349        145        204  0.4154728
-    #> 8       (1.327199,1.53421]  1.47877397   325        114        211  0.3507692
-    #> 9       (1.53421,1.741222]  1.63898436   246         82        164  0.3333333
-    #> 10     (1.741222,1.948233]  1.78810197   377        139        238  0.3687003
-    #> 11     (1.948233,2.155245]  2.11166019   214         78        136  0.3644860
+    #> 1  [-0.1218815,0.08512996) -0.02529272     3          3          0  1.0000000
+    #> 2   [0.08512996,0.2921415)  0.18431014     5          2          3  0.4000000
+    #> 3     [0.2921415,0.499153)  0.39488272    14          8          6  0.5714286
+    #> 4     [0.499153,0.7061645)  0.60618911    60         34         26  0.5666667
+    #> 5     [0.7061645,0.913176)  0.83531169   185         99         86  0.5351351
+    #> 6      [0.913176,1.120187)  1.04723712   240        115        125  0.4791667
+    #> 7      [1.120187,1.327199)  1.25232143   349        145        204  0.4154728
+    #> 8       [1.327199,1.53421)  1.47877397   325        114        211  0.3507692
+    #> 9       [1.53421,1.741222)  1.63898436   246         82        164  0.3333333
+    #> 10     [1.741222,1.948233)  1.78810197   377        139        238  0.3687003
+    #> 11     [1.948233,2.155245]  2.11166019   214         78        136  0.3644860
     #>    obs.prop.1 exp.prob.0 exp.prob.1   raw.rsd.0   raw.rsd.1       se.0
     #> 1   0.0000000  0.7841844  0.2158156  0.21581559 -0.21581559 0.23751437
     #> 2   0.6000000  0.7499556  0.2500444 -0.34995561  0.34995561 0.19366063
@@ -1542,25 +1523,23 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 0.02531791 -1.5780508  1.5780508
     #> 11 0.03236968  0.7729850 -0.7729850
 
-    # (3) the standardized residual plots using the
-    # object 'fit1'
-    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald",
-      ylim.sr.adjust = TRUE)
+    # (3) the standardized residual plots using the object "fit1"
+    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald", ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-4.png" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
-    #> 1  [0.3564295,0.5199582] 0.3564295     1          1          0          0
-    #> 2  (0.5199582,0.6834869] 0.6081321     5          3          2          0
-    #> 3  (0.6834869,0.8470155] 0.7400138    15          5         10          0
-    #> 4   (0.8470155,1.010544] 0.8866202    55          5         15         34
-    #> 5    (1.010544,1.174073] 1.0821064   133          6         40         53
-    #> 6    (1.174073,1.337602] 1.2832293   260          8         37        153
-    #> 7     (1.337602,1.50113] 1.4747336    98          0         23         57
-    #> 8     (1.50113,1.664659] 1.5311735   306          0          7         85
-    #> 9    (1.664659,1.828188] 1.7632607   418          0          0        145
-    #> 10   (1.828188,1.991716] 1.8577191    69          0          0          0
-    #> 11   (1.991716,2.155245] 2.1021956   263          0          0          0
+    #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
+    #> 2  [0.5199582,0.6834869) 0.6081321     5          3          2          0
+    #> 3  [0.6834869,0.8470155) 0.7400138    15          5         10          0
+    #> 4   [0.8470155,1.010544) 0.8866202    55          5         15         34
+    #> 5    [1.010544,1.174073) 1.0821064   133          6         40         53
+    #> 6    [1.174073,1.337602) 1.2832293   260          8         37        153
+    #> 7     [1.337602,1.50113) 1.4747336    98          0         23         57
+    #> 8     [1.50113,1.664659) 1.5311735   306          0          7         85
+    #> 9    [1.664659,1.828188) 1.7632607   418          0          0        145
+    #> 10   [1.828188,1.991716) 1.8577191    69          0          0          0
+    #> 11   [1.991716,2.155245] 2.1021956   263          0          0          0
     #>    obs.freq.3 obs.prop.0 obs.prop.1 obs.prop.2 obs.prop.3  exp.prob.0
     #> 1           0 1.00000000 0.00000000  0.0000000 0.00000000 0.196511833
     #> 2           0 0.60000000 0.40000000  0.0000000 0.00000000 0.130431315
@@ -1610,26 +1589,24 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 -2.0763275 -5.6100775  6.4995706
     #> 11 -3.2723764 -9.8393733 10.9248190
 
-    # 2. the polytomous item (1) both raw and
-    # standardized residual plots using the object
-    # 'fit1'
-    plot(x = fit1, item.loc = 113, type = "both", ci.method = "wald",
-      ylim.sr.adjust = TRUE)
+    # 2. the polytomous item
+    # (1) both raw and standardized residual plots using the object "fit1"
+    plot(x = fit1, item.loc = 113, type = "both", ci.method = "wald", ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-5.png" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
-    #> 1  [0.3564295,0.5199582] 0.3564295     1          1          0          0
-    #> 2  (0.5199582,0.6834869] 0.6081321     5          3          2          0
-    #> 3  (0.6834869,0.8470155] 0.7400138    15          5         10          0
-    #> 4   (0.8470155,1.010544] 0.8866202    55          5         15         34
-    #> 5    (1.010544,1.174073] 1.0821064   133          6         40         53
-    #> 6    (1.174073,1.337602] 1.2832293   260          8         37        153
-    #> 7     (1.337602,1.50113] 1.4747336    98          0         23         57
-    #> 8     (1.50113,1.664659] 1.5311735   306          0          7         85
-    #> 9    (1.664659,1.828188] 1.7632607   418          0          0        145
-    #> 10   (1.828188,1.991716] 1.8577191    69          0          0          0
-    #> 11   (1.991716,2.155245] 2.1021956   263          0          0          0
+    #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
+    #> 2  [0.5199582,0.6834869) 0.6081321     5          3          2          0
+    #> 3  [0.6834869,0.8470155) 0.7400138    15          5         10          0
+    #> 4   [0.8470155,1.010544) 0.8866202    55          5         15         34
+    #> 5    [1.010544,1.174073) 1.0821064   133          6         40         53
+    #> 6    [1.174073,1.337602) 1.2832293   260          8         37        153
+    #> 7     [1.337602,1.50113) 1.4747336    98          0         23         57
+    #> 8     [1.50113,1.664659) 1.5311735   306          0          7         85
+    #> 9    [1.664659,1.828188) 1.7632607   418          0          0        145
+    #> 10   [1.828188,1.991716) 1.8577191    69          0          0          0
+    #> 11   [1.991716,2.155245] 2.1021956   263          0          0          0
     #>    obs.freq.3 obs.prop.0 obs.prop.1 obs.prop.2 obs.prop.3  exp.prob.0
     #> 1           0 1.00000000 0.00000000  0.0000000 0.00000000 0.196511833
     #> 2           0 0.60000000 0.40000000  0.0000000 0.00000000 0.130431315
@@ -1679,25 +1656,23 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 -2.0763275 -5.6100775  6.4995706
     #> 11 -3.2723764 -9.8393733 10.9248190
 
-    # (2) the raw residual plots using the object
-    # 'fit1'
-    plot(x = fit1, item.loc = 113, type = "icc", ci.method = "wald",
-      layout.col = 2, ylim.sr.adjust = TRUE)
+    # (2) the raw residual plots using the object "fit1"
+    plot(x = fit1, item.loc = 113, type = "icc", ci.method = "wald", layout.col = 2, ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-6.png" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
-    #> 1  [0.3564295,0.5199582] 0.3564295     1          1          0          0
-    #> 2  (0.5199582,0.6834869] 0.6081321     5          3          2          0
-    #> 3  (0.6834869,0.8470155] 0.7400138    15          5         10          0
-    #> 4   (0.8470155,1.010544] 0.8866202    55          5         15         34
-    #> 5    (1.010544,1.174073] 1.0821064   133          6         40         53
-    #> 6    (1.174073,1.337602] 1.2832293   260          8         37        153
-    #> 7     (1.337602,1.50113] 1.4747336    98          0         23         57
-    #> 8     (1.50113,1.664659] 1.5311735   306          0          7         85
-    #> 9    (1.664659,1.828188] 1.7632607   418          0          0        145
-    #> 10   (1.828188,1.991716] 1.8577191    69          0          0          0
-    #> 11   (1.991716,2.155245] 2.1021956   263          0          0          0
+    #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
+    #> 2  [0.5199582,0.6834869) 0.6081321     5          3          2          0
+    #> 3  [0.6834869,0.8470155) 0.7400138    15          5         10          0
+    #> 4   [0.8470155,1.010544) 0.8866202    55          5         15         34
+    #> 5    [1.010544,1.174073) 1.0821064   133          6         40         53
+    #> 6    [1.174073,1.337602) 1.2832293   260          8         37        153
+    #> 7     [1.337602,1.50113) 1.4747336    98          0         23         57
+    #> 8     [1.50113,1.664659) 1.5311735   306          0          7         85
+    #> 9    [1.664659,1.828188) 1.7632607   418          0          0        145
+    #> 10   [1.828188,1.991716) 1.8577191    69          0          0          0
+    #> 11   [1.991716,2.155245] 2.1021956   263          0          0          0
     #>    obs.freq.3 obs.prop.0 obs.prop.1 obs.prop.2 obs.prop.3  exp.prob.0
     #> 1           0 1.00000000 0.00000000  0.0000000 0.00000000 0.196511833
     #> 2           0 0.60000000 0.40000000  0.0000000 0.00000000 0.130431315
@@ -1747,25 +1722,23 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 -2.0763275 -5.6100775  6.4995706
     #> 11 -3.2723764 -9.8393733 10.9248190
 
-    # (3) the standardized residual plots using the
-    # object 'fit1'
-    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald",
-      layout.col = 4, ylim.sr.adjust = TRUE)
+    # (3) the standardized residual plots using the object "fit1"
+    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald", layout.col = 4, ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-7.png" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
-    #> 1  [0.3564295,0.5199582] 0.3564295     1          1          0          0
-    #> 2  (0.5199582,0.6834869] 0.6081321     5          3          2          0
-    #> 3  (0.6834869,0.8470155] 0.7400138    15          5         10          0
-    #> 4   (0.8470155,1.010544] 0.8866202    55          5         15         34
-    #> 5    (1.010544,1.174073] 1.0821064   133          6         40         53
-    #> 6    (1.174073,1.337602] 1.2832293   260          8         37        153
-    #> 7     (1.337602,1.50113] 1.4747336    98          0         23         57
-    #> 8     (1.50113,1.664659] 1.5311735   306          0          7         85
-    #> 9    (1.664659,1.828188] 1.7632607   418          0          0        145
-    #> 10   (1.828188,1.991716] 1.8577191    69          0          0          0
-    #> 11   (1.991716,2.155245] 2.1021956   263          0          0          0
+    #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
+    #> 2  [0.5199582,0.6834869) 0.6081321     5          3          2          0
+    #> 3  [0.6834869,0.8470155) 0.7400138    15          5         10          0
+    #> 4   [0.8470155,1.010544) 0.8866202    55          5         15         34
+    #> 5    [1.010544,1.174073) 1.0821064   133          6         40         53
+    #> 6    [1.174073,1.337602) 1.2832293   260          8         37        153
+    #> 7     [1.337602,1.50113) 1.4747336    98          0         23         57
+    #> 8     [1.50113,1.664659) 1.5311735   306          0          7         85
+    #> 9    [1.664659,1.828188) 1.7632607   418          0          0        145
+    #> 10   [1.828188,1.991716) 1.8577191    69          0          0          0
+    #> 11   [1.991716,2.155245] 2.1021956   263          0          0          0
     #>    obs.freq.3 obs.prop.0 obs.prop.1 obs.prop.2 obs.prop.3  exp.prob.0
     #> 1           0 1.00000000 0.00000000  0.0000000 0.00000000 0.196511833
     #> 2           0 0.60000000 0.40000000  0.0000000 0.00000000 0.130431315

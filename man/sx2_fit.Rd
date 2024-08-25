@@ -104,13 +104,13 @@ Also, any missing responses in \code{data} are replaced with incorrect responses
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default method to compute \eqn{S-X^{2}} fit statistics for a data frame \code{x} containing the item metadata.
+\item \code{sx2_fit(default)}: Default method to compute \eqn{S-X^{2}} fit statistics for a data frame \code{x} containing the item metadata.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{sx2_fit(est_item)}: An object created by the function \code{\link{est_item}}.
 
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{sx2_fit(est_irt)}: An object created by the function \code{\link{est_irt}}.
+
 }}
-
 \examples{
 
 ## example 1: all five polytomous IRT models are GRM
@@ -118,18 +118,18 @@ Also, any missing responses in \code{data} are replaced with incorrect responses
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # select the item metadata
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
 # generate examinees' abilities from N(0, 1)
 set.seed(23)
-score <- rnorm(500, mean=0, sd=1)
+score <- rnorm(500, mean = 0, sd = 1)
 
 # simulate the response data
-data <- simdat(x=x, theta=score, D=1)
+data <- simdat(x = x, theta = score, D = 1)
 
 \donttest{
 # compute fit statistics
-fit1 <- sx2_fit(x=x, data=data, nquad=30)
+fit1 <- sx2_fit(x = x, data = data, nquad = 30)
 
 # fit statistics
 fit1$fit_stat
@@ -144,14 +144,14 @@ x[53:55, 4] <- 1
 
 # generate examinees' abilities from N(0, 1)
 set.seed(25)
-score <- rnorm(1000, mean=0, sd=1)
+score <- rnorm(1000, mean = 0, sd = 1)
 
 # simulate the response data
-data <- simdat(x=x, theta=score, D=1)
+data <- simdat(x = x, theta = score, D = 1)
 
 \donttest{
 # compute fit statistics
-fit2 <- sx2_fit(x=x, data=data, nquad=30, pcm.loc=53:55)
+fit2 <- sx2_fit(x = x, data = data, nquad = 30, pcm.loc = 53:55)
 
 # fit statistics
 fit2$fit_stat

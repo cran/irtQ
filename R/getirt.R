@@ -2,7 +2,7 @@
 #'
 #' @description This method extracts various internal objects from an object of class \code{\link{est_irt}},
 #' \code{\link{est_mg}}, or \code{\link{est_item}}
-#'.
+#' .
 #' @param x An object of class \code{\link{est_irt}}, \code{\link{est_mg}}, or \code{\link{est_item}}.
 #' @param what A character string indicating what to extract.
 #' @param ... Further arguments passed to or from other methods.
@@ -140,16 +140,16 @@
 #' @examples
 #' \donttest{
 #' # fit the 2PL model to LSAT6 data
-#' mod.2pl <- est_irt(data=LSAT6, D=1, model="2PLM", cats=2)
+#' mod.2pl <- est_irt(data = LSAT6, D = 1, model = "2PLM", cats = 2)
 #'
 #' # extract the item parameter estimates
-#' (est.par <- getirt(mod.2pl, what="par.est"))
+#' (est.par <- getirt(mod.2pl, what = "par.est"))
 #'
 #' # extract the standard error estimates
-#' (est.se <- getirt(mod.2pl, what="se.est"))
+#' (est.se <- getirt(mod.2pl, what = "se.est"))
 #'
 #' # extract the variance-covariance matrix of item parameter estimates
-#' (cov.mat <- getirt(mod.2pl, what="covariance"))
+#' (cov.mat <- getirt(mod.2pl, what = "covariance"))
 #' }
 #'
 #' @export
@@ -157,111 +157,107 @@ getirt <- function(x, ...) UseMethod("getirt")
 
 #' @describeIn getirt An object created by the function \code{\link{est_irt}}.
 #' @export
-getirt.est_irt <- function(x, what, ...){
+getirt.est_irt <- function(x, what, ...) {
   rst <- switch(what,
-                estimates = x$estimates,
-                par.est = x$par.est,
-                se.est = x$se.est,
-                pos.par = x$pos.par,
-                covariance = x$covariance,
-                loglikelihood = x$loglikelihood,
-                aic = x$aic,
-                bic = x$bic,
-                group.par = x$group.par,
-                weights = x$weights,
-                data = x$data,
-                ncase = x$ncase,
-                nitem = x$nitem,
-                Etol = x$Etol,
-                MaxE = x$MaxE,
-                aprior = x$aprior,
-                bprior = x$bprior,
-                gprior = x$gprior,
-                npar.est = x$npar.est,
-                niter = x$niter,
-                maxpar.diff = x$maxpar.diff,
-                EMtime = x$EMtime,
-                SEtime = x$SEtime,
-                TotalTime = x$TotalTime,
-                test.1 = x$test.1,
-                test.2 = x$test.2,
-                var.note = x$var.note,
-                fipc = x$fipc,
-                fipc.method = x$fipc.method,
-                fix.loc = x$fix.loc,
-                stop(sprintf("Could not extract element \'%s\'", what), call.=FALSE)
+    estimates = x$estimates,
+    par.est = x$par.est,
+    se.est = x$se.est,
+    pos.par = x$pos.par,
+    covariance = x$covariance,
+    loglikelihood = x$loglikelihood,
+    aic = x$aic,
+    bic = x$bic,
+    group.par = x$group.par,
+    weights = x$weights,
+    data = x$data,
+    ncase = x$ncase,
+    nitem = x$nitem,
+    Etol = x$Etol,
+    MaxE = x$MaxE,
+    aprior = x$aprior,
+    bprior = x$bprior,
+    gprior = x$gprior,
+    npar.est = x$npar.est,
+    niter = x$niter,
+    maxpar.diff = x$maxpar.diff,
+    EMtime = x$EMtime,
+    SEtime = x$SEtime,
+    TotalTime = x$TotalTime,
+    test.1 = x$test.1,
+    test.2 = x$test.2,
+    var.note = x$var.note,
+    fipc = x$fipc,
+    fipc.method = x$fipc.method,
+    fix.loc = x$fix.loc,
+    stop(sprintf("Could not extract element \'%s\'", what), call. = FALSE)
   )
 
   rst
-
 }
 
 #' @describeIn getirt An object created by the function \code{\link{est_mg}}.
 #' @export
-getirt.est_mg <- function(x, what, ...){
+getirt.est_mg <- function(x, what, ...) {
   rst <- switch(what,
-                estimates = x$estimates,
-                par.est = x$par.est,
-                se.est = x$se.est,
-                pos.par = x$pos.par,
-                covariance = x$covariance,
-                loglikelihood = x$loglikelihood,
-                aic = x$aic,
-                bic = x$bic,
-                group.par = x$group.par,
-                weights = x$weights,
-                data = x$data,
-                ncase = x$ncase,
-                nitem = x$nitem,
-                Etol = x$Etol,
-                MaxE = x$MaxE,
-                aprior = x$aprior,
-                bprior = x$bprior,
-                gprior = x$gprior,
-                npar.est = x$npar.est,
-                niter = x$niter,
-                maxpar.diff = x$maxpar.diff,
-                EMtime = x$EMtime,
-                SEtime = x$SEtime,
-                TotalTime = x$TotalTime,
-                test.1 = x$test.1,
-                test.2 = x$test.2,
-                var.note = x$var.note,
-                fipc = x$fipc,
-                fipc.method = x$fipc.method,
-                fix.loc = x$fix.loc,
-                stop(sprintf("Could not extract element \'%s\'", what), call.=FALSE)
+    estimates = x$estimates,
+    par.est = x$par.est,
+    se.est = x$se.est,
+    pos.par = x$pos.par,
+    covariance = x$covariance,
+    loglikelihood = x$loglikelihood,
+    aic = x$aic,
+    bic = x$bic,
+    group.par = x$group.par,
+    weights = x$weights,
+    data = x$data,
+    ncase = x$ncase,
+    nitem = x$nitem,
+    Etol = x$Etol,
+    MaxE = x$MaxE,
+    aprior = x$aprior,
+    bprior = x$bprior,
+    gprior = x$gprior,
+    npar.est = x$npar.est,
+    niter = x$niter,
+    maxpar.diff = x$maxpar.diff,
+    EMtime = x$EMtime,
+    SEtime = x$SEtime,
+    TotalTime = x$TotalTime,
+    test.1 = x$test.1,
+    test.2 = x$test.2,
+    var.note = x$var.note,
+    fipc = x$fipc,
+    fipc.method = x$fipc.method,
+    fix.loc = x$fix.loc,
+    stop(sprintf("Could not extract element \'%s\'", what), call. = FALSE)
   )
 
   rst
-
 }
 
 
 #' @describeIn getirt An object created by the function \code{\link{est_item}}.
 #' @export
-getirt.est_item <- function(x, what, ...){
+getirt.est_item <- function(x, what, ...) {
   rst <- switch(what,
-                estimates = x$estimates,
-                par.est = x$par.est,
-                se.est = x$se.est,
-                pos.par = x$pos.par,
-                covariance = x$covariance,
-                loglikelihood = x$loglikelihood,
-                group.par = x$group.par,
-                data = x$data,
-                score = x$score,
-                scale.D = x$scale.D,
-                convergence = x$convergence,
-                nitem = x$nitem,
-                deleted.item = x$deleted.item,
-                npar.est = x$npar.est,
-                n.response = x$n.response,
-                TotalTime = x$TotalTime,
-                stop(sprintf("Could not extract element \'%s\'", what), call.=FALSE)
+    estimates = x$estimates,
+    par.est = x$par.est,
+    se.est = x$se.est,
+    pos.par = x$pos.par,
+    covariance = x$covariance,
+    loglikelihood = x$loglikelihood,
+    group.par = x$group.par,
+    data = x$data,
+    score = x$score,
+    scale.D = x$scale.D,
+    convergence = x$convergence,
+    nitem = x$nitem,
+    deleted.item = x$deleted.item,
+    npar.est = x$npar.est,
+    n.response = x$n.response,
+    TotalTime = x$TotalTime,
+    stop(sprintf("Could not extract element \'%s\'", what), call. = FALSE)
   )
 
   rst
-
 }
-

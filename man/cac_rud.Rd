@@ -45,14 +45,14 @@ Finally, it computes the marginal accuracy and consistency.
 }
 \examples{
 \donttest{
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 1. When the empirical ability distribution of the population is available
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 ## import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameter data and transform it to item metadata
-x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # set the cut scores on the theta score metric
 cutscore <- c(-2, -0.5, 0.8)
@@ -63,16 +63,16 @@ node <- seq(-4, 4, 0.25)
 weights <- gen.weight(dist = "norm", mu = 0, sigma = 1, theta = node)
 
 # compute the conditional standard errors across all quadrature points
-tif <- info(x=x, theta=node, D=1, tif=TRUE)$tif
+tif <- info(x = x, theta = node, D = 1, tif = TRUE)$tif
 se <- 1 / sqrt(tif)
 
 # calculate the classification accuracy and consistency
-cac_1 <- cac_rud(cutscore=cutscore, se=se, weights=weights)
+cac_1 <- cac_rud(cutscore = cutscore, se = se, weights = weights)
 print(cac_1)
 
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # 2. When individual ability estimates are available
-##------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------
 # randomly select the true abilities from N(0, 1)
 set.seed(12)
 theta <- rnorm(n = 1000, mean = 0, sd = 1)
@@ -81,13 +81,15 @@ theta <- rnorm(n = 1000, mean = 0, sd = 1)
 data <- simdat(x = x, theta = theta, D = 1)
 
 # estimate the ability parameters and standard errors using the ML estimation
-est_theta <- est_score(x = x, data = data, D = 1, method = "ML",
-                       range=c(-4, 4), se = TRUE)
+est_theta <- est_score(
+  x = x, data = data, D = 1, method = "ML",
+  range = c(-4, 4), se = TRUE
+)
 theta_hat <- est_theta$est.theta
 se <- est_theta$se.theta
 
 # calculate the classification accuracy and consistency
-cac_2 <- cac_rud(cutscore=cutscore, theta=theta_hat, se=se)
+cac_2 <- cac_rud(cutscore = cutscore, theta = theta_hat, se = se)
 print(cac_2)
 }
 

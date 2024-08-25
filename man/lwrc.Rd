@@ -48,13 +48,13 @@ the probability matrix specified in \code{prob} can be used.
 ## example 1: when a matrix of probabilities is used as a data set
 ## this is an example from Kolen and Brennan (2004, p. 183)
 # create a matrix of probabilities of getting correct and incorrect answers for three items
-probs <- matrix(c(.74, .73, .82, .26, .27, .18), nrow=3, ncol=2, byrow = FALSE)
+probs <- matrix(c(.74, .73, .82, .26, .27, .18), nrow = 3, ncol = 2, byrow = FALSE)
 
 # create a vector of score categories for the three items
-cats <- c(2,2,2)
+cats <- c(2, 2, 2)
 
 # compute the conditional distributions of observed scores
-lwrc(prob=probs, cats=cats)
+lwrc(prob = probs, cats = cats)
 
 ## example 2: when a matrix of probabilities is used as a data set
 ## with a mixed-format test
@@ -74,7 +74,7 @@ p <- rbind(p1, p2, p3, p4)
 cats <- c(2, 2, 5, 3)
 
 # compute the conditional distributions of observed scores
-lwrc(prob=p, cats=cats)
+lwrc(prob = p, cats = cats)
 
 ## example 3: when a data frame for the item metadata of
 ## a mixed-format test is used.
@@ -82,10 +82,10 @@ lwrc(prob=p, cats=cats)
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item metadata
-x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # compute the conditional distributions of observed scores
-lwrc(x=x, theta=seq(-4, 4, 0.2), D=1)
+lwrc(x = x, theta = seq(-4, 4, 0.2), D = 1)
 
 }
 \references{

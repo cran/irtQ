@@ -31,17 +31,17 @@ or \code{\link{est_item}} object.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{est_irt}: An object created by the function \code{\link{est_irt}}.
+\item \code{summary(est_irt)}: An object created by the function \code{\link{est_irt}}.
 
-\item \code{est_mg}: An object created by the function \code{\link{est_mg}}.
+\item \code{summary(est_mg)}: An object created by the function \code{\link{est_mg}}.
 
-\item \code{est_item}: An object created by the function \code{\link{est_item}}.
+\item \code{summary(est_item)}: An object created by the function \code{\link{est_item}}.
+
 }}
-
 \examples{
 \donttest{
 # fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
-fit.1pl <- est_irt(data=LSAT6, D=1, model="1PLM", cats=2, fix.a.1pl=FALSE)
+fit.1pl <- est_irt(data = LSAT6, D = 1, model = "1PLM", cats = 2, fix.a.1pl = FALSE)
 
 # summary of the estimation
 summary(fit.1pl)

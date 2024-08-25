@@ -59,66 +59,74 @@
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # select the first two dichotomous items and last polytomous item
-#' x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df[c(1:2, 55), ]
+#' x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df[c(1:2, 55), ]
 #'
 #' # compute the var-covariance matrices with sample size of 2,000
-#' covirt(x, D=1, nstd=2000, norm.prior=c(0, 1), nquad=41)
+#' covirt(x, D = 1, nstd = 2000, norm.prior = c(0, 1), nquad = 41)
 #'
-covirt <- function(x, D=1, nstd=1000, pcm.loc=NULL, norm.prior=c(0, 1), nquad=41, weights=NULL) {
-
-
+covirt <- function(x, D = 1, nstd = 1000, pcm.loc = NULL, norm.prior = c(0, 1), nquad = 41, weights = NULL) {
   # confirm and correct all item metadata information
   x <- confirm_df(x)
 
   # break down the item metadata into several components
   elm_list <-
-    purrr::map(.x = 1:nrow(x), ~{breakdown(x[.x, ])})
+    purrr::map(.x = 1:nrow(x), ~ {
+      breakdown(x[.x, ])
+    })
 
   # specify the locations of PCM items
   pcm.a.logic <- rep(FALSE, nrow(x))
-  if(!is.null(pcm.loc)) {
+  if (!is.null(pcm.loc)) {
     pcm.a.logic[pcm.loc] <- TRUE
   }
 
   # generate quadrature points and weights
-  if(is.null(weights)) {
-    wts <- gen.weight(n=nquad, dist="norm", mu=norm.prior[1], sigma=norm.prior[2])
+  if (is.null(weights)) {
+    wts <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
   } else {
     wts <- data.frame(weights)
   }
 
   # sample size
-  if(length(nstd) == 1L) nstd <- rep(nstd, nrow(x))
-  if(length(nstd) != nrow(x)) {
-    stop("Sample size must be an integer value or a vector with a length of total items.", call.=FALSE)
+  if (length(nstd) == 1L) nstd <- rep(nstd, nrow(x))
+  if (length(nstd) != nrow(x)) {
+    stop("Sample size must be an integer value or a vector with a length of total items.", call. = FALSE)
   }
 
   # compute the var-covariance matrix
-  cov_par <- purrr::pmap(.l=list(x=elm_list, y=nstd, z=pcm.a.logic),
-                         .f=function(x, y, z) {cov_mat(elm_item=x, D=D, nstd=y, wts=wts, pcm.a=z)})
-  se_par <- purrr::map(cov_par, .f=function(x) sqrt(diag(x)))
+  cov_par <- purrr::pmap(
+    .l = list(x = elm_list, y = nstd, z = pcm.a.logic),
+    .f = function(x, y, z) {
+      cov_mat(elm_item = x, D = D, nstd = y, wts = wts, pcm.a = z)
+    }
+  )
+  se_par <- purrr::map(cov_par, .f = function(x) sqrt(diag(x)))
   names(cov_par) <- x[, 1]
   names(se_par) <- x[, 1]
 
   # return results
-  rst <- list(cov=cov_par, se=se_par)
+  rst <- list(cov = cov_par, se = se_par)
   rst
-
 }
 
 
 # This function computes the analytical var-covariance matrix of item parameter estimates for an item
-cov_mat <- function(elm_item, D=1, nstd = 1000, wts, pcm.a=FALSE) {
+cov_mat <- function(elm_item, D = 1, nstd = 1000, wts, pcm.a = FALSE) {
+  info_mat <- integrand(elm_item, theta = wts[, 1], dens = wts[, 2], D = D, pcm.a = pcm.a)
 
-  info_mat <- integrand(elm_item, theta=wts[, 1], dens=wts[, 2], D=D, pcm.a=pcm.a)
-
-  rst <- tryCatch({solve(info_mat * nstd)}, error = function(e) {cat("ERROR :", conditionMessage(e), "\n")})
-  if(is.null(rst)) {
-    rst <- matrix(NA, nrow=dim(info_mat)[1], ncol=dim(info_mat)[2])
+  rst <- tryCatch(
+    {
+      solve(info_mat * nstd)
+    },
+    error = function(e) {
+      cat("ERROR :", conditionMessage(e), "\n")
+    }
+  )
+  if (is.null(rst)) {
+    rst <- matrix(NA, nrow = dim(info_mat)[1], ncol = dim(info_mat)[2])
   }
 
   rst
-
 }
 
 
@@ -126,36 +134,35 @@ cov_mat <- function(elm_item, D=1, nstd = 1000, wts, pcm.a=FALSE) {
 # the analytical var-covariance matrix of item parameter estimates
 #' @importFrom stats na.exclude
 #' @importFrom Rfast rowprods
-integrand <- function(elm_item, theta, dens, D=1, pcm.a=FALSE) {
-
-
+integrand <- function(elm_item, theta, dens, D = 1, pcm.a = FALSE) {
   # assign items into DRM and PRM groups
   idx.all <- idxfinder(elm_item)
   idx.drm <- idx.all$idx.drm
   idx.prm <- idx.all$idx.prm
 
   # For a DRM item
-  if(!is.null(idx.drm)) {
-
+  if (!is.null(idx.drm)) {
     # extract required information
-    item_par <- c(elm_item$par[idx.drm, 1],
-                  elm_item$par[idx.drm, 2],
-                  elm_item$par[idx.drm, 2])
+    item_par <- c(
+      elm_item$par[idx.drm, 1],
+      elm_item$par[idx.drm, 2],
+      elm_item$par[idx.drm, 2]
+    )
     cats <- elm_item$cats[idx.drm]
     model <- elm_item$model[idx.drm]
 
     # compute a product of the probabilities p and q
-    pq <- Rfast::rowprods(trace(elm_item=elm_item, theta=theta, D=D, tcc=FALSE)$prob.cats[[1]])
+    pq <- Rfast::rowprods(trace(elm_item = elm_item, theta = theta, D = D, tcc = FALSE)$prob.cats[[1]])
 
     # prevent that pq has zero probability
     pq[pq == 0L] <- 1e-20
 
     # create the gradient for score category probability
-    funList <- equation_scocat(model=model, cats=NULL, hessian=FALSE, type="item")
+    funList <- equation_scocat(model = model, cats = NULL, hessian = FALSE, type = "item")
 
     # create a list containing the arguments to be used in the equation function
     args.pars <- list()
-    for(i in 1:3) {
+    for (i in 1:3) {
       args.pars[[i]] <- item_par[i]
     }
     args.list <- args.pars
@@ -167,37 +174,37 @@ integrand <- function(elm_item, theta, dens, D=1, pcm.a=FALSE) {
     fun.tmp <- funList[[1]]
 
     # implement the function for each score category
-    tmp <- do.call("fun.tmp", args.list, envir=environment())
+    tmp <- do.call("fun.tmp", args.list, envir = environment())
 
     # compute the kernel of integration
     p.d1 <- attributes(tmp)$gradient
-    info.list  <- purrr::map(.x=1:length(theta),
-                             .f=function(i) (1 / pq[i]) * outer(p.d1[i, ], p.d1[i, ]) * dens[i])
-    info.mat <- Reduce(f='+', x=info.list)
-
+    info.list <- purrr::map(
+      .x = 1:length(theta),
+      .f = function(i) (1 / pq[i]) * outer(p.d1[i, ], p.d1[i, ]) * dens[i]
+    )
+    info.mat <- Reduce(f = "+", x = info.list)
   }
 
   # For a PRM item
-  if(!is.null(idx.prm)) {
-
+  if (!is.null(idx.prm)) {
     # extract required information
     cats <- elm_item$cats[idx.prm]
     model <- elm_item$model[idx.prm]
     item_par <- stats::na.exclude(elm_item$par[idx.prm, ])
 
     # compute a product of the probabilities p and q
-    ps <- trace(elm_item=elm_item, theta=theta, D=D, tcc=FALSE)$prob.cats[[1]]
+    ps <- trace(elm_item = elm_item, theta = theta, D = D, tcc = FALSE)$prob.cats[[1]]
     pqs <- ps * (1 - ps)
 
     # prevent that pq has zero probability
     pqs[pqs == 0L] <- 1e-20
 
     # create the gradient for score category probability
-    funList <- equation_scocat(model=model, cats=cats, fix.a.gpcm=pcm.a, hessian=FALSE, type="item")
+    funList <- equation_scocat(model = model, cats = cats, fix.a.gpcm = pcm.a, hessian = FALSE, type = "item")
 
     # create a list containing the arguments to be used in the equation function
     args.pars <- list()
-    for(i in 1:cats) {
+    for (i in 1:cats) {
       args.pars[[i]] <- item_par[i]
     }
     args.list <- args.pars
@@ -205,27 +212,25 @@ integrand <- function(elm_item, theta, dens, D=1, pcm.a=FALSE) {
     args.list$D <- D
 
     # compute the score category information
-    info.mat <- vector('list', cats)
-    for(i in 1:cats) {
+    info.mat <- vector("list", cats)
+    for (i in 1:cats) {
       # select a function for each score category
       fun.tmp <- funList[[i]]
 
       # implement the function for each score category
-      tmp <- do.call("fun.tmp", args.list, envir=environment())
+      tmp <- do.call("fun.tmp", args.list, envir = environment())
 
       # compute the kernel of integration
       ps.d1 <- attributes(tmp)$gradient
-      info.list  <- purrr::map(.x=1:length(theta),
-                               .f=function(k) (1 / pqs[k, i]) * outer(ps.d1[k, ], ps.d1[k, ]) * dens[k])
-      info.mat[[i]] <- Reduce(f='+', x=info.list)
+      info.list <- purrr::map(
+        .x = 1:length(theta),
+        .f = function(k) (1 / pqs[k, i]) * outer(ps.d1[k, ], ps.d1[k, ]) * dens[k]
+      )
+      info.mat[[i]] <- Reduce(f = "+", x = info.list)
     }
 
-    info.mat <- Reduce(f='+', x=info.mat)
-
+    info.mat <- Reduce(f = "+", x = info.mat)
   }
 
   info.mat
-
 }
-
-

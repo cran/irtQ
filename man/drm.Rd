@@ -32,13 +32,13 @@ the 1PL and 2PL models are computed.
 }
 \examples{
 ## when vectors are used for both theta values and item parameters (3PLM)
-drm(c(-0.1, 0.0, 1.5), a=c(1, 2), b=c(0, 1), g=c(0.2, 0.1), D=1)
+drm(c(-0.1, 0.0, 1.5), a = c(1, 2), b = c(0, 1), g = c(0.2, 0.1), D = 1)
 
 ## when vectors are only used for item parameters (2PLM)
-drm(0.0, a=c(1, 2), b=c(0, 1), D=1)
+drm(0.0, a = c(1, 2), b = c(0, 1), D = 1)
 
 ## when vectors are only used for theta values (3PLM)
-drm(c(-0.1, 0.0, 1.5), a=1, b=1, g=0.2, D=1)
+drm(c(-0.1, 0.0, 1.5), a = 1, b = 1, g = 0.2, D = 1)
 
 }
 \seealso{

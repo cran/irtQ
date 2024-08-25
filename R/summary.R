@@ -12,7 +12,7 @@
 #' @examples
 #' \donttest{
 #' # fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
-#' fit.1pl <- est_irt(data=LSAT6, D=1, model="1PLM", cats=2, fix.a.1pl=FALSE)
+#' fit.1pl <- est_irt(data = LSAT6, D = 1, model = "1PLM", cats = 2, fix.a.1pl = FALSE)
 #'
 #' # summary of the estimation
 #' summary(fit.1pl)
@@ -28,7 +28,6 @@ summary <- function(object, ...) UseMethod("summary")
 #' @describeIn summary An object created by the function \code{\link{est_irt}}.
 #' @export
 summary.est_irt <- function(object, ...) {
-
   call.expr <- deparse(object$call)
   nitem <- object$nitem
   ncase <- object$ncase
@@ -51,20 +50,20 @@ summary.est_irt <- function(object, ...) {
   estimates <- object$estimates
   group.par <- object$group.par
 
-  out <- list(call.expr=call.expr, nitem=nitem, ncase=ncase, MaxE=MaxE, Etol=Etol,
-              weights=weights, npar.est=npar.est, fix.loc=fix.loc, niter=niter,
-              maxpar.diff=maxpar.diff, EMtime=EMtime, SEtime=SEtime, TotalTime=TotalTime,
-              test.1=test.1, test.2=test.2, var.note=var.note, loglikelihood=loglikelihood,
-              aic=aic, bic=bic, estimates=estimates, group.par=group.par)
+  out <- list(
+    call.expr = call.expr, nitem = nitem, ncase = ncase, MaxE = MaxE, Etol = Etol,
+    weights = weights, npar.est = npar.est, fix.loc = fix.loc, niter = niter,
+    maxpar.diff = maxpar.diff, EMtime = EMtime, SEtime = SEtime, TotalTime = TotalTime,
+    test.1 = test.1, test.2 = test.2, var.note = var.note, loglikelihood = loglikelihood,
+    aic = aic, bic = bic, estimates = estimates, group.par = group.par
+  )
   class(out) <- "summary.est_irt"
   out
-
 }
 
 #' @describeIn summary An object created by the function \code{\link{est_mg}}.
 #' @export
 summary.est_mg <- function(object, ...) {
-
   call.expr <- deparse(object$call)
   nitem <- object$nitem
   ncase <- object$ncase
@@ -88,25 +87,29 @@ summary.est_mg <- function(object, ...) {
   group.name <- names(object$loglikelihood$group)
   ngroup <- length(group.name)
   fix.loc <- object$fix.loc
-  if(is.null(fix.loc$overal)) {fix.loc$group <- purrr::map(.x=1:ngroup, ~{NULL})}
+  if (is.null(fix.loc$overal)) {
+    fix.loc$group <- purrr::map(.x = 1:ngroup, ~ {
+      NULL
+    })
+  }
   names(fix.loc$group) <- group.name
 
-  out <- list(call.expr=call.expr, nitem=nitem, ncase=ncase, MaxE=MaxE, Etol=Etol,
-              weights=weights, npar.est=npar.est, fix.loc=fix.loc, niter=niter,
-              maxpar.diff=maxpar.diff, EMtime=EMtime, SEtime=SEtime, TotalTime=TotalTime,
-              test.1=test.1, test.2=test.2, var.note=var.note, loglikelihood=loglikelihood,
-              aic=aic, bic=bic, estimates=estimates, group.par=group.par, group.name=group.name,
-              ngroup=ngroup)
+  out <- list(
+    call.expr = call.expr, nitem = nitem, ncase = ncase, MaxE = MaxE, Etol = Etol,
+    weights = weights, npar.est = npar.est, fix.loc = fix.loc, niter = niter,
+    maxpar.diff = maxpar.diff, EMtime = EMtime, SEtime = SEtime, TotalTime = TotalTime,
+    test.1 = test.1, test.2 = test.2, var.note = var.note, loglikelihood = loglikelihood,
+    aic = aic, bic = bic, estimates = estimates, group.par = group.par, group.name = group.name,
+    ngroup = ngroup
+  )
   class(out) <- "summary.est_mg"
   out
-
 }
 
 
 #' @describeIn summary An object created by the function \code{\link{est_item}}.
 #' @export
 summary.est_item <- function(object, ...) {
-
   call.expr <- deparse(object$call)
   nitem <- object$nitem
   deleted.item <- object$deleted.item
@@ -119,11 +122,11 @@ summary.est_item <- function(object, ...) {
   estimates <- object$estimates
   group.par <- object$group.par
 
-  out <- list(call.expr=call.expr, nitem=nitem, deleted.item=deleted.item, nitem.del=nitem.del, npar.est=npar.est,
-              n.response=n.response, TotalTime=TotalTime, convergence=convergence, loglikelihood=loglikelihood,
-              estimates=estimates, group.par=group.par)
+  out <- list(
+    call.expr = call.expr, nitem = nitem, deleted.item = deleted.item, nitem.del = nitem.del, npar.est = npar.est,
+    n.response = n.response, TotalTime = TotalTime, convergence = convergence, loglikelihood = loglikelihood,
+    estimates = estimates, group.par = group.par
+  )
   class(out) <- "summary.est_item"
   out
-
 }
-

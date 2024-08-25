@@ -78,45 +78,45 @@ if there are ten items in the test form and the score curves of the 1st, 2nd, an
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
 # read item parameters and transform them to item metadata
-test_flex <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
 # set theta values
 theta <- seq(-3, 3, 0.1)
 
 # compute the item category probabilities and item/test
 # characteristic functions given the theta values
-x <- traceline(x=test_flex, theta, D=1)
+x <- traceline(x = test_flex, theta, D = 1)
 
 # plot TCC based on the total test form
-plot(x, item.loc=NULL)
+plot(x, item.loc = NULL)
 
 # plot ICCs for the first item (dichotomous item)
-plot(x, item.loc=1, score.curve=FALSE, layout.col=2)
+plot(x, item.loc = 1, score.curve = FALSE, layout.col = 2)
 
 # plot item score curve for the first item (dichotomous item)
-plot(x, item.loc=1, score.curve=TRUE)
+plot(x, item.loc = 1, score.curve = TRUE)
 
 # plot item score curves for the first six dichotomous items
 # with multiple panels
-plot(x, item.loc=1:6, score.curve=TRUE, overlap=FALSE)
+plot(x, item.loc = 1:6, score.curve = TRUE, overlap = FALSE)
 
 # plot item score curve for the first six dichotomous items
 # in one panel
-plot(x, item.loc=1:6, score.curve=TRUE, overlap=TRUE)
+plot(x, item.loc = 1:6, score.curve = TRUE, overlap = TRUE)
 
 # plot ICCs for the last item (polytomous item)
-plot(x, item.loc=55, score.curve=FALSE, layout.col=2)
+plot(x, item.loc = 55, score.curve = FALSE, layout.col = 2)
 
 # plot item score curve for the last item (polytomous item)
-plot(x, item.loc=55, score.curve=TRUE)
+plot(x, item.loc = 55, score.curve = TRUE)
 
 # plot item score curves for the last three polytomous items
 # with multiple panels
-plot(x, item.loc=53:55, score.curve=TRUE, overlap=FALSE)
+plot(x, item.loc = 53:55, score.curve = TRUE, overlap = FALSE)
 
 # plot item score curves for the last three polytomous items
 # in one panel
-plot(x, item.loc=53:55, score.curve=TRUE, overlap=TRUE)
+plot(x, item.loc = 53:55, score.curve = TRUE, overlap = TRUE)
 
 }
 \seealso{

@@ -45,14 +45,14 @@
 #'
 #' @examples
 #' \donttest{
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 1. When the empirical ability distribution of the population is available
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' ## import the "-prm.txt" output file from flexMIRT
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
 #' # read item parameter data and transform it to item metadata
-#' x <- bring.flexmirt(file=flex_prm, "par")$Group1$full_df
+#' x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
 #' # set the cut scores on the theta score metric
 #' cutscore <- c(-2, -0.5, 0.8)
@@ -63,16 +63,16 @@
 #' weights <- gen.weight(dist = "norm", mu = 0, sigma = 1, theta = node)
 #'
 #' # compute the conditional standard errors across all quadrature points
-#' tif <- info(x=x, theta=node, D=1, tif=TRUE)$tif
+#' tif <- info(x = x, theta = node, D = 1, tif = TRUE)$tif
 #' se <- 1 / sqrt(tif)
 #'
 #' # calculate the classification accuracy and consistency
-#' cac_1 <- cac_rud(cutscore=cutscore, se=se, weights=weights)
+#' cac_1 <- cac_rud(cutscore = cutscore, se = se, weights = weights)
 #' print(cac_1)
 #'
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # 2. When individual ability estimates are available
-#' ##------------------------------------------------------------------------------
+#' ## ------------------------------------------------------------------------------
 #' # randomly select the true abilities from N(0, 1)
 #' set.seed(12)
 #' theta <- rnorm(n = 1000, mean = 0, sd = 1)
@@ -81,28 +81,31 @@
 #' data <- simdat(x = x, theta = theta, D = 1)
 #'
 #' # estimate the ability parameters and standard errors using the ML estimation
-#' est_theta <- est_score(x = x, data = data, D = 1, method = "ML",
-#'                        range=c(-4, 4), se = TRUE)
+#' est_theta <- est_score(
+#'   x = x, data = data, D = 1, method = "ML",
+#'   range = c(-4, 4), se = TRUE
+#' )
 #' theta_hat <- est_theta$est.theta
 #' se <- est_theta$se.theta
 #'
 #' # calculate the classification accuracy and consistency
-#' cac_2 <- cac_rud(cutscore=cutscore, theta=theta_hat, se=se)
+#' cac_2 <- cac_rud(cutscore = cutscore, theta = theta_hat, se = se)
 #' print(cac_2)
-#'}
+#' }
 #'
+#' @import dplyr
 #' @export
-cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
-
+cac_rud <- function(cutscore, theta = NULL, se, weights = NULL) {
   # check if the provided inputs are correct
-  if(missing(se)) {
-    stop("The standard errors must be provided in `se` argument.", call.=FALSE)
+  if (missing(se)) {
+    stop("The standard errors must be provided in `se` argument.", call. = FALSE)
   }
 
   # check if the provided inputs are correct
-  if(is.null(theta) & is.null(weights)) {
+  if (is.null(theta) & is.null(weights)) {
     stop("Eighter of `theta` or `weights` argument must not be NULL; both cannot be NULL",
-         call.=FALSE)
+      call. = FALSE
+    )
   }
 
   # count the number of levels
@@ -112,8 +115,7 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
   breaks <- c(-Inf, cutscore, Inf)
 
   # (1) when the quadrature points and the corresponding ses are provided
-  if(!is.null(weights)) {
-
+  if (!is.null(weights)) {
     # extract nodes and weights
     nodes <- weights[, 1]
     wts <- weights[, 2]
@@ -122,23 +124,28 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
     n.theta <- length(wts)
 
     # check if the provided inputs are correct
-    if(n.theta != length(se)) {
+    if (n.theta != length(se)) {
       stop("The numbers of weights and the standard errors must be equal.",
-           call.=FALSE)
+        call. = FALSE
+      )
     }
 
     # assign the levels to each theta
     level <-
-      cut(x = nodes, breaks = breaks, labels = FALSE,
-          include.lowest = TRUE, right = FALSE, dig.lab = 7)
+      cut(
+        x = nodes, breaks = breaks, labels = FALSE,
+        include.lowest = TRUE, right = FALSE, dig.lab = 7
+      )
 
     # create an empty data frame to contain the conditional
     # classification accuracy and consistency for each theta value
-    cond_tb <- data.frame(theta = nodes,
-                          weights = wts,
-                          level = level,
-                          accuracy = NA_real_,
-                          consistency = NA_real_)
+    cond_tb <- data.frame(
+      theta = nodes,
+      weights = wts,
+      level = level,
+      accuracy = NA_real_,
+      consistency = NA_real_
+    )
 
     # create an empty matrix to contain the probability
     # that each examinee with a specific ability is assigned
@@ -148,8 +155,7 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
 
     # compute the probabilities that is assigned to an examinee
     # with a specific ability
-    for(i in 1:n.theta) {
-
+    for (i in 1:n.theta) {
       # compute the cumulative probability across all cut scores
       cum_ps <- stats::pnorm(q = breaks, mean = nodes[i], sd = se[i])
 
@@ -164,7 +170,6 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
       # conditional classification consistency
       cond_cc <- sum(ps^2)
       cond_tb[i, 5] <- cond_cc
-
     }
 
     # compute the marginal accuracy and consistency
@@ -172,56 +177,68 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
       margin_tb <-
       cond_tb %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
-      dplyr::summarise(accuracy = sum(.data$accuracy * .data$weights),
-                       consistency = sum(.data$consistency * .data$weights),
-                       .groups = "drop") %>%
+      dplyr::summarise(
+        accuracy = sum(.data$accuracy * .data$weights),
+        consistency = sum(.data$consistency * .data$weights),
+        .groups = "drop"
+      ) %>%
       janitor::adorn_totals(where = "row", name = "marginal")
 
     # add more variables to ps_tb
     ps_tb2 <-
-      data.frame(theta = nodes, weights = wts,
-                 level = level, ps_tb)
+      data.frame(
+        theta = nodes, weights = wts,
+        level = level, ps_tb
+      )
 
     # create a cross table between true and expected levels
     cross_tb <-
       ps_tb2 %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
-        dplyr::across(dplyr::starts_with("p.level."),
-                      ~{sum(.x * .data$weights)}),
-        .groups = "drop") %>%
+        dplyr::across(
+          dplyr::starts_with("p.level."),
+          ~ {
+            sum(.x * .data$weights)
+          }
+        ),
+        .groups = "drop"
+      ) %>%
       dplyr::arrange(.data$level) %>%
       tibble::column_to_rownames("level") %>%
       data.matrix()
     dimnames(cross_tb) <- list(True = 1:n.lev, Expected = 1:n.lev)
-
   } else {
-
     # (2) when individual ability estimates and ses are provided
     # count the number of thetas
     n.theta <- length(theta)
 
     # check if the provided inputs are correct
-    if(n.theta != length(se)) {
+    if (n.theta != length(se)) {
       stop("The numbers of thetas and the standard errors must be equal.",
-           call.=FALSE)
+        call. = FALSE
+      )
     }
 
     # assign uniform weights
-    wts <- 1/n.theta
+    wts <- 1 / n.theta
 
     # assign the levels to each theta
     level <-
-      cut(x = theta, breaks = breaks, labels = FALSE,
-          include.lowest = TRUE, right = FALSE, dig.lab = 7)
+      cut(
+        x = theta, breaks = breaks, labels = FALSE,
+        include.lowest = TRUE, right = FALSE, dig.lab = 7
+      )
 
     # create an empty data frame to contain the conditional
     # classification accuracy and consistency for each theta value
-    cond_tb <- data.frame(theta = theta,
-                          weights = wts,
-                          level = level,
-                          accuracy = NA_real_,
-                          consistency = NA_real_)
+    cond_tb <- data.frame(
+      theta = theta,
+      weights = wts,
+      level = level,
+      accuracy = NA_real_,
+      consistency = NA_real_
+    )
 
     # create an empty matrix to contain the probability
     # that each examinee with a specific ability is assigned
@@ -231,8 +248,7 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
 
     # compute the probabilities that is assigned to an examinee
     # with a specific ability
-    for(i in 1:n.theta) {
-
+    for (i in 1:n.theta) {
       # compute the cumulative probability across all cut scores
       cum_ps <- stats::pnorm(q = breaks, mean = theta[i], sd = se[i])
 
@@ -247,36 +263,43 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
       # conditional classification consistency
       cond_cc <- sum(ps^2)
       cond_tb[i, 5] <- cond_cc
-
     }
 
     # compute the marginal accuracy and consistency
     margin_tb <-
       cond_tb %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
-      dplyr::summarise(accuracy = sum(.data$accuracy * .data$weights),
-                       consistency = sum(.data$consistency * .data$weights),
-                       .groups = "drop") %>%
+      dplyr::summarise(
+        accuracy = sum(.data$accuracy * .data$weights),
+        consistency = sum(.data$consistency * .data$weights),
+        .groups = "drop"
+      ) %>%
       janitor::adorn_totals(where = "row", name = "marginal")
 
     # add more variables to ps_tb
     ps_tb2 <-
-      data.frame(theta = theta, weights = wts,
-                 level = level, ps_tb)
+      data.frame(
+        theta = theta, weights = wts,
+        level = level, ps_tb
+      )
 
     # create a cross table between true and expected levels
     cross_tb <-
       ps_tb2 %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
-        dplyr::across(dplyr::starts_with("p.level."),
-                      ~{sum(.x * .data$weights)}),
-        .groups = "drop") %>%
+        dplyr::across(
+          dplyr::starts_with("p.level."),
+          ~ {
+            sum(.x * .data$weights)
+          }
+        ),
+        .groups = "drop"
+      ) %>%
       dplyr::arrange(.data$level) %>%
       tibble::column_to_rownames("level") %>%
       data.matrix()
     dimnames(cross_tb) <- list(True = 1:n.lev, Expected = 1:n.lev)
-
   }
 
   # return the results
@@ -288,5 +311,4 @@ cac_rud <- function(cutscore, theta=NULL, se, weights = NULL) {
     cutscore = cutscore
   )
   return(rst)
-
 }
