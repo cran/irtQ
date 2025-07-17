@@ -1,86 +1,91 @@
-#' Classification accuracy and consistency using Rudner's (2001, 2005) approach.
+#' Classification Accuracy and Consistency Based on Rudner's (2001, 2005)
+#' Approach
 #'
-#' @description
-#' This function computes the classification accuracy and consistency based on the methods
-#' proposed by Rudner (2001, 2005). It can handle both situations where the empirical ability
-#' distribution of the population is available and when individual ability estimates are available.
+#' This function computes classification accuracy and consistency indices using
+#' the method proposed by Rudner in 2001 and 2005. This function supports both
+#' scenarios: when the empirical ability distribution of the population is
+#' available, and when individual ability estimates are used.
 #'
-#' @param cutscore A numeric vector specifying the cut scores for classification.
-#' Cut scores are the points that separate different performance categories
-#' (e.g., pass vs. fail, or different grades).
-#' @param theta A numeric vector of ability estimates. Ability estimates (theta values)
-#' are the individual proficiency estimates obtained from the IRT model. The theta
-#' parameter is optional and can be NULL.
-#' @param se A numeric vector of the same length as theta indicating the standard
-#' errors of the ability estimates.
-#' @param weights An optional two-column data frame or matrix where the first column
-#' is the quadrature points (nodes) and the second column is the corresponding weights.
-#' This is typically used in quadrature-based IRT analysis.
+#' @inheritParams cac_lee
+#' @param se A numeric vector of the same length as `theta` representing the
+#'   standard errors associated with each ability estimate. See the **Details**
+#'   section for more information
 #'
-#' @details The function first checks the provided inputs for correctness. It then computes the
-#' probabilities that an examinee with a specific ability is assigned to each level category,
-#' and calculates the conditional classification accuracy and consistency for each theta value.
-#' Finally, it computes the marginal accuracy and consistency.
+#' @details This function first validates the input arguments. If both `theta`
+#' and `weights` are `NULL`, the function will stop and return an error message.
+#' Either `theta` or `weights` must be specified. In addition, `se` must be
+#' provided and must match the length of `theta` or the number of quadrature
+#' points in `weights`.
+#'
+#' It then computes the probability that an examinee with a given ability is
+#' classified into each performance level using the normal distribution function
+#' centered at each `theta` (or quadrature point) with standard deviation `se`.
+#' These probabilities are used to calculate conditional classification accuracy
+#' (the probability of being correctly classified) and conditional classification
+#' consistency (the probability of being consistently classified upon repeated
+#' testing) for each ability value.
+#'
+#' Finally, the function computes marginal classification accuracy and
+#' consistency across all examinees by aggregating the conditional indices with
+#' the associated weights.
 #'
 #' @return A list containing the following elements:
-#' \itemize{
-#' \item confusion: A confusion matrix showing the cross table between true and expected levels.
-#' \item marginal: A data frame showing the marginal classification accuracy and consistency indices.
-#' \item conditional: A data frame showing the conditional classification accuracy and consistency indices.
-#' \item prob.level: A data frame showing the probability of being assigned to each level category.
-#' \item cutscore: A numeric vector showing the cut scores used in the analysis.
-#' }
-#'
+#'  - confusion: A confusion matrix showing the cross table between true and expected levels.
+#'  - marginal: A data frame showing the marginal classification accuracy and consistency indices.
+#'  - conditional: A data frame showing the conditional classification accuracy and consistency indices.
+#'  - prob.level: A data frame showing the probability of being assigned to each level category.
+#'  - cutscore: A numeric vector showing the cut scores used in the analysis.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{gen.weight}}, \code{\link{est_score}}, \code{\link{cac_lee}}
+#' @seealso [irtQ::gen.weight()], [irtQ::est_score()], [irtQ::cac_lee()]
 #'
-#' @references
-#' Rudner, L. M. (2001). Computing the expected proportions of misclassified examinees.
-#' \emph{Practical Assessment, Research, and Evaluation, 7}(1), 14.
+#' @references Rudner, L. M. (2001). Computing the expected proportions of
+#'   misclassified examinees.
+#' *Practical Assessment, Research, and Evaluation, 7*(1), 14.
 #'
-#' Rudner, L. M. (2005). Expected classification accuracy. \emph{Practical Assessment,
-#' Research, and Evaluation, 10}(1), 13.
+#'   Rudner, L. M. (2005). Expected classification accuracy. *Practical
+#'   Assessment, Research, and Evaluation, 10*(1), 13.
 #'
 #' @examples
 #' \donttest{
-#' ## ------------------------------------------------------------------------------
-#' # 1. When the empirical ability distribution of the population is available
-#' ## ------------------------------------------------------------------------------
-#' ## import the "-prm.txt" output file from flexMIRT
+#' ## -------------------------------------------
+#' # 1. Using the empirical ability distribution
+#' ## -------------------------------------------
+#'
+#' # Import the "-prm.txt" output file from flexMIRT
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # read item parameter data and transform it to item metadata
+#' # Read item parameter estimates and convert them into item metadata
 #' x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
-#' # set the cut scores on the theta score metric
+#' # Define cut scores on the theta scale
 #' cutscore <- c(-2, -0.5, 0.8)
 #'
-#' # create the data frame including the quadrature points
-#' # and the corresponding weights
+#' # Create quadrature points and corresponding weights
 #' node <- seq(-4, 4, 0.25)
 #' weights <- gen.weight(dist = "norm", mu = 0, sigma = 1, theta = node)
 #'
-#' # compute the conditional standard errors across all quadrature points
+#' # Compute conditional standard errors across quadrature points
 #' tif <- info(x = x, theta = node, D = 1, tif = TRUE)$tif
 #' se <- 1 / sqrt(tif)
 #'
-#' # calculate the classification accuracy and consistency
+#' # Compute classification accuracy and consistency
 #' cac_1 <- cac_rud(cutscore = cutscore, se = se, weights = weights)
 #' print(cac_1)
 #'
-#' ## ------------------------------------------------------------------------------
-#' # 2. When individual ability estimates are available
-#' ## ------------------------------------------------------------------------------
-#' # randomly select the true abilities from N(0, 1)
+#' ## -----------------------------------------
+#' # 2. Using individual ability estimates
+#' ## -----------------------------------------
+#'
+#' # Generate true abilities from N(0, 1)
 #' set.seed(12)
 #' theta <- rnorm(n = 1000, mean = 0, sd = 1)
 #'
-#' # simulate the item response data
+#' # Simulate item response data
 #' data <- simdat(x = x, theta = theta, D = 1)
 #'
-#' # estimate the ability parameters and standard errors using the ML estimation
+#' # Estimate ability and standard errors using ML estimation
 #' est_theta <- est_score(
 #'   x = x, data = data, D = 1, method = "ML",
 #'   range = c(-4, 4), se = TRUE
@@ -88,14 +93,18 @@
 #' theta_hat <- est_theta$est.theta
 #' se <- est_theta$se.theta
 #'
-#' # calculate the classification accuracy and consistency
+#' # Compute classification accuracy and consistency
 #' cac_2 <- cac_rud(cutscore = cutscore, theta = theta_hat, se = se)
 #' print(cac_2)
 #' }
 #'
 #' @import dplyr
 #' @export
-cac_rud <- function(cutscore, theta = NULL, se, weights = NULL) {
+cac_rud <- function(cutscore,
+                    theta = NULL,
+                    se,
+                    weights = NULL) {
+
   # check if the provided inputs are correct
   if (missing(se)) {
     stop("The standard errors must be provided in `se` argument.", call. = FALSE)
@@ -104,7 +113,7 @@ cac_rud <- function(cutscore, theta = NULL, se, weights = NULL) {
   # check if the provided inputs are correct
   if (is.null(theta) & is.null(weights)) {
     stop("Eighter of `theta` or `weights` argument must not be NULL; both cannot be NULL",
-      call. = FALSE
+         call. = FALSE
     )
   }
 
@@ -126,7 +135,7 @@ cac_rud <- function(cutscore, theta = NULL, se, weights = NULL) {
     # check if the provided inputs are correct
     if (n.theta != length(se)) {
       stop("The numbers of weights and the standard errors must be equal.",
-        call. = FALSE
+           call. = FALSE
       )
     }
 
@@ -174,7 +183,6 @@ cac_rud <- function(cutscore, theta = NULL, se, weights = NULL) {
 
     # compute the marginal accuracy and consistency
     margin_tb <-
-      margin_tb <-
       cond_tb %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
@@ -216,7 +224,7 @@ cac_rud <- function(cutscore, theta = NULL, se, weights = NULL) {
     # check if the provided inputs are correct
     if (n.theta != length(se)) {
       stop("The numbers of thetas and the standard errors must be equal.",
-        call. = FALSE
+           call. = FALSE
       )
     }
 

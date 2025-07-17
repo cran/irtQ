@@ -1,6 +1,6 @@
-# Break down the item meta data with a data frame format into a list format
-# This function was developed by referring to the output format of "as.irt.pars()"
-# function in the plink (Weeks, 2010) R package.
+# Break down the item metadata from a data frame format into a list format
+# This function was developed by referencing the output format of the
+# "as.irt.pars()" function in the plink R package (Weeks, 2010).
 breakdown <- function(x) {
   # extract the id information
   id <- x$id

@@ -5,7 +5,7 @@
 \alias{summary.est_irt}
 \alias{summary.est_mg}
 \alias{summary.est_item}
-\title{Summary of item calibration}
+\title{Summary of Item Calibration Results}
 \usage{
 summary(object, ...)
 
@@ -16,40 +16,40 @@ summary(object, ...)
 \method{summary}{est_item}(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{\link{est_irt}} or \code{\link{est_item}}.}
+\item{object}{An object of class \code{est_irt}, \code{est_mg}, or \code{est_item}.}
 
-\item{...}{Further arguments passed to or from other methods.}
+\item{...}{Additional arguments passed to or from other methods (currently not used).}
 }
 \value{
-The method function returns a list of internal objects extracted from
-\code{\link{est_irt}} or \code{\link{est_item}} object and displays a summary of
-the IRT calibration results on the console panel.
+A list of internal components extracted from the given object. In addition,
+the summary method prints an overview of the IRT calibration results to the console.
 }
 \description{
-This method function summarizes the IRT calibration results of \code{\link{est_irt}}
-or \code{\link{est_item}} object.
+This S3 method summarizes the IRT calibration results from an object of class \code{est_irt},
+\code{est_mg}, or \code{est_item}, which are returned by the functions \code{\link[=est_irt]{est_irt()}},
+\code{\link[=est_mg]{est_mg()}}, and \code{\link[=est_item]{est_item()}}, respectively.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{summary(est_irt)}: An object created by the function \code{\link{est_irt}}.
+\item \code{summary(est_irt)}: An object created by the function \code{\link[=est_irt]{est_irt()}}.
 
-\item \code{summary(est_mg)}: An object created by the function \code{\link{est_mg}}.
+\item \code{summary(est_mg)}: An object created by the function \code{\link[=est_mg]{est_mg()}}.
 
-\item \code{summary(est_item)}: An object created by the function \code{\link{est_item}}.
+\item \code{summary(est_item)}: An object created by the function \code{\link[=est_item]{est_item()}}.
 
 }}
 \examples{
 \donttest{
-# fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
+# Fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
 fit.1pl <- est_irt(data = LSAT6, D = 1, model = "1PLM", cats = 2, fix.a.1pl = FALSE)
 
-# summary of the estimation
+# Display the calibration summary
 summary(fit.1pl)
 }
 
 }
 \seealso{
-\code{\link{est_irt}}, \code{\link{est_item}}
+\code{\link[=est_irt]{est_irt()}}, \code{\link[=est_mg]{est_mg()}}, \code{\link[=est_item]{est_item()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

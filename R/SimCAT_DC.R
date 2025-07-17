@@ -1,15 +1,20 @@
-#' Simulated single-item format CAT Data
+#' Simulated Single-Item Format CAT Data
 #'
-#' This data set contains an item pool information, response data, and examinee's ability estimates.
+#' A simulated dataset containing an item pool, sparse response data, and
+#' examinee ability estimates, designed for single-item computerized adaptive
+#' testing (CAT).
 #'
 #' @usage simCAT_DC
 #'
-#' @format This data includes a list of length three. The first internal object is a data.frame of
-#' the item pool consisting of 100 dichotomous items. The item parameters of the first 90 items were generated with
-#' the IRT 2PL model and calibrated with the same model. However, the item parameters of the last 10 items were
-#' generated with the IRT 3PL model but calibrated with the IRT 2PL model. The second internal object is the response
-#' data set including a sparse response data set of 10,000 examinees for the items in the item pool.
-#' The third internal object is the examinee's ability estimates for 10,000 examinees.
+#' @format A list of length three:
+#' \describe{
+#'   \item{item_pool}{A data frame in item metadata format containing 100 dichotomous items.
+#'   - Items 1–90: Generated and calibrated under the IRT 2PL model.
+#'   - Items 91–100: Generated under the IRT 3PL model but calibrated using the 2PL model.}
+#'
+#'   \item{response_data}{A sparse matrix of item responses from 10,000 examinees.}
+#'   \item{theta_estimates}{A numeric vector of ability estimates for the 10,000 examinees.}
+#' }
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'

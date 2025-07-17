@@ -1,46 +1,80 @@
 #' Compute Item/Test Characteristic Functions
 #'
-#' @description This function computes the item category probabilities, item characteristic function, and
-#' test characteristic function given a set of theta values. The returned object of this function can be used
-#' to draw the item or test characteristic curve using the function \code{\link{plot.traceline}}.
+#' This function computes item category probabilities, item characteristic
+#' curves (ICCs), and the test characteristic curve (TCC) for a given set of
+#' theta values. The returned object can be used to visualize these functions
+#' using [irtQ::plot.traceline()].
 #'
-#' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...), an object
-#' of class \code{\link{est_item}} obtained from the function \code{\link{est_item}}, or an object of class \code{\link{est_irt}}
-#' obtained from the function \code{\link{est_irt}}. See \code{\link{irtfit}}, \code{\link{info}}, or \code{\link{simdat}}
-#' for more details about the item metadata. The data frame of item metadata can be easily obtained using the function \code{\link{shape_df}}.
-#' @param theta A vector of theta values.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-#'          Default is 1.
-#' @param ... Further arguments passed to or from other methods.
+#' @inheritParams info
+#' @inheritParams est_score
+#' @param theta A numeric vector of theta values at which item and test
+#'   characteristic curves are computed.
 #'
-#' @return This function returns an object of class \code{\link{traceline}}. This object contains a list containing
-#' the item category probabilities, item characteristic function, and test characteristic function.
+#' @details
+#' This function computes the item and test characteristic functions commonly
+#' used in IRT. For each item, the function computes the category response
+#' probabilities across a specified set of theta values. These probabilities are
+#' used to derive:
+#'
+#'  - The item characteristic curve (ICC), which represents the expected score
+#'  of each item as a function of theta.
+#'  - The test characteristic curve (TCC), which is the sum of expected item
+#'  scores at each theta value.
+#'
+#' The output object can be visualized using the [irtQ::plot.traceline] to
+#' inspect the relationship between ability levels (theta) and expected
+#' item/test scores.
+#'
+#' If the input `x` is an object of class `est_item` or `est_irt`, the function
+#' automatically extracts item parameter estimates and the scaling constant
+#' `D` from the object. Otherwise, a properly formatted item metadata data frame
+#' must be provided.
+#'
+#' @return This function returns an object of class `traceline`, which is a list
+#' containing the following components:
+#'
+#'   \item{prob.cats}{A list of data frames containing the category response
+#'   probabilities for each item across the specified theta values. Each data
+#'   frame corresponds to an item, with rows representing theta values and
+#'   columns representing response categories (e.g., `"resp.0"`, `"resp.1"`, ...).}
+#'
+#'   \item{icc}{A numeric matrix representing ICCs. Each column corresponds to
+#'   an item, and each row represents the expected item score at a given theta value.
+#'   The column names are the item IDs.}
+#'
+#'   \item{tcc}{A numeric vector representing the TCC, computed as the sum of
+#'   expected item scores across all items at each theta value.}
+#'
+#'   \item{theta}{A numeric vector of theta values at which the item and test
+#'   information functions are evaluated. This matches the user-supplied
+#'   `theta` argument.}
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{plot.traceline}}, \code{\link{est_item}}
+#' @seealso [irtQ::plot.traceline()], [irtQ::est_irt()], [irtQ::est_item()]
 #'
 #' @examples
-#' ## example
-#' ## using a "-prm.txt" file obtained from a flexMIRT
-#' # import the "-prm.txt" output file from flexMIRT
+#' ## Example using a "-prm.txt" file exported from flexMIRT
+#'
+#' # Import the "-prm.txt" output file from flexMIRT
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # read item parameters and transform them to item metadata
+#' # Read the item parameters and convert them into item metadata
 #' test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
-#' # set theta values
+#' # Define a sequence of theta values
 #' theta <- seq(-3, 3, 0.5)
 #'
-#' # compute the item category probabilities and item/test
-#' # characteristic functions given the theta values
+#' # Compute item category probabilities, ICCs,
+#' # and the TCC for the given theta values
 #' traceline(x = test_flex, theta, D = 1)
 #'
 #' @export
 traceline <- function(x, ...) UseMethod("traceline")
 
-#' @describeIn traceline Default method to compute the item category probabilities, item characteristic function, and
-#' test characteristic function for a data frame \code{x} containing the item metadata.
+#' @describeIn traceline Default method to compute the item category probabilities,
+#' item characteristic function, and test characteristic function for a data frame
+#' `x` containing the item metadata.
 #' @importFrom Rfast rowsums
 #' @import dplyr
 #' @export
@@ -147,7 +181,7 @@ traceline.default <- function(x, theta, D = 1, ...) {
 
 
 
-#' @describeIn traceline An object created by the function \code{\link{est_item}}.
+#' @describeIn traceline An object created by the function [irtQ::est_item()].
 #' @importFrom Rfast rowsums
 #' @import dplyr
 #' @export
@@ -257,7 +291,7 @@ traceline.est_item <- function(x, theta, ...) {
 }
 
 
-#' @describeIn traceline An object created by the function \code{\link{est_irt}}.
+#' @describeIn traceline An object created by the function [irtQ::est_irt()].
 #' @importFrom Rfast rowsums
 #' @import dplyr
 #' @export

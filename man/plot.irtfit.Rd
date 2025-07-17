@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_irtfit.R
 \name{plot.irtfit}
 \alias{plot.irtfit}
-\title{Draw raw and standardized residual plots}
+\title{Draw Raw and Standardized Residual Plots}
 \usage{
 \method{plot}{irtfit}(
   x,
@@ -27,144 +27,185 @@
 )
 }
 \arguments{
-\item{x}{An object of class \code{\link{irtfit}}.}
+\item{x}{x An object of class \code{irtfit} obtained from \code{\link[=irtfit]{irtfit()}}.}
 
-\item{item.loc}{An integer value indicating that the \emph{n}th item (or the location of the item) is plotted. See below for
-details.}
+\item{item.loc}{An integer specifying the position of the item to be plotted
+(i.e., the \emph{n}th item in the item set). See \strong{Details} below.}
 
-\item{type}{A character string indicating what type of residual plot is returned. Available options
-are "icc" for the raw residual plot, "sr" for the standardized residual plot, and "both" for both of them.
-Default is "both".}
+\item{type}{A character string indicating the type of residual plot to be
+displayed. Available options are:
+\itemize{
+\item \code{"icc"} for the raw residual plot
+\item \code{"sr"} for the standardized residual plot
+\item \code{"both"} for displaying both plots
+}
 
-\item{ci.method}{A character string indicating what method is used to estimate the confidence interval for the raw residual plot.
-Available options are "wald" for Wald method, "wilson" for Wilson score interval, and
-"wilson.cr" for Wilson score interval with continuity correction. Default is "wald". See below for details.}
+Default is \code{"both"}.}
 
-\item{show.table}{A logical value. If TRUE, a contingency table containing the information used to draw the residual
-plots for the studied item is returned. This contingency table is the same as one contained in the internal object of \code{contingency.plot}
-in the object of class \code{\link{irtfit}}. Default is TRUE.}
+\item{ci.method}{A character string specifying the method used to compute
+confidence intervals for the raw residual plot. Available options are:
+\itemize{
+\item \code{"wald"} for the Wald method
+\item \code{"wilson"} for the Wilson score interval
+\item \code{"wilson.cr"} for the Wilson interval with continuity correction
+}
 
-\item{layout.col}{An integer value indicating the number of columns in the panel when a polytomous item is used.
-Default is 2.}
+Default is \code{"wald"}. See \strong{Details} below.}
 
-\item{xlab.text}{A title for the x axis. If missing, the default string is used.}
+\item{show.table}{A logical value indicating whether to return the
+contingency table used for drawing the residual plots of the specified
+item. If \code{TRUE}, the function returns the same contingency table stored in the
+internal \code{contingency.plot} object of the \code{irtfit} object. Default is \code{TRUE}.}
 
-\item{ylab.text}{A title for the y axis. If \code{type = "both"}, two character strings can be
-specified for the raw residual and standardized residual plots, respectively. If missing,
-the default strings are used.}
+\item{layout.col}{An integer specifying the number of columns in the panel layout
+when plotting residuals for a polytomous item. Default is 2.}
 
-\item{main.text}{An overall title for the plot. If \code{type = "both"}, two character strings
-can be specified for the raw residual and standardized residual plots, respectively. If missing,
-the default strings are used.}
+\item{xlab.text}{A character string specifying the title for the x-axis.
+If omitted, a default label is used.}
 
-\item{lab.size}{The size of xlab and ylab. Default is 15.}
+\item{ylab.text}{A character string specifying the title for the y-axis.
+If \code{type = "both"}, a character vector of length two can be provided,
+corresponding to the y-axis titles for the raw residual and standardized
+residual plots, respectively. If omitted, default labels are used.}
 
-\item{main.size}{The size of \code{main.text}. Default is 15.}
+\item{main.text}{A character string specifying the main title for the plot.
+If \code{type = "both"}, a character vector of length two can be provided,
+corresponding to the main titles for the raw residual and standardized
+residual plots, respectively. If omitted, default titles are used.}
 
-\item{axis.size}{The size of labels along the x and y axes. Default is 15.}
+\item{lab.size}{Numeric value specifying the font size of axis titles.
+Default is 15.}
 
-\item{line.size}{The size of lines. Default is 1.}
+\item{main.size}{Numeric value specifying the font size of the plot title.
+Default is 15.}
 
-\item{point.size}{The size of points. Default is 2.5.}
+\item{axis.size}{Numeric value specifying the font size of axis tick labels.
+Default is 15.}
 
-\item{strip.size}{The size of facet labels. Default is 12.}
+\item{line.size}{Numeric value specifying the thickness of plot lines.
+Default is 1.}
 
-\item{ylim.icc}{A vector of two numeric values specifying the range of y axis for the raw residual plot. Default is c(0, 1).}
+\item{point.size}{A numeric value specifying the size of points. Default is 2.5.}
 
-\item{ylim.sr.adjust}{A logical value. If TRUE, the range of y axis for the standardized residual plot is adjusted for each item.
-If FALSE, the range of y axis for the standardized residual plot is fixed to the values specified in the argument \code{ylim.sr}.}
+\item{strip.size}{A numeric value specifying the size of facet label text. Default is 12.}
 
-\item{ylim.sr}{A vector of two numeric values specifying the range of y axis for the standardized residual plot.
-Default is c(-4, 4).}
+\item{ylim.icc}{A numeric vector of length two specifying the y-axis limits
+for the raw residual plot. Default is c(0, 1).}
 
-\item{...}{Further arguments passed from the function \code{ggplot()} in the \pkg{ggplot2} package.}
+\item{ylim.sr.adjust}{Logical. If \code{TRUE}, the y-axis range for the
+standardized residual plot is automatically adjusted based on the maximum
+residual value for each item. If \code{FALSE}, the range is fixed according to
+the values specified in the \code{ylim.sr} argument. Default is \code{FALSE}.}
+
+\item{ylim.sr}{A numeric vector of length two specifying the y-axis limits
+for the standardized residual plot. Default is c(-4, 4).}
+
+\item{...}{Additional arguments passed to \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} from the
+\pkg{ggplot2} package.}
 }
 \value{
-This method function displays the IRT raw residual plot, the standard residual plot, or both of the studied item.
-when \code{show.table = TRUE}, a contingency table used to draw the residual plots is also returned. See \code{\link{irtfit}}
-for more detail about the contingency table.
+This method displays the IRT raw residual plot, standardized
+residual plot, or both for the specified item. When \code{show.table = TRUE}, a
+contingency table used to generate the residual plots is also returned.
+See \code{\link[=irtfit]{irtfit()}} for more details about the contingency table.
 }
 \description{
-This method function provides graphical displays to look at residuals between the observed data
-and model-based predictions (Hambleton, Swaminathan, & Rogers, 1991). This function gives two residual plots for
-each score category of an item: (a) the raw residual plot and (b) the standardized residual plot. Note that
-for dichotomous items the residual plots are drawn only for the score category of 1.
+This method provides graphical displays of the residuals between
+observed data and model-based predictions (Hambleton et al., 1991).
+For each score category of an item, it generates two types of residual plots:
+(a) the raw residual plot and (b) the standardized residual plot.
+Note that for dichotomous items, residual plots are drawn only for score
+category 1.
 }
 \details{
-All of the plots are drawn using the ggplot2 package.
+All plots are generated using the \pkg{ggplot2} package.
 
-Once the results of the IRT model fit analysis are obtained from the function \code{\link{irtfit}},
-an object of class \code{\link{irtfit}} can be used to draw the IRT raw residual and standardized residual plots. Especially, the information
-contained in an internal object of \code{contingency.plot} are mainly used to draw the residual plots.
+Once the IRT model fit analysis is completed using \code{\link[=irtfit]{irtfit()}}, the
+resulting object of class \code{irtfit} can be used to draw raw and standardized
+residual plots.These plots are primarily based on the information stored in
+the internal object \code{contingency.plot}.
 
-Because the residual plots are drawn for an item at a time, you have to indicate which item will be evaluated. For this,
-you should specify an integer value, which is the location of the studied item, in the argument \code{item.loc}.
-For example, if you want to draw the residual plots for the third item, then \code{item.loc = 3}.
+Because residual plots are generated for one item at a time, you must
+specify which item to evaluate by providing an integer value for the
+\code{item.loc} argument, indicating the item's position in the test form.
+For example, to draw residual plots for the third item, set \code{item.loc = 3}.
 
-In terms of the raw residual plot, the argument \code{ci.method} is used to select a method to estimate the confidence intervals
-among four methods. Those methods are "wald" for the Wald interval, which is based on the normal approximation (Laplace, 1812),
-"wilson" for Wilson score interval (Wilson, 1927), and "wilson.cr" for Wilson score interval with continuity correction (Newcombe, 1998).
-See \url{https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval} for more details about
-the binomial proportion confidence intervals. Note that the width of confidence interval is determined by the \eqn{\alpha}-level
-specified in the argument \code{alpha} of the function \code{\link{irtfit}}.
+For the raw residual plot, the \code{ci.method} argument determines the method
+used to estimate confidence intervals. The available methods are:
+\itemize{
+\item \code{"wald"}: Wald interval based on the normal approximation (Laplace, 1812)
+\item \code{"wilson"}: Wilson score interval (Wilson, 1927)
+\item \code{"wilson.cr"}: Wilson score interval with continuity correction (Newcombe, 1998)
+}
 
-Regarding the standardized residual plot, any standardized residuals greater than the specified criterion value
-in the argument {\code{overSR}} of the function \code{\link{irtfit}} are displayed with circles. Otherwise,
-they are displayed with crosses.
+For more information, see
+\url{https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval}.
+Note that the width of the confidence interval is governed by the
+\eqn{\alpha}-level specified in the \code{alpha} argument of the
+\code{\link[=irtfit]{irtfit()}} function.
+
+For the standardized residual plot, residuals exceeding the threshold
+specified in the \code{overSR} argument of the \code{\link[=irtfit]{irtfit()}} function
+are displayed as circles. Residuals that do not exceed the threshold
+are displayed as crosses.
 }
 \examples{
-## import the "-prm.txt" output file from flexMIRT
+## Import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# select the first two dichotomous items and last polytomous item
+# Select the first two dichotomous items and the last polytomous item
 x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df[c(1:2, 55), ]
 
-# generate examinees' abilities from N(0, 1)
+# Generate examinees' abilities from N(0, 1)
 set.seed(23)
 score <- rnorm(1000, mean = 0, sd = 1)
 
-# simulate the response data
+# Simulate response data
 data <- simdat(x = x, theta = score, D = 1)
 
 \donttest{
-# compute fit statistics
+# Compute fit statistics
 fit <- irtfit(
   x = x, score = score, data = data, group.method = "equal.freq",
   n.width = 11, loc.theta = "average", range.score = c(-4, 4), D = 1,
   alpha = 0.05, overSR = 1.5
 )
 
-# residual plots for the first item (dichotomous item)
+# Residual plots for the first item (dichotomous item)
 plot(x = fit, item.loc = 1, type = "both", ci.method = "wald",
      show.table = TRUE, ylim.sr.adjust = TRUE)
 
-# residual plots for the third item (polytomous item)
+# Residual plots for the third item (polytomous item)
 plot(x = fit, item.loc = 3, type = "both", ci.method = "wald",
      show.table = FALSE, ylim.sr.adjust = TRUE)
 
-# raw residual plot for the third item (polytomous item)
+# Raw residual plot for the third item (polytomous item)
 plot(x = fit, item.loc = 3, type = "icc", ci.method = "wald",
      show.table = TRUE, ylim.sr.adjust = TRUE)
 
-# standardized residual plot for the third item (polytomous item)
+# Standardized residual plot for the third item (polytomous item)
 plot(x = fit, item.loc = 3, type = "sr", ci.method = "wald",
      show.table = TRUE, ylim.sr.adjust = TRUE)
 }
 
 }
 \references{
-Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991).\emph{Fundamentals of item response theory}. Newbury Park, CA: Sage.
+Hambleton, R. K., Swaminathan, H., & Rogers, H. J.
+(1991).\emph{Fundamentals of item response theory}. Newbury Park, CA: Sage.
 
-Laplace, P. S. (1820).\emph{Theorie analytique des probabilites} (in French). Courcier.
+Laplace, P. S. (1820).\emph{Theorie analytique des probabilites} (in French).
+Courcier.
 
-Newcombe, R. G. (1998). Two-sided confidence intervals for the single proportion: comparison of seven methods.
+Newcombe, R. G. (1998). Two-sided confidence intervals for the single
+proportion: comparison of seven methods.
 \emph{Statistics in medicine, 17}(8), 857-872.
 
-Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference.
+Wilson, E. B. (1927). Probable inference, the law of succession, and
+statistical inference.
 \emph{Journal of the American Statistical Association, 22}(158), 209-212.
 }
 \seealso{
-\code{\link{irtfit}}
+\code{\link[=irtfit]{irtfit()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

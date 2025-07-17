@@ -8,147 +8,212 @@ pcd2(
   x,
   data,
   D = 1,
+  item.skip = NULL,
   missing = NA,
   Quadrature = c(49, 6),
   weights = NULL,
   group.mean = 0,
-  group.var = 1
+  group.var = 1,
+  crit.val = NULL,
+  min.resp = NULL,
+  purify = FALSE,
+  max.iter = 10,
+  verbose = TRUE
 )
 }
 \arguments{
-\item{x}{A data frame containing the metadata for the item bank, which includes
-important information for each item such as the number of score categories and the
-IRT model applied. See \code{\link{est_irt}}, \code{\link{irtfit}},
-\code{\link{info}} or \code{\link{simdat}} for more detail about the item metadata.}
+\item{x}{A data frame containing item metadata (e.g., item parameters, number
+of categories, IRT model types, etc.). See \code{\link[=est_irt]{est_irt()}} or
+\code{\link[=simdat]{simdat()}} for more details about the item metadata. This data frame
+can be easily created using the \code{\link[=shape_df]{shape_df()}} function.}
 
-\item{data}{A matrix containing examinees' response data of the items in the
-argument \code{x}. A row and column indicate the examinees and items, respectively.}
+\item{data}{A matrix of examinees' item responses corresponding to the items
+specified in the \code{x} argument. Rows represent examinees and columns
+represent items.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as
-possible to the normal ogive function (if set to 1.7). Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{missing}{A value indicating missing values in the response data set. Default is NA.}
+\item{item.skip}{A numeric vector of item indices to exclude from IPD analysis.
+If \code{NULL}, all items are included. Useful for omitting specific items based on
+prior insights.}
 
-\item{Quadrature}{A numeric vector of two components specifying the number of quadrature
-points (in the first component) and the symmetric minimum and maximum values of these points
-(in the second component). For example, a vector of c(49, 6) indicates 49 rectangular
-quadrature points over -6 and 6.}
+\item{missing}{A value indicating missing responses in the data set. Default
+is \code{NA}.}
 
-\item{weights}{A two-column matrix or data frame containing the quadrature points
-(in the first column) and the corresponding weights (in the second column) of the latent
-variable prior distribution. If not NULL, the scale of the latent ability distribution will
-be will be fixed to the scale of the provided quadrature points and weights.
-The weights and quadrature points can be easily obtained using the function \code{\link{gen.weight}}.
-If NULL, a normal prior density is used based on the information provided in the arguments
-of \code{Quadrature}, \code{group.mean}, and \code{group.var}). Default is NULL.}
+\item{Quadrature}{A numeric vector of length two:
+\itemize{
+\item first element: number of quadrature points
+\item second element: symmetric bound (absolute value) for those points
+For example, \code{c(49, 6)} specifies 49 evenly spaced points from –6 to 6.
+These points are used in the E-step of the EM algorithm. Default is \code{c(49,   6)}.
+}}
 
-\item{group.mean}{A numeric value to set the mean of latent variable prior distribution
-when \code{weights = NULL}. Default is 0.}
+\item{weights}{A two-column matrix or data frame containing the quadrature
+points (in the first column) and their corresponding weights (in the second
+column) for the latent variable prior distribution. If not \code{NULL}, the
+scale of the latent ability distribution is fixed to match the scale of the
+provided quadrature points and weights. The weights and points can be
+conveniently generated using the function \code{\link[=gen.weight]{gen.weight()}}.
 
-\item{group.var}{A positive numeric value to set the variance of latent variable
-prior distribution when \code{weights = NULL}. Default is 1.}
+If \code{NULL}, a normal prior density is used instead, based on the
+information provided in the \code{Quadrature}, \code{group.mean}, and \code{group.var}
+arguments. Default is \code{NULL}.}
+
+\item{group.mean}{A numeric value specifying the mean of the latent variable
+prior distribution when \code{weights = NULL}. Default is 0. This value is fixed
+to resolve the indeterminacy of the item parameter scale during
+calibration.}
+
+\item{group.var}{A positive numeric value specifying the variance of the
+latent variable prior distribution when \code{weights = NULL}. Default is 1.
+This value is fixed to resolve the indeterminacy of the item parameter
+scale during calibration.}
+
+\item{crit.val}{A critical value applied in hypothesis testing using
+the Pseudo-count \eqn{D^{2}} statistic. Default is \code{NULL}.}
+
+\item{min.resp}{A positive integer specifying the minimum required number of
+responses for each evaluated item. Defaults to \code{NULL}.}
+
+\item{purify}{Logical. Indicates whether to apply a purification procedure.
+Default is \code{FALSE}.}
+
+\item{max.iter}{A positive integer specifying the maximum number of
+iterations allowed for the purification process. Default is \code{10}.}
+
+\item{verbose}{Logical. If \code{TRUE}, progress messages from the purification
+procedure will be displayed; if \code{FALSE}, the messages will be suppressed.
+Default is \code{TRUE}.}
 }
 \value{
-A data frame containing the Pseudo-count \eqn{D^{2}} statistic for each item
-in the analysis. The data frame includes the following columns:
- \item{id}{The unique identifier for each item, corresponding to the item IDs provided in
-  the \code{x} argument.}
- \item{pcd2}{The computed Pseudo-count \eqn{D^{2}} statistic for each item, which quantifies
-  the degree of item parameter drift by comparing observed and expected response frequencies.}
-\item{N}{The number of examinees whose responses were used to calculate the Pseudo-count
-  \eqn{D^{2}} statistic for each item, reflecting the sample size involved in the computation.}
+This function returns a list containing four main components:
+
+\item{no_purify}{A list containing the results of Pseudo-count \eqn{D^{2}} analysis
+without applying the purification procedure. It includes:
+\describe{
+\item{ipd_stat}{A data frame summarizing the Pseudo-count \eqn{D^{2}} statistics
+for all items. The columns include:
+\code{id} (item ID),
+\code{pcd2} (the computed \eqn{D^{2}} value), and
+\code{N} (the number of valid examinee responses per item).}
+\item{ipd_item}{A numeric vector of item indices that were flagged as exhibiting
+item parameter drift (IPD), based on the specified critical value \code{crit.val}.
+If no items are flagged or \code{crit.val = NULL}, this is \code{NULL}.}
+}
+}
+
+\item{purify}{A logical value indicating whether the iterative purification
+procedure was applied (\code{TRUE}) or not (\code{FALSE}).}
+
+\item{with_purify}{A list containing the results of Pseudo-count \eqn{D^{2}} analysis
+after applying the purification procedure. This list is populated only when both
+\code{purify = TRUE} and \code{crit.val} is not \code{NULL}. It includes:
+\describe{
+\item{ipd_stat}{A data frame reporting the final Pseudo-count \eqn{D^{2}} statistics
+after purification. Columns include:
+\code{id} (item ID),
+\code{pcd2} (the computed \eqn{D^{2}} value),
+\code{N} (the number of valid responses), and
+\code{n.iter} (the iteration number in which each item was evaluated).}
+\item{ipd_item}{A numeric vector of item indices flagged as IPD items during
+purification. Items are ordered by the iteration in which they were flagged.}
+\item{n.iter}{An integer indicating the number of purification iterations
+completed.}
+\item{complete}{A logical value indicating whether the purification procedure
+converged before reaching the maximum number of iterations (\code{max.iter}).
+If \code{FALSE}, the iteration limit was reached before convergence.}
+}
+}
+
+\item{crit.val}{A numeric value indicating the critical threshold used to flag
+items for parameter drift. If not specified by the user, this will be \code{NULL}.}
 }
 \description{
 This function calculates the Pseudo-count \eqn{D^{2}} statistic
-to evaluate item parameter drift, as described by Cappaert et al. (2018) and Stone (2000).
-The Pseudo-count \eqn{D^{2}} statistic is designed to detect item parameter drift efficiently
-without requiring item recalibration, making it especially valuable in computerized adaptive
-testing (CAT) environments. This method compares observed and expected response frequencies
-across quadrature points, which represent latent ability levels. The expected frequencies are
-computed using the posterior distribution of each examinee's ability (Stone, 2000), providing
-a robust and sensitive measure of item parameter drift, ensuring the stability and accuracy
-of the test over time.
+to evaluate item parameter drift, as described by Cappaert et al. (2018) and
+Stone (2000). The Pseudo-count \eqn{D^{2}} statistic is designed to detect
+item parameter drift efficiently without requiring item recalibration, making
+it especially valuable in computerized adaptive testing (CAT) environments.
+This method compares observed and expected response frequencies across
+quadrature points, which represent latent ability levels. The expected
+frequencies are computed using the posterior distribution of each examinee's
+ability (Stone, 2000), providing a robust and sensitive measure of item
+parameter drift, ensuring the stability and accuracy of the test over time.
 }
 \details{
-The Pseudo-count \eqn{D^{2}} values are calculated by summing the
-weighted squared differences between the observed and expected frequencies
-for each score category across all items. The expected frequencies are determined
-using the posterior distribution of each examinee's ability (Stone, 2000).
+The Pseudo-count \eqn{D^{2}} statistic quantifies item parameter drift (IPD) by
+computing the weighted squared differences between the observed and expected
+response frequencies for each score category across ability levels. The expected
+frequencies are determined using the posterior distribution of each examinee's
+ability (Stone, 2000).
 
 The Pseudo-count \eqn{D^{2}} statistic is calculated as:
 \deqn{
-Pseudo-count D^{2} = \sum_{k=1}^{Q} \left( \frac{r_{0k} + r_{1k}}{N}\right) \left( \frac{r_{1k}}{r_{0k} + r_{1k}} - E_{1k} \right)^2
+Pseudo-count D^{2} = \sum_{k=1}^{Q} \left( \frac{r_{0k} + r_{1k}}{N}\right)
+\left( \frac{r_{1k}}{r_{0k} + r_{1k}} - E_{1k} \right)^2
 }
 
-where \eqn{r_{0k}} and \eqn{r_{1k}} are the pseudo-counts for the incorrect and correct responses
-at each ability level \eqn{k}, \eqn{E_{1k}} is the expected proportion of correct responses at each ability level \eqn{k},
-calculated using item parameters from the item bank, and \eqn{N} is the total count of examinees
-who received each item
+where \eqn{r_{0k}} and \eqn{r_{1k}} are the pseudo-counts for the incorrect
+and correct responses at each ability level \eqn{k}, \eqn{E_{1k}} is the
+expected proportion of correct responses at each ability level \eqn{k},
+calculated using item parameters from the item bank, and \eqn{N} is the total
+count of examinees who received each item.
 
-The \code{\link{pcd2}} function is designed to be flexible and allows for detailed control over
-the computation process through its various arguments:
+\strong{Critical Value (\code{crit.val})}:
+The \code{crit.val} argument specifies the threshold used to flag an item as
+exhibiting potential parameter drift. If an item's Pseudo-count \eqn{D^{2}}
+value exceeds this threshold, it is identified as a drifted item. If
+\code{crit.val = NULL}, the function reports the raw statistic without flagging.
 
-\describe{
-  \item{x}{The metadata should include key information such as the number of score
-  categories for each item, the IRT model applied (e.g., "1PLM", "2PLM", "3PLM"),
-  and the item parameters (e.g., discrimination, difficulty, guessing). This
-  data frame is crucial because it defines the structure of the items and
-  the parameters used in the calculation of expected frequencies.}
+\strong{Minimum Response Count (\code{min.resp})}:
+The \code{min.resp} argument sets a lower bound on the number of responses required
+for an item to be included in the analysis. Items with fewer responses than
+\code{min.resp} are automatically excluded by replacing all their responses
+with \code{NA}. This avoids unreliable estimates based on small sample sizes.
 
-  \item{data}{The response matrix should be preprocessed to ensure that missing values
-  are correctly coded (using the `missing` argument if needed). The matrix is
-  the foundation for calculating both observed and expected frequencies for
-  each item and score category. Ensure that the number of items in this matrix
-  matches the number specified in the `x` argument.}
-
-  \item{Quadrature}{The quadrature points are used to approximate the latent ability
-  distribution, which is essential for accurately estimating the posterior
-  distribution of abilities. Adjust the number and range of quadrature points
-  based on the precision required and the characteristics of the examinee population.}
-
-  \item{weights}{This argument allows you to provide a custom two-column matrix or data
-  frame where the first column contains quadrature points and the second column contains
-  the corresponding weights. This provides flexibility in defining the latent ability
-  distribution. If `weights` is set to `NULL`, the function generates a normal prior
-  distribution based on the values provided in `Quadrature`, `group.mean`, and
-  `group.var`. Use this argument when you have a specific latent ability distribution
-  you wish to apply, such as one derived from empirical data or an alternative theoretical
-  distribution.}
-
-  \item{group.mean, group.var}{These numeric values define the mean and variance
-  of the latent ability distribution when `weights` is not provided. The default values
-  are `group.mean = 0` and `group.var = 1`, which assume a standard normal distribution.
-  These values are used to generate quadrature points and weights internally if `weights`
-  is `NULL`. Adjust `group.mean` and `group.var` to reflect the expected distribution
-  of abilities in your examinee population, particularly if you suspect that the latent
-  trait distribution deviates from normality.}
-
+\strong{Purification Procedure}:
+Although Cappaert et al. (2018) did not incorporate purification into their method,
+\code{\link[=pcd2]{pcd2()}} implements an optional iterative purification process similar
+to Lim et al. (2022). When \code{purify = TRUE} and a \code{crit.val} is provided:
+\itemize{
+\item The procedure begins by identifying items flagged for drift using the initial
+Pseudo-count \eqn{D^{2}} statistics.
+\item In each subsequent iteration, the item with the highest flagged Pseudo-count
+\eqn{D^{2}} value is removed from the item set, and the statistics are recalculated
+using only the remaining items.
+\item The process continues until no additional items are flagged or the
+number of iterations reaches \code{max.iter}.
+\item All flagged items and statistics are saved, and convergence status is reported.
 }
-
-When setting these arguments, consider the specific characteristics of your item
-bank, the distribution of abilities in your examinee population, and the computational
-precision required. Properly configured, the function provides robust and accurate
-Pseudo-count \eqn{D^{2}} statistics, enabling effective monitoring of item parameter
-drift in CAT or other IRT-based testing environments.
+This process ensures that drift detection is not distorted by already-flagged items,
+improving the robustness of the results.
 }
 \examples{
-## Compute the pseudo-count D2 statistics for the dichotomous items
-## import the "-prm.txt" output file from flexMIRT
+## Example 1: No critical value specified
+## Compute the Pseudo-count D² statistics for dichotomous items
+## Import the "-prm.txt" output file generated by flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# select the first 30 3PLM item metadata to be examined
+# Extract metadata for the first 30 3PLM items
 x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df[1:30, 1:6]
 
-# generate examinees' abilities from N(0, 1)
+# Generate abilities for 500 examinees from N(0, 1)
 set.seed(25)
 score <- rnorm(500, mean = 0, sd = 1)
 
-# simulate the response data
+# Simulate response data using the item metadata and ability values
 data <- simdat(x = x, theta = score, D = 1)
 
-# compute the pseudo-count D2 statistics
+# Compute the Pseudo-count D² statistics (no purification applied)
 ps_d2 <- pcd2(x = x, data = data)
 print(ps_d2)
+
+## Example 2: Applying a critical value with purification
+# Compute the Pseudo-count D² statistics with purification enabled
+ps_d2_puri <- pcd2(x = x, data = data, crit.val = 0.002, purify = TRUE)
+print(ps_d2_puri)
 
 }
 \references{

@@ -1,56 +1,77 @@
 #' Generate Weights
 #'
-#' @description This function generates a set of weights based on a set of theta values to be used in the functions \code{\link{est_score}}
-#' and \code{\link{sx2_fit}}.
+#' This function generates a set of normalized weights based on theta (ability)
+#' values to be used in functions such as [irtQ::est_score()],
+#' [irtQ::sx2_fit()], and [irtQ::covirt()].
 #'
-#' @param n An integer identifying the number of theta (or node) values for which weights are generated. Default is 41.
-#' @param dist A character string specifying a probability distribution from which the weights are generated. Available distributions are
-#' "norm" for a normal distribution, "unif" for a uniform distribution, and "emp" for an empirical distribution.
-#' When \code{dist = "norm"}, either \code{n} or \code{theta} can be specified, when \code{dist = "unif"},
-#' only \code{n} can be used, and when \code{dist = "emp"}, only \code{theta} can be used.
-#' @param mu,sigma A mean and standard deviation of a normal distribution.
-#' @param l,u Lower and upper limits of a uniform distribution.
-#' @param theta A vector of empirical theta (or node) values for which weights are generated.
+#' @param n An integer specifying the number of theta (node) values for which
+#'   weights are to be generated. Default is 41.
+#' @param dist A character string indicating the distribution type used to
+#'   generate weights. Available options are `"norm"` for a normal distribution,
+#'   `"unif"` for a uniform distribution, and `"emp"` for an empirical
+#'   distribution.
+#'   - If `dist = "norm"`, either `n` or `theta` must be provided.
+#'   - If `dist = "unif"`, only `n` is applicable.
+#'   - If `dist = "emp"`, only `theta` must be specified.
+#' @param mu,sigma Mean and standard deviation of the normal distribution (used
+#'   when `dist = "norm"`).
+#' @param l,u Lower and upper bounds of the uniform distribution (used when
+#'   `dist = "unif"`).
+#' @param theta A numeric vector of empirical theta (node) values for which
+#'   weights are generated.
 #'
-#' @details When the argument \code{theta} is missing, \emph{n} weights can be generated from either the normal distribution or the uniform distribution.
-#' Note that if \code{dist = "norm"}, gaussian quadrature points and weights from the normal distribution are generated. See
-#' \code{gauss.quad.prob()} in the \pkg{statmod} package for more details.
+#' @details If `theta` is not specified, *n* equally spaced quadrature points
+#' and corresponding weights are generated from either the normal or uniform
+#' distribution:
+#' - When `dist = "norm"`, Gaussian quadrature points and weights are computed
+#' using `gauss.quad.prob()` from the \pkg{statmod} package.
+#' - When `dist = "unif"`, equally spaced points are drawn from the specified
+#' interval \[`l`, `u`\], and weights are proportional to the uniform density.
 #'
-#' When the argument \code{theta} is not missing, the weights corresponding to the provided theta values are generated. Specifically, if
-#' \code{dist = "norm"}, normalized weights from the normal distribution are returned. If \code{dist = "emp"}, every specified theta value has the equal
-#' values of normalized weights.
+#' If `theta` is specified:
+#' - When `dist = "norm"`, the weights are proportional to the normal density
+#' evaluated at each theta value and normalized to sum to 1.
+#' - When `dist = "emp"`, equal weights are assigned to each provided theta value.
 #'
-#' @return This function returns a data frame with two columns, where the first column has theta values (nodes) and the second column provides weights.
+#' @return A data frame with two columns:
+#' - `theta`: The theta (node) values.
+#' - `weight`: The corresponding normalized weights.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{est_score}}, \code{\link{sx2_fit}}
+#' @seealso [irtQ::est_score()], [irtQ::sx2_fit()], [irtQ::covirt()]
 #'
 #' @examples
-#' ## example 1
-#' ## generate 41 gaussian quadrature points and weights of normal distribution
+#' ## Example 1:
+#' ## Generate 41 Gaussian quadrature points and weights from the normal distribution
 #' gen.weight(n = 41, dist = "norm", mu = 0, sigma = 1)
 #'
-#' ## example 2
-#' ## generate 41 theta values and weights from the uniform normal distribution,
-#' ## given the mininum value of -4 and the maximum value of 4
+#' ## Example 2:
+#' ## Generate 41 theta values and weights from the uniform distribution,
+#' ## given a minimum value of -4 and a maximum value of 4
 #' gen.weight(n = 41, dist = "unif", l = -4, u = 4)
 #'
-#' ## example 3
-#' ## generate the normalized weights from the standardized normal distribution,
-#' ## given a set of theta values
+#' ## Example 3:
+#' ## Generate normalized weights from the standard normal distribution,
+#' ## given a user-defined set of theta values
 #' theta <- seq(-4, 4, by = 0.1)
 #' gen.weight(dist = "norm", mu = 0, sigma = 1, theta = theta)
 #'
-#' ## example 4
-#' ## generate the same values of normalized weights for the theta values that are
-#' ## randomly sampled from the standardized normal distribution
+#' ## Example 4:
+#' ## Generate equal normalized weights for theta values
+#' ## randomly sampled from the standard normal distribution
 #' theta <- rnorm(100)
 #' gen.weight(dist = "emp", theta = theta)
 #'
 #' @export
 #' @importFrom statmod gauss.quad.prob
-gen.weight <- function(n = 41, dist = "norm", mu = 0, sigma = 1, l = -4, u = 4, theta) {
+gen.weight <- function(n = 41,
+                       dist = "norm",
+                       mu = 0,
+                       sigma = 1,
+                       l = -4,
+                       u = 4,
+                       theta) {
   dist <- tolower(dist)
 
   if (missing(theta)) {

@@ -16,134 +16,149 @@ info(x, ...)
 \method{info}{est_irt}(x, theta, tif = TRUE, ...)
 }
 \arguments{
-\item{x}{A data frame containing the item metadata (e.g., item parameters, number of categories, models ...), an object of class \code{\link{est_item}}
-obtained from the function \code{\link{est_item}}, or an object of class \code{\link{est_irt}} obtained from the function \code{\link{est_irt}}.
-The data frame of item metadata can be easily obtained using the function \code{\link{shape_df}}. See below for details.}
+\item{x}{A data frame containing item metadata (e.g., item parameters,
+number of categories, IRT model types, etc.); or an object of class
+\code{est_irt} obtained from \code{\link[=est_irt]{est_irt()}}, or \code{est_item} from
+\code{\link[=est_item]{est_item()}}.
+
+See \code{\link[=est_irt]{est_irt()}} or \code{\link[=simdat]{simdat()}} for more details about the item
+metadata. This data frame can be easily created using the
+\code{\link[=shape_df]{shape_df()}} function.}
 
 \item{...}{Further arguments passed to or from other methods.}
 
-\item{theta}{A vector of theta values where item and test information values are computed.}
+\item{theta}{A numeric vector of theta values at which item and test
+information are computed.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{tif}{A logical value. If TRUE, the test information function is computed. Default is TRUE.}
+\item{tif}{Logical. If \code{TRUE}, the test information function
+is computed. Default is \code{TRUE}.}
 }
 \value{
-This function returns an object of class \code{\link{info}}. This object contains item and test information values
-given the specified theta values.
+This function returns an object of class \code{info}, which is a list
+containing the following components:
+
+\item{iif}{A matrix of item information values. Each row corresponds to an
+item, and each column represents the information value computed at a given
+theta point. The row names are the item IDs, and the column names indicate
+the theta points (e.g., \code{"theta.1"}, \code{"theta.2"}, ...).}
+
+\item{tif}{A numeric vector containing the test information values at each
+theta value, computed as the sum of item information values across all
+items. This component is included only when \code{tif = TRUE}.}
+
+\item{theta}{A numeric vector of theta values at which the item and test
+information functions are evaluated. This matches the user-supplied
+\code{theta} argument.}
+
+The returned object is of class \code{info} and can be visualized using
+the function \code{\link[=plot.info]{plot.info()}}. This output structure is consistent across
+input types (\code{data.frame}, \code{est_item}, \code{est_irt}), and facilitates
+downstream plotting, comparison, or export of information function values.
 }
 \description{
-This function computes both item and test information functions (Hambleton et al., 1991) given a set of theta values.
+This function computes item and test information functions (Hambleton et
+al., 1991) for a given set of theta values.
 }
 \details{
-A specific form of a data frame should be used for the argument \code{x}. The first column should have item IDs,
-the second column should contain unique score category numbers of the items, and the third column should include IRT models being fit to the items.
-The available IRT models are "1PLM", "2PLM", "3PLM", and "DRM" for dichotomous item data, and "GRM" and "GPCM" for polytomous item data.
-Note that "DRM" covers all dichotomous IRT models (i.e, "1PLM", "2PLM", and "3PLM") and "GRM" and "GPCM" represent the graded
-response model and (generalized) partial credit model, respectively. The next columns should include the item parameters of the fitted IRT models.
-For dichotomous items, the fourth, fifth, and sixth columns represent the item discrimination (or slope), item difficulty, and
-item guessing parameters, respectively. When "1PLM" and "2PLM" are specified in the third column, NAs should be inserted in the sixth column
-for the item guessing parameters. For polytomous items, the item discrimination (or slope) parameters should be included in the
-fourth column and the item difficulty (or threshold) parameters of category boundaries should be contained from the fifth to the last columns.
-When the number of unique score categories differs between items, the empty cells of item parameters should be filled with NAs.
-In the \pkg{irtQ} package, the item difficulty (or threshold) parameters of category boundaries for GPCM are expressed as
-the item location (or overall difficulty) parameter subtracted by the threshold parameter for unique score categories of the item.
-Note that when an GPCM item has \emph{K} unique score categories, \emph{K-1} item difficulty parameters are necessary because
-the item difficulty parameter for the first category boundary is always 0. For example, if an GPCM item has five score categories,
-four item difficulty parameters should be specified. An example of a data frame with a single-format test is as follows:
-\tabular{lrlrrrrr}{
-  ITEM1  \tab 2 \tab 1PLM \tab 1.000 \tab  1.461 \tab         NA \cr
-  ITEM2  \tab 2 \tab 2PLM \tab 1.921 \tab -1.049 \tab         NA \cr
-  ITEM3  \tab 2 \tab 3PLM \tab 1.736 \tab  1.501 \tab  0.203 \cr
-  ITEM4  \tab 2 \tab 3PLM \tab 0.835 \tab -1.049 \tab  0.182 \cr
-  ITEM5  \tab 2 \tab DRM \tab 0.926 \tab  0.394 \tab  0.099
-}
-And an example of a data frame for a mixed-format test is as follows:
-\tabular{lrlrrrrr}{
-  ITEM1  \tab 2 \tab 1PLM \tab 1.000 \tab  1.461 \tab         NA \tab         NA \tab         NA\cr
-  ITEM2  \tab 2 \tab 2PLM \tab 1.921 \tab -1.049 \tab         NA \tab         NA \tab         NA\cr
-  ITEM3  \tab 2 \tab 3PLM \tab 0.926 \tab  0.394 \tab  0.099 \tab         NA \tab         NA\cr
-  ITEM4  \tab 2 \tab DRM \tab 1.052 \tab -0.407 \tab  0.201 \tab         NA \tab         NA\cr
-  ITEM5  \tab 4 \tab GRM  \tab 1.913 \tab -1.869 \tab -1.238 \tab -0.714 \tab         NA \cr
-  ITEM6  \tab 5 \tab GRM  \tab 1.278 \tab -0.724 \tab -0.068 \tab  0.568 \tab  1.072\cr
-  ITEM7  \tab 4 \tab GPCM  \tab 1.137 \tab -0.374 \tab  0.215 \tab  0.848 \tab         NA \cr
-  ITEM8  \tab 5 \tab GPCM  \tab 1.233 \tab -2.078 \tab -1.347 \tab -0.705 \tab -0.116
-}
-See \code{IRT Models} section in the page of \code{\link{irtQ-package}} for more details about the IRT models used in the \pkg{irtQ} package.
-An easier way to create a data frame for the argument \code{x} is by using the function \code{\link{shape_df}}.
+This function calculates the amount of statistical information provided by
+each item (item information function, IIF) and the total test (test
+information function, TIF) across a range of ability (theta) values.
+Higher information values at a particular theta level indicate greater
+measurement precision at that ability level.
+
+The input \code{x} must follow a specific data frame format if not already
+an \code{est_irt} or \code{est_item} object. The structure of this data frame
+is explained in the documentation of \code{\link[=est_irt]{est_irt()}} and \code{\link[=simdat]{simdat()}}.
+Items of different models (e.g., 3PLM, GPCM) can be combined in a single test.
+
+The information is computed for each item appropriately and aggregated for
+the TIF if \code{tif = TRUE}. The TIF is often used to assess where the test
+provides the most precision, and is critical when designing adaptive tests
+or evaluating test coverage across the ability continuum.
+
+The returned object is a list of class \code{"info"}, which contains the item
+information matrix and the test information vector. The \code{plot()} method for
+\code{info} objects can be used to visualize the IIFs and TIF
+(see \code{\link[=plot.info]{plot.info()}}).
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{info(default)}: Default method to compute item and test information functions for
 a data frame \code{x} containing the item metadata.
 
-\item \code{info(est_item)}: An object created by the function \code{\link{est_item}}.
+\item \code{info(est_item)}: An object created by the function \code{\link[=est_item]{est_item()}}.
 
-\item \code{info(est_irt)}: An object created by the function \code{\link{est_irt}}.
+\item \code{info(est_irt)}: An object created by the function \code{\link[=est_irt]{est_irt()}}.
 
 }}
 \examples{
-## example 1.
-## using the function "shape_df" to create a data frame of test metadata
-# create a list containing the dichotomous item parameters
+## Example 1.
+## Using the function `shape_df()` to create a data frame of test metadata
+
+# Create a list of dichotomous item parameters
 par.drm <- list(
   a = c(1.1, 1.2, 0.9, 1.8, 1.4),
   b = c(0.1, -1.6, -0.2, 1.0, 1.2),
   g = rep(0.2, 5)
 )
 
-# create a list containing the polytomous item parameters
+# Create a list of polytomous item parameters
 par.prm <- list(
   a = c(1.4, 0.6),
   d = list(c(-1.9, 0.0, 1.2), c(0.4, -1.1, 1.5, 0.2))
 )
 
-# create a numeric vector of score categories for the items
+# Create a numeric vector for the number of score categories for each item
 cats <- c(2, 4, 2, 2, 5, 2, 2)
 
-# create a character vector of IRT models for the items
+# Create a character vector of IRT model types for each item
 model <- c("DRM", "GRM", "DRM", "DRM", "GPCM", "DRM", "DRM")
 
-# create an item metadata set
+# Create item metadata using `shape_df()`
 test <- shape_df(
   par.drm = par.drm, par.prm = par.prm,
   cats = cats, model = model
 ) # create a data frame
 
-# set theta values
+# Define a sequence of theta values
 theta <- seq(-2, 2, 0.1)
 
-# compute item and test information values given the theta values
+# Compute item and test information values based on theta
 info(x = test, theta = theta, D = 1, tif = TRUE)
 
 
-## example 2.
-## using a "-prm.txt" file obtained from a flexMIRT
-# import the "-prm.txt" output file from flexMIRT
+## Example 2.
+## Using a "-prm.txt" file exported from flexMIRT
+
+# Import a sample "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt",
   package = "irtQ"
 )
 
-# read item parameters and transform them to item metadata
+# Read item parameters and convert them into item metadata
 test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
-# set theta values
+# Define a sequence of theta values
 theta <- seq(-2, 2, 0.1)
 
-# compute item and test information values given the theta values
+# Compute item and test information values based on theta
 info(x = test_flex, theta = theta, D = 1, tif = TRUE)
 
 }
 \references{
-Hambleton, R. K., & Swaminathan, H. (1985) \emph{Item response theory: Principles and applications}.
-Boston, MA: Kluwer.
+Hambleton, R. K., & Swaminathan, H. (1985) \emph{Item response theory:
+Principles and applications}. Boston, MA: Kluwer.
 
-Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991) \emph{Fundamentals of item response theory}.
-Newbury Park, CA: Sage.
+Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991) \emph{Fundamentals of
+item response theory}. Newbury Park, CA: Sage.
 }
 \seealso{
-\code{\link{plot.info}}, \code{\link{shape_df}}, \code{\link{est_item}}
+\code{\link[=plot.info]{plot.info()}}, \code{\link[=shape_df]{shape_df()}}, \code{\link[=est_irt]{est_irt()}},
+\code{\link[=est_item]{est_item()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

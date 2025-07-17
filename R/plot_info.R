@@ -1,75 +1,101 @@
 #' Plot Item and Test Information Functions
 #'
-#' @description This method function plots item or test information function given a specified theta values. In addition,
-#' it displays the conditional standard errors at a test level.
+#' This method plots item or test information functions for a specified set of
+#' theta values. It can also display the conditional standard error of
+#' estimation (CSEE) at the test level.
 #'
-#' @param x x An object of class \code{\link{info}}.
-#' @param item.loc A vector of numeric values indicating that the item information functions of the \emph{n}th items
-#' (or the location of items in a test form) are plotted. If NULL, the test information function for the total test form is drawn.
-#' Default is NULL.
-#' @param overlap Logical value indicating whether multiple item information functions are plotted in one panel.
-#' If FALSE, multiple item information functions are displayed in multiple panels, one for each.
-#' @param csee Logical value indicating whether the function displays the conditional standard error of estimation (CSEE) at a test level.
-#' If FALSE, item/test information function is plotted. Note that the CSEE plot is displayed only at a test level.
-#' @param xlab.text,ylab.text A title for the x and y axes.
-#' @param main.text An overall title for the plot.
-#' @param lab.size The size of xlab and ylab. Default is 15.
-#' @param main.size The size of \code{main.text}. Default is 15.
-#' @param axis.size The size of labels along the x and y axes. Default is 15.
-#' @param line.color A character string specifying a color for the line. See \url{http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/}
-#' for more details about colors used in ggplot2.
-#' @param line.size The size of lines. Default is 1.
-#' @param layout.col An integer value indicating the number of columns in the panel when displaying the item information functions of
-#' the multiple items. Default is 4.
-#' @param strip.size The size of facet labels when the item information functions of the multiple items are drawn.
-#' @param ... Further arguments passed from the function \code{geom_line()} in the \pkg{ggplot2} package.
+#' @param x x An object of class `info` obtained from [irtQ::info()].
+#' @param item.loc A numeric vector indicating which item information functions to plot,
+#'   specified by item position (e.g., 1 for the first item). If `NULL` (default),
+#'   the test information function for the entire test form is plotted.
+#' @param overlap Logical. If `TRUE`, multiple item information functions are
+#'   plotted in a single panel. If `FALSE` (default), each item information
+#'   function is displayed in a separate panel.
+#' @param csee Logical. If `TRUE`, plots the conditional standard error of
+#'   estimation (CSEE) at the test level. Note that the CSEE plot is only
+#'   available at the test level, not for individual items. If `FALSE`
+#'   (default), item or test information functions are plotted.
+#' @param xlab.text,ylab.text Character strings specifying the labels for
+#'   the x and y axes, respectively.
+#' @param main.text Character string specifying the overall title of the plot.
+#' @param lab.size Numeric value specifying the font size of axis titles.
+#'   Default is 15.
+#' @param main.size Numeric value specifying the font size of the plot title.
+#'   Default is 15.
+#' @param axis.size Numeric value specifying the font size of axis tick labels.
+#'   Default is 15.
+#' @param line.color A character string specifying the color of the plot lines.
+#'   See <http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/> for available
+#'   color names.
+#' @param line.size Numeric value specifying the thickness of plot lines.
+#'   Default is 1.
+#' @param layout.col Integer. Number of columns to use when faceting multiple
+#'   item information functions. Used only when `overlap = FALSE`. Default is 4.
+#' @param strip.size Numeric value specifying the font size of facet labels
+#'   when multiple items are displayed.
+#' @param ... Additional arguments passed to [ggplot2::geom_line()] from
+#'   the \pkg{ggplot2} package.
 #'
-#' @details All of the plots are drawn using the ggplot2 package.
-#' The object of class \code{\link{info}} can be obtained from the function \code{\link{info}}.
+#' @details All of the plots are drawn using the \pkg{ggplot2} package. The
+#'   object of class `info` can be obtained from the function [irtQ::info()].
 #'
-#' @return This method function displays the item or test information function plot. When \code{csee = TRUE},
-#' the conditional standard error is returned at the test level.
+#' @return This method function displays the item or test information function
+#'   plot. When `csee = TRUE`, the CSEE is returned at the test level.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{info}}
+#' @seealso [irtQ::info()]
 #'
 #' @examples
-#' ## the use of a "-prm.txt" file obtained from a flexMIRT
-#' # import the "-prm.txt" output file from flexMIRT
+#' ## Example using a "-prm.txt" file exported from flexMIRT
+#'
+#' # Import the "-prm.txt" output file from flexMIRT
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # read item parameters and transform them to item metadata
+#' # Read the item parameters and convert them to item metadata
 #' test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
-#' # set theta values
+#' # Define a sequence of theta values
 #' theta <- seq(-4, 4, 0.1)
 #'
-#' # compute item and test information values given the theta values
+#' # Compute item and test information values for the given theta values
 #' x <- info(x = test_flex, theta = theta, D = 1, tif = TRUE)
 #'
-#' # draw a plot of the test information function
+#' # Plot the test information function
 #' plot(x)
 #'
-#' # draw a plot of the item information function for the second item
+#' # Plot the item information function for the second item
 #' plot(x, item.loc = 2)
 #'
-#' # draw a plot of multiple item information functions across the multiple panels
+#' # Plot multiple item information functions, each in a separate panel
 #' plot(x, item.loc = 1:8, overlap = FALSE)
 #'
-#' # draw a plot of multiple item information functions in one panel
+#' # Plot multiple item information functions in a single panel
 #' plot(x, item.loc = 1:8, overlap = TRUE)
 #'
-#' # draw a plot of conditional standard error at a test level
+#' # Plot the conditional standard error of estimation (CSEE) at the test level
 #' plot(x, csee = TRUE)
 #'
 #' @import ggplot2 dplyr
 #' @importFrom reshape2 melt
 #' @importFrom rlang .data
 #' @export
-plot.info <- function(x, item.loc = NULL, overlap = FALSE, csee = FALSE, xlab.text, ylab.text, main.text,
-                      lab.size = 15, main.size = 15, axis.size = 15, line.color, line.size = 1, layout.col = 4,
-                      strip.size = 12, ...) {
+plot.info <- function(x,
+                      item.loc = NULL,
+                      overlap = FALSE,
+                      csee = FALSE,
+                      xlab.text,
+                      ylab.text,
+                      main.text,
+                      lab.size = 15,
+                      main.size = 15,
+                      axis.size = 15,
+                      line.color,
+                      line.size = 1,
+                      layout.col = 4,
+                      strip.size = 12,
+                      ...) {
+
   if (!csee) {
     # 1. plot test infomation
     if (is.null(item.loc)) {

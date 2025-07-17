@@ -1,6 +1,33 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# irtQ 1.0.0
+
+- The documentation for the `irtQ` package has been revised to reflect
+  updates to function behavior, fix typos, and provide more relevant and
+  detailed information for existing functions.
+
+- A new function, `crdif()`, has been added. This function computes
+  three statistics from the residual-based DIF detection framework using
+  categorical residuals (RDIF-CR). It allows for the detection of global
+  DIF, particularly in polytomously scored items.
+
+- A new function, `shape_df_fipc()`, has been introduced. This function
+  merges fixed-item metadata with automatically generated metadata for
+  new items and produces a single data frame ordered by test position.
+  It is designed to support fixed item parameter calibration (FIPC) via
+  the `est_irt()` function.
+
+- The `plot()` method has been enhanced to support the display of all
+  item characteristic curves for a given item in a single panel.
+
+- The `pcd2()` function has been updated to include a purification
+  procedure.
+
+- The `rdif()` and `catsib()` functions now include an `item.skip`
+  argument. This allows users to specify a numeric vector of item
+  indices to exclude from the DIF analysis.
+
 # irtQ 0.2.1
 
 - Enhanced functionality of the `bind.fill()` function by adding a new
@@ -15,9 +42,9 @@
   precision and bias in Multistage-adaptive Test (MST) panels using a
   recursion-based evaluation method introduced by Lim et al. (2020).
 
-- Added a new function, `pcd2()`, which the Pseudo-count $D^{2}$
-  statistics (Cappaert et al., 2018; Stone, 2000) to detect item
-  parameter drift.
+- Added a new function, `pcd2()`, which computes the Pseudo-count
+  $`D^{2}`$ statistics (Cappaert et al., 2018; Stone, 2000) to detect
+  item parameter drift.
 
 # irtQ 0.2.0
 

@@ -1,31 +1,31 @@
-#' Summary of item calibration
+#' Summary of Item Calibration Results
 #'
-#' @description This method function summarizes the IRT calibration results of \code{\link{est_irt}}
-#' or \code{\link{est_item}} object.
+#' This S3 method summarizes the IRT calibration results from an object of class `est_irt`,
+#' `est_mg`, or `est_item`, which are returned by the functions [irtQ::est_irt()],
+#' [irtQ::est_mg()], and [irtQ::est_item()], respectively.
 #'
-#' @param object An object of class \code{\link{est_irt}} or \code{\link{est_item}}.
-#' @param ... Further arguments passed to or from other methods.
+#' @param object An object of class `est_irt`, `est_mg`, or `est_item`.
+#' @param ... Additional arguments passed to or from other methods (currently not used).
+#'
+#' @return A list of internal components extracted from the given object. In addition,
+#' the summary method prints an overview of the IRT calibration results to the console.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{est_irt}}, \code{\link{est_item}}
+#' @seealso [irtQ::est_irt()], [irtQ::est_mg()], [irtQ::est_item()]
 #' @examples
 #' \donttest{
-#' # fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
+#' # Fit the 1PL model to LSAT6 data and constrain the slope parameters to be equal
 #' fit.1pl <- est_irt(data = LSAT6, D = 1, model = "1PLM", cats = 2, fix.a.1pl = FALSE)
 #'
-#' # summary of the estimation
+#' # Display the calibration summary
 #' summary(fit.1pl)
 #' }
-#'
-#' @return The method function returns a list of internal objects extracted from
-#' \code{\link{est_irt}} or \code{\link{est_item}} object and displays a summary of
-#' the IRT calibration results on the console panel.
 #'
 #' @export
 summary <- function(object, ...) UseMethod("summary")
 
-#' @describeIn summary An object created by the function \code{\link{est_irt}}.
+#' @describeIn summary An object created by the function [irtQ::est_irt()].
 #' @export
 summary.est_irt <- function(object, ...) {
   call.expr <- deparse(object$call)
@@ -61,7 +61,7 @@ summary.est_irt <- function(object, ...) {
   out
 }
 
-#' @describeIn summary An object created by the function \code{\link{est_mg}}.
+#' @describeIn summary An object created by the function [irtQ::est_mg()].
 #' @export
 summary.est_mg <- function(object, ...) {
   call.expr <- deparse(object$call)
@@ -107,7 +107,7 @@ summary.est_mg <- function(object, ...) {
 }
 
 
-#' @describeIn summary An object created by the function \code{\link{est_item}}.
+#' @describeIn summary An object created by the function [irtQ::est_item()].
 #' @export
 summary.est_item <- function(object, ...) {
   call.expr <- deparse(object$call)

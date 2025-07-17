@@ -2,25 +2,28 @@
 % Please edit documentation in R/cac_rud.R
 \name{cac_rud}
 \alias{cac_rud}
-\title{Classification accuracy and consistency using Rudner's (2001, 2005) approach.}
+\title{Classification Accuracy and Consistency Based on Rudner's (2001, 2005)
+Approach}
 \usage{
 cac_rud(cutscore, theta = NULL, se, weights = NULL)
 }
 \arguments{
-\item{cutscore}{A numeric vector specifying the cut scores for classification.
-Cut scores are the points that separate different performance categories
-(e.g., pass vs. fail, or different grades).}
+\item{cutscore}{A numeric vector specifying the cut scores for
+classification. Cut scores are the points that separate different
+performance categories (e.g., pass vs. fail, or different grades).}
 
-\item{theta}{A numeric vector of ability estimates. Ability estimates (theta values)
-are the individual proficiency estimates obtained from the IRT model. The theta
-parameter is optional and can be NULL.}
+\item{theta}{A numeric vector of ability estimates. Ability estimates (theta
+values) are the individual proficiency estimates obtained from the IRT
+model. The theta parameter is optional and can be \code{NULL}.}
 
-\item{se}{A numeric vector of the same length as theta indicating the standard
-errors of the ability estimates.}
+\item{se}{A numeric vector of the same length as \code{theta} representing the
+standard errors associated with each ability estimate. See the \strong{Details}
+section for more information}
 
-\item{weights}{An optional two-column data frame or matrix where the first column
-is the quadrature points (nodes) and the second column is the corresponding weights.
-This is typically used in quadrature-based IRT analysis.}
+\item{weights}{An optional two-column data frame or matrix where the first
+column is the quadrature points (nodes) and the second column is the
+corresponding weights. This is typically used in quadrature-based IRT
+analysis.}
 }
 \value{
 A list containing the following elements:
@@ -33,54 +36,69 @@ A list containing the following elements:
 }
 }
 \description{
-This function computes the classification accuracy and consistency based on the methods
-proposed by Rudner (2001, 2005). It can handle both situations where the empirical ability
-distribution of the population is available and when individual ability estimates are available.
+This function computes classification accuracy and consistency indices using
+the method proposed by Rudner in 2001 and 2005. This function supports both
+scenarios: when the empirical ability distribution of the population is
+available, and when individual ability estimates are used.
 }
 \details{
-The function first checks the provided inputs for correctness. It then computes the
-probabilities that an examinee with a specific ability is assigned to each level category,
-and calculates the conditional classification accuracy and consistency for each theta value.
-Finally, it computes the marginal accuracy and consistency.
+This function first validates the input arguments. If both \code{theta}
+and \code{weights} are \code{NULL}, the function will stop and return an error message.
+Either \code{theta} or \code{weights} must be specified. In addition, \code{se} must be
+provided and must match the length of \code{theta} or the number of quadrature
+points in \code{weights}.
+
+It then computes the probability that an examinee with a given ability is
+classified into each performance level using the normal distribution function
+centered at each \code{theta} (or quadrature point) with standard deviation \code{se}.
+These probabilities are used to calculate conditional classification accuracy
+(the probability of being correctly classified) and conditional classification
+consistency (the probability of being consistently classified upon repeated
+testing) for each ability value.
+
+Finally, the function computes marginal classification accuracy and
+consistency across all examinees by aggregating the conditional indices with
+the associated weights.
 }
 \examples{
 \donttest{
-## ------------------------------------------------------------------------------
-# 1. When the empirical ability distribution of the population is available
-## ------------------------------------------------------------------------------
-## import the "-prm.txt" output file from flexMIRT
+## -------------------------------------------
+# 1. Using the empirical ability distribution
+## -------------------------------------------
+
+# Import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# read item parameter data and transform it to item metadata
+# Read item parameter estimates and convert them into item metadata
 x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
-# set the cut scores on the theta score metric
+# Define cut scores on the theta scale
 cutscore <- c(-2, -0.5, 0.8)
 
-# create the data frame including the quadrature points
-# and the corresponding weights
+# Create quadrature points and corresponding weights
 node <- seq(-4, 4, 0.25)
 weights <- gen.weight(dist = "norm", mu = 0, sigma = 1, theta = node)
 
-# compute the conditional standard errors across all quadrature points
+# Compute conditional standard errors across quadrature points
 tif <- info(x = x, theta = node, D = 1, tif = TRUE)$tif
 se <- 1 / sqrt(tif)
 
-# calculate the classification accuracy and consistency
+# Compute classification accuracy and consistency
 cac_1 <- cac_rud(cutscore = cutscore, se = se, weights = weights)
 print(cac_1)
 
-## ------------------------------------------------------------------------------
-# 2. When individual ability estimates are available
-## ------------------------------------------------------------------------------
-# randomly select the true abilities from N(0, 1)
+## -----------------------------------------
+# 2. Using individual ability estimates
+## -----------------------------------------
+
+# Generate true abilities from N(0, 1)
 set.seed(12)
 theta <- rnorm(n = 1000, mean = 0, sd = 1)
 
-# simulate the item response data
+# Simulate item response data
 data <- simdat(x = x, theta = theta, D = 1)
 
-# estimate the ability parameters and standard errors using the ML estimation
+# Estimate ability and standard errors using ML estimation
 est_theta <- est_score(
   x = x, data = data, D = 1, method = "ML",
   range = c(-4, 4), se = TRUE
@@ -88,21 +106,22 @@ est_theta <- est_score(
 theta_hat <- est_theta$est.theta
 se <- est_theta$se.theta
 
-# calculate the classification accuracy and consistency
+# Compute classification accuracy and consistency
 cac_2 <- cac_rud(cutscore = cutscore, theta = theta_hat, se = se)
 print(cac_2)
 }
 
 }
 \references{
-Rudner, L. M. (2001). Computing the expected proportions of misclassified examinees.
+Rudner, L. M. (2001). Computing the expected proportions of
+misclassified examinees.
 \emph{Practical Assessment, Research, and Evaluation, 7}(1), 14.
 
-Rudner, L. M. (2005). Expected classification accuracy. \emph{Practical Assessment,
-Research, and Evaluation, 10}(1), 13.
+Rudner, L. M. (2005). Expected classification accuracy. \emph{Practical
+Assessment, Research, and Evaluation, 10}(1), 13.
 }
 \seealso{
-\code{\link{gen.weight}}, \code{\link{est_score}}, \code{\link{cac_lee}}
+\code{\link[=gen.weight]{gen.weight()}}, \code{\link[=est_score]{est_score()}}, \code{\link[=cac_lee]{cac_lee()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

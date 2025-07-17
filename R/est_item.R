@@ -1,134 +1,140 @@
 #' Fixed ability parameter calibration
 #'
-#' @description This function performs the fixed ability parameter calibration (FAPC), often called
-#' Method A, which is the maximum likelihood estimation of item parameters given the ability
-#' estimates (Baker & Kim, 2004; Ban, Hanson, Wang, Yi, & Harris, 2001; Stocking, 1988). Also, this could be
-#' considered as a special type of the joint maximum likelihood estimation where only one cycle of parameter
-#' estimation is implemented given the ability estimates (Birnbaum, 1968). FAPC is one of potentially useful
-#' online item calibration methods for computerized adaptive testing (CAT) to put the parameter estimates of
-#' pretest items on the same scale of operational item parameter estimates and recalibrate the operational
-#' items to evaluate the parameter drifts of the operational items (Chen & Wang, 2016; Stocking, 1988).
+#' This function performs fixed ability parameter calibration (FAPC), often
+#' called Stocking's (1988) Method A, which is the maximum likelihood estimation
+#' of item parameters given ability estimates (Baker & Kim, 2004; Ban et al.,
+#' 2001; Stocking, 1988). It can also be considered a special case of joint
+#' maximum likelihood estimation in which only one cycle of item parameter
+#' estimation is conducted, conditioned on the given ability estimates
+#' (Birnbaum, 1968). FAPC is a potentially useful method for calibrating pretest
+#' (or newly developed) items in computerized adaptive testing (CAT), as it
+#' enables placing their parameter estimates on the same scale as operational
+#' items. In addition, it can be used to recalibrate operational items in the
+#' item bank to evaluate potential parameter drift (Chen & Wang, 2016; Stocking,
+#' 1988).
 #'
-#' @param x A data frame containing the item metadata. This metadata is necessary to obtain the information of
-#' each item (i.e., number of score categories and IRT model) to be calibrated. You can easily create an empty
-#' item metadata using the function \code{\link{shape_df}}. When \code{use.startval = TRUE}, the item parameters
-#' specified in the item metadata are used as the starting values for the item parameter estimation.
-#' If \code{x = NULL}, the arguments of \code{model} and \code{cats} must be specified. See \code{\link{irtfit}},
-#' \code{\link{info}} or \code{\link{simdat}} for more details about the item metadata. Default is NULL.
-#' @param data A matrix containing examinees' response data for the items in the argument \code{x}. A row and column indicate
-#' the examinees and items, respectively.
-#' @param score A vector of examinees' ability estimates. Length of the vector must be the same as the number of rows in the
-#' response data set.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-#' Default is 1.
-#' @param model A vector of character strings indicating what IRT model is used to calibrate each item. Available IRT models are
-#' "1PLM", "2PLM", "3PLM", and "DRM" for dichotomous items, and "GRM" and "GPCM" for polytomous items. "GRM" and "GPCM" represent the graded
-#' response model and (generalized) partial credit model, respectively. Note that "DRM" is considered as "3PLM" in this function.
-#' If a single character of the IRT model is specified, that model will be recycled across all items. The provided information in the \code{model}
-#' argument is used only when \code{x = NULL}. Default is NULL.
-#' @param cats A numeric vector specifying the number of score categories for each item. For example, a dichotomous
-#' item has two score categories. If a single numeric value is specified, that value will be recycled across all items. If \code{cats = NULL}
-#' and all specified models in the \code{model} argument are the dichotomous models (i.e., 1PLM, 2PLM, 3PLM, or DRM), it assumes
-#' that all items have two score categories. The provided information in the \code{cats} argument is used only when \code{x = NULL}.
-#' Default is NULL.
-#' @param item.id A character vector of item IDs. If NULL, the item IDs are generated automatically. Default is NULL.
-#' @param fix.a.1pl A logical value. If TRUE, the slope parameters of the 1PLM items are fixed to a specific value specified in the argument
-#' \code{a.val.1pl}. Otherwise, the slope parameters of all 1PLM items are constrained to be equal and estimated. Default is FALSE.
-#' @param fix.a.gpcm A logical value. If TRUE, the GPCM items are calibrated with the partial credit model and the slope parameters of
-#' the GPCM items are fixed to a specific value specified in the argument \code{a.val.gpcm}. Otherwise, the slope parameter of each GPCM item
-#' is estimated. Default is FALSE.
-#' @param fix.g A logical value. If TRUE, the guessing parameters of the 3PLM items are fixed to a specific value specified in the argument
-#' \code{g.val}. Otherwise, the guessing parameter of each 3PLM item is estimated. Default is FALSE.
-#' @param a.val.1pl A numeric value. This value is used to fixed the slope parameters of the 1PLM items.
-#' @param a.val.gpcm A numeric value. This value is used to fixed the slope parameters of the GPCM items.
-#' @param g.val A numeric value. This value is used to fixed the guessing parameters of the 3PLM items.
-#' @param use.aprior A logical value. If TRUE, a prior distribution for the slope parameters is used for the parameter calibration
-#' across all items. Default is FALSE.
-#' @param use.bprior A logical value. If TRUE, a prior distribution for the difficulty (or threshold) parameters is used for the parameter calibration
-#' across all items. Default is FALSE.
-#' @param use.gprior A logical value. If TRUE, a prior distribution for the guessing parameters is used for the parameter calibration
-#' across all 3PLM items. Default is TRUE.
-#' @param aprior A list containing the information of the prior distribution for item slope parameters. Three probability distributions
-#' of Beta, Log-normal, and Normal distributions are available. In the list, a character string of the distribution name must be specified
-#' in the first internal argument and a vector of two numeric values for the two parameters of the distribution must be specified in the
-#' second internal argument. Specifically, when Beta distribution is used, "beta" should be specified in the first argument. When Log-normal
-#' distribution is used, "lnorm" should be specified in the first argument. When Normal distribution is used, "norm" should be specified
-#' in the first argument. In terms of the two parameters of the three distributions, see \code{dbeta()}, \code{dlnorm()},
-#' and \code{dnorm()} in the \pkg{stats} package for more details.
-#' @param bprior A list containing the information of the prior distribution for item difficulty (or threshold) parameters. Three probability distributions
-#' of Beta, Log-normal, and Normal distributions are available. In the list, a character string of the distribution name must be specified
-#' in the first internal argument and a vector of two numeric values for the two parameters of the distribution must be specified in the
-#' second internal argument. Specifically, when Beta distribution is used, "beta" should be specified in the first argument. When Log-normal
-#' distribution is used, "lnorm" should be specified in the first argument. When Normal distribution is used, "norm" should be specified
-#' in the first argument. In terms of the two parameters of the three distributions, see \code{dbeta()}, \code{dlnorm()},
-#' and \code{dnorm()} in the \pkg{stats} package for more details.
-#' @param gprior A list containing the information of the prior distribution for item guessing parameters. Three probability distributions
-#' of Beta, Log-normal, and Normal distributions are available. In the list, a character string of the distribution name must be specified
-#' in the first internal argument and a vector of two numeric values for the two parameters of the distribution must be specified in the
-#' second internal argument. Specifically, when Beta distribution is used, "beta" should be specified in the first argument. When Log-normal
-#' distribution is used, "lnorm" should be specified in the first argument. When Normal distribution is used, "norm" should be specified
-#' in the first argument. In terms of the two parameters of the three distributions, see \code{dbeta()}, \code{dlnorm()},
-#' and \code{dnorm()} in the \pkg{stats} package for more details.
-#' @param missing A value indicating missing values in the response data set. Default is NA.
-#' @param use.startval A logical value. If TRUE, the item parameters provided in the item metadata (i.e., the argument \code{x}) are used as
-#' the starting values for the item parameter estimation. Otherwise, internal starting values of this function are used. Default is FALSE.
-#' @param control A list of control parameters to be passed to the optimization function of \code{nlminb()} in the \pkg{stats} package. The control parameters
-#' set the conditions of the item parameter estimation process such as the maximum number of iterations. See \code{nlminb()} in the \pkg{stats} package for details.
-#' @param verbose A logical value. If FALSE, all progress messages are suppressed. Default is TRUE.
+#' @inheritParams est_irt
+#' @param x A data frame containing item metadata. This metadata is required to
+#'   retrieve essential information for each item (e.g., number of score
+#'   categories, IRT model type, etc.) necessary for calibration. You can create
+#'   an empty item metadata frame using the function [irtQ::shape_df()].
 #'
-#' @details In most cases, the function \code{\link{est_item}} will return successfully converged item parameter estimates using
-#' the default internal starting values. However, if there is a convergence problem in the calibration, one possible solution is using
-#' different starting values. When the item parameter values are specified in the item metadata (i.e., the argument \code{x}), those values
-#' can be used as the starting values for the item parameter calibration by setting \code{use.startval = TRUE}.
+#'   When `use.startval = TRUE`, the item parameters specified in the metadata
+#'   will be used as starting values for parameter estimation. If `x = NULL`,
+#'   both `model` and `cats` arguments must be specified. See [irtQ::est_irt()]
+#'   or [irtQ::simdat()] for more details about the item metadata. Default is
+#'   `NULL`.
+#' @param score A numeric vector of examinees' ability estimates (theta values).
+#' The length of this vector must match the number of rows in the response data.
+#' @param model A character vector specifying the IRT model to fit each item.
+#'   Available values are:
+#'   - `"1PLM"`, `"2PLM"`, `"3PLM"`, `"DRM"` for dichotomous items
+#'   - `"GRM"`, `"GPCM"` for polytomous items
 #'
-#' @return This function returns an object of class \code{\link{est_item}}. Within this object, several internal objects are contained such as:
-#' \item{estimates}{A data frame containing both the item parameter estimates and the corresponding standard errors of estimates.}
-#' \item{par.est}{A data frame containing the item parameter estimates.}
-#' \item{se.est}{A data frame containing the standard errors of the item parameter estimates. Note that the standard errors are estimated using
-#' observed information functions.}
-#' \item{pos.par}{A data frame containing the position number of item parameters being estimated. The position information is useful
-#' when interpreting the variance-covariance matrix of item parameter estimates.}
-#' \item{covariance}{A matrix of variance-covariance matrix of item parameter estimates.}
-#' \item{loglikelihood}{A sum of the log-likelihood values of the complete data set across all estimated items.}
-#' \item{data}{A data frame of the examinees' response data set.}
-#' \item{score}{A vector of the examinees' ability values used as the fixed effects.}
-#' \item{scale.D}{A scaling factor in IRT models.}
-#' \item{convergence}{A string indicating the convergence status of the item parameter estimation.}
-#' \item{nitem}{A total number of items included in the response data.}
-#' \item{deleted.item}{The items which have no item response data. Those items are excluded from the item parameter estimation.}
-#' \item{npar.est}{A total number of the estimated parameters.}
-#' \item{n.response}{An integer vector indicating the number of item responses for each item used to estimate the item parameters.}
-#' \item{TotalTime}{Time (in seconds) spent for total compuatation.}
+#'   Here, `"GRM"` denotes the graded response model and `"GPCM"` the
+#'   (generalized) partial credit model. Note that `"DRM"` serves as a general
+#'   label covering all three dichotomous IRT models. If a single model name is
+#'   provided, it is recycled for all items. This argument is only used when `x
+#'   = NULL`. Default is `NULL`.
+#' @param cats Numeric vector specifying the number of score categories per
+#'   item. For dichotomous items, this should be 2. If a single value is
+#'   supplied, it will be recycled across all items. When `cats = NULL` and all
+#'   models specified in the `model` argument are dichotomous (`"1PLM"`,
+#'   `"2PLM"`, `"3PLM"`, or `"DRM"`), the function defaults to 2 categories per
+#'   item. This argument is used only when `x = NULL`. Default is `NULL`.
+#' @param control A list of control parameters to be passed to the optimization
+#'   function [stats::nlminb()]. These parameters define settings for the item
+#'   parameter estimation process, such as the maximum number of iterations.
+#'   See [stats::nlminb()] for additional control options.
+#' @param verbose Logical. If `FALSE`, all progress messages are suppressed.
+#'   Default is `TRUE`.
 #'
-#' The internal objects can be easily extracted using the function \code{\link{getirt}}.
+#' @details In most cases, the function [irtQ::est_item()] returns successfully
+#'   converged item parameter estimates using its default internal starting
+#'   values. However, if convergence issues arise during calibration, one
+#'   possible solution is to use alternative starting values. If item parameter
+#'   values are already specified in the item metadata (i.e., the `x` argument),
+#'   they can be used as starting values for item parameter calibration by
+#'   setting `use.startval = TRUE`.
+#'
+#' @return This function returns an object of class `est_item`. The returned
+#'   object contains the following components:
+#'
+#'   \item{estimates}{A data frame containing both the item parameter estimates
+#'   and their corresponding standard errors.}
+#'
+#'   \item{par.est}{A data frame of item parameter estimates, structured
+#'   according to the item metadata format.}
+#'
+#'   \item{se.est}{A data frame of standard errors for the item parameter
+#'   estimates, computed based on the observed information functions}
+#'
+#'   \item{pos.par}{A data frame indicating the position of each item parameter
+#'   within the estimation vector. Useful for interpreting the variance-covariance
+#'   matrix.}
+#'
+#'   \item{covariance}{A variance-covariance matrix of the item parameter
+#'   estimates.}
+#'
+#'   \item{loglikelihood}{The total log-likelihood value computed across all
+#'   estimated items based on the complete response data.}
+#'
+#'   \item{data}{A data frame of examinees' response data.}
+#'
+#'   \item{score}{A vector of examinees' ability estimates used as fixed values
+#'   during item parameter estimation.}
+#'
+#'   \item{scale.D}{The scaling factor used in the IRT model.}
+#'
+#'   \item{convergence}{A message indicating whether item parameter estimation
+#'   successfully converged.}
+#'
+#'   \item{nitem}{The total number of items in the response data.}
+#'
+#'   \item{deleted.item}{Items with no response data. These items are excluded
+#'   from the item parameter estimation.}
+#'
+#'   \item{npar.est}{The total number of parameters estimated.}
+#'
+#'   \item{n.response}{An integer vector indicating the number of valid responses
+#'   for each item used in the item parameter estimation.}
+#'
+#'   \item{TotalTime}{Total computation time in seconds.}
+#'
+#'   Note that you can easily extract components from the output using the
+#'   [irtQ::getirt()] function.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{irtfit}}, \code{\link{info}}, \code{\link{simdat}}, \code{\link{shape_df}}, \code{\link{sx2_fit}},
-#' \code{\link{traceline.est_item}}, \code{\link{getirt}}
+#' @seealso [irtQ::est_irt()], [irtQ::shape_df()], [irtQ::getirt()]
 #'
-#' @references
-#' Baker, F. B., & Kim, S. H. (2004). \emph{Item response theory: Parameter estimation techniques.} CRC Press.
+#' @references Baker, F. B., & Kim, S. H. (2004). *Item response theory:
+#'   Parameter estimation techniques.* CRC Press.
 #'
-#' Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D., J. (2001) A comparative study of on-line pretest item calibration/scaling methods
-#' in computerized adaptive testing. \emph{Journal of Educational Measurement, 38}(3), 191-212.
+#'   Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D., J. (2001) A
+#'   comparative study of on-line pretest item calibration/scaling methods in
+#'   computerized adaptive testing. *Journal of Educational Measurement, 38*(3),
+#'   191-212.
 #'
-#' Birnbaum, A. (1968). Some latent trait models and their use in inferring an examinee's ability. In F. M. Lord & M. R. Novick (Eds.),
-#' \emph{Statistical theories of mental test scores} (pp. 397-479). Reading, MA: Addison-Wesley.
+#'   Birnbaum, A. (1968). Some latent trait models and their use in inferring an
+#'   examinee's ability. In F. M. Lord & M. R. Novick (Eds.),
+#'   *Statistical theories of mental test scores* (pp. 397-479). Reading, MA: Addison-Wesley.
 #'
-#' Chen, P., & Wang, C. (2016). A new online calibration method for multidimensional computerized adaptive testing.
-#' \emph{Psychometrika, 81}(3), 674-701.
+#'   Chen, P., & Wang, C. (2016). A new online calibration method for
+#'   multidimensional computerized adaptive testing.
+#'   *Psychometrika, 81*(3), 674-701.
 #'
-#' Stocking, M. L. (1988). \emph{Scale drift in on-line calibration} (Research Rep. 88-28). Princeton, NJ: ETS.
+#'   Stocking, M. L. (1988). *Scale drift in on-line calibration* (Research Rep.
+#'   88-28). Princeton, NJ: ETS.
 #'
 #' @examples
-#' ## import the "-prm.txt" output file from flexMIRT
+#' ## Import the "-prm.txt" output file from flexMIRT
 #' flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # select the item metadata
+#' # Extract the item metadata
 #' x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 #'
-#' # modify the item metadata so that some items follow 1PLM, 2PLM and GPCM
+#' # Modify the item metadata so that some items follow 1PLM, 2PLM, and GPCM
 #' x[c(1:3, 5), 3] <- "1PLM"
 #' x[c(1:3, 5), 4] <- 1
 #' x[c(1:3, 5), 6] <- 0
@@ -136,54 +142,75 @@
 #' x[c(4, 8:12), 6] <- 0
 #' x[54:55, 3] <- "GPCM"
 #'
-#' # generate examinees' abilities from N(0, 1)
+#' # Generate examinees' abilities from N(0, 1)
 #' set.seed(23)
 #' score <- rnorm(500, mean = 0, sd = 1)
 #'
-#' # simulate the response data
+#' # Simulate response data based on the item metadata and ability values
 #' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' \donttest{
-#' # 1) item parameter estimation: constrain the slope parameters of the 1PLM to be equal
+#' # 1) Estimate item parameters: constrain the slope parameters of 1PLM items
+#' #    to be equal
 #' (mod1 <- est_item(x, data, score,
 #'   D = 1, fix.a.1pl = FALSE, use.gprior = TRUE,
 #'   gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
 #' ))
 #' summary(mod1)
 #'
-#' # extract the item parameter estimates
+#' # Extract the item parameter estimates
 #' getirt(mod1, what = "par.est")
 #'
-#' # 2) item parameter estimation: fix the slope parameters of the 1PLM to 1
+#' # 2) Estimate item parameters: fix the slope parameters of 1PLM items to 1
 #' (mod2 <- est_item(x, data, score,
 #'   D = 1, fix.a.1pl = TRUE, a.val.1pl = 1, use.gprior = TRUE,
 #'   gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
 #' ))
 #' summary(mod2)
 #'
-#' # extract the standard error estimates
+#' # Extract the standard error estimates
 #' getirt(mod2, what = "se.est")
 #'
-#' # 3) item parameter estimation: fix the guessing parameters of the 3PLM to 0.2
+#' # 3) Estimate item parameters: fix the guessing parameters of 3PLM items to 0.2
 #' (mod3 <- est_item(x, data, score,
 #'   D = 1, fix.a.1pl = TRUE, fix.g = TRUE, a.val.1pl = 1, g.val = .2,
 #'   use.startval = FALSE
 #' ))
 #' summary(mod3)
 #'
-#' # extract both item parameter and standard error estimates
+#' # Extract both item parameter and standard error estimates
 #' getirt(mod2, what = "estimates")
+#'
 #' }
 #'
 #' @importFrom Matrix sparseMatrix
 #' @import dplyr
 #' @export
 #'
-est_item <- function(x = NULL, data, score, D = 1, model = NULL, cats = NULL, item.id = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE,
-                     fix.g = FALSE, a.val.1pl = 1, a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
-                     aprior = list(dist = "lnorm", params = c(0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                     gprior = list(dist = "beta", params = c(5, 17)), missing = NA, use.startval = FALSE,
-                     control = list(eval.max = 500, iter.max = 500), verbose = TRUE) {
+est_item <- function(x = NULL,
+                     data,
+                     score,
+                     D = 1,
+                     model = NULL,
+                     cats = NULL,
+                     item.id = NULL,
+                     fix.a.1pl = FALSE,
+                     fix.a.gpcm = FALSE,
+                     fix.g = FALSE,
+                     a.val.1pl = 1,
+                     a.val.gpcm = 1,
+                     g.val = .2,
+                     use.aprior = FALSE,
+                     use.bprior = FALSE,
+                     use.gprior = TRUE,
+                     aprior = list(dist = "lnorm", params = c(0, 0.5)),
+                     bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                     gprior = list(dist = "beta", params = c(5, 17)),
+                     missing = NA,
+                     use.startval = FALSE,
+                     control = list(eval.max = 500, iter.max = 500),
+                     verbose = TRUE) {
+
   # check start time
   start.time <- Sys.time()
 

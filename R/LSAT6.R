@@ -1,16 +1,17 @@
-#' LSAT6 data
+#' LSAT6 Data
 #'
-#' Well-known LSAT6 dichotomous response data set from Thissen (1982).
+#' A well-known dichotomous response dataset from the Law School Admission Test (LSAT),
+#' Section 6, as used in Thissen (1982).
 #'
 #' @usage LSAT6
 #'
-#' @format This data contains 1,000 dichotomous response patterns of five items obtained from
-#' the Law School Admissions Test, section 6.
+#' @format A data frame with 1,000 rows and 5 columns, where each row represents a unique
+#' examinee's response pattern to five dichotomously scored items (0 = incorrect, 1 = correct).
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
 #' @references
 #' Thissen, D. (1982). Marginal maximum likelihood estimation for the one-parameter logistic model.
-#' \emph{Psychometrika, 47}, 175-186.
+#' *Psychometrika, 47*, 175–186.
 #'
 "LSAT6"

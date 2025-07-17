@@ -2,32 +2,36 @@
 % Please edit documentation in R/cac_lee.R
 \name{cac_lee}
 \alias{cac_lee}
-\title{Classification accuracy and consistency using Lee's (2010) approach.}
+\title{Classification Accuracy and Consistency Using Lee's (2010) Approach}
 \usage{
 cac_lee(x, cutscore, theta = NULL, weights = NULL, D = 1, cut.obs = TRUE)
 }
 \arguments{
-\item{x}{A data frame containing the item metadata (e.g., item parameters, number of
-score categories, models ...). See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}}
-or \code{\link{simdat}} for more detail about the item metadata.}
+\item{x}{A data frame containing item metadata (e.g., item parameters, number
+of categories, IRT model types, etc.). See \code{\link[=est_irt]{est_irt()}} or
+\code{\link[=simdat]{simdat()}} for more details about the item metadata. This data frame
+can be easily created using the \code{\link[=shape_df]{shape_df()}} function.}
 
-\item{cutscore}{A numeric vector specifying the cut scores for classification.
-Cut scores are the points that separate different performance categories
-(e.g., pass vs. fail, or different grades).}
+\item{cutscore}{A numeric vector specifying the cut scores for
+classification. Cut scores are the points that separate different
+performance categories (e.g., pass vs. fail, or different grades).}
 
-\item{theta}{A numeric vector of ability estimates. Ability estimates (theta values)
-are the individual proficiency estimates obtained from the IRT model. The theta
-parameter is optional and can be NULL.}
+\item{theta}{A numeric vector of ability estimates. Ability estimates (theta
+values) are the individual proficiency estimates obtained from the IRT
+model. The theta parameter is optional and can be \code{NULL}.}
 
-\item{weights}{An optional two-column data frame or matrix where the first column
-is the quadrature points (nodes) and the second column is the corresponding weights.
-This is typically used in quadrature-based IRT analysis.}
+\item{weights}{An optional two-column data frame or matrix where the first
+column is the quadrature points (nodes) and the second column is the
+corresponding weights. This is typically used in quadrature-based IRT
+analysis.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible
-to the normal ogive function (if set to 1.7). Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{cut.obs}{A logical value. If TRUE, it indicates the cutscores on the observed-summed score
-metric. If FALSE, it indicates they are on the IRT theta score metric. Default is TRUE.}
+\item{cut.obs}{Logical. If \code{TRUE}, it indicates the cutscores on the
+observed-summed score metric. If \code{FALSE}, it indicates they are on the IRT
+theta score metric. Default is \code{TRUE}.}
 }
 \value{
 A list containing the following elements:
@@ -40,70 +44,91 @@ A list containing the following elements:
 }
 }
 \description{
-This function computes the classification accuracy and consistency indices
-for complex assessments using the method proposed by Lee (2010). The function
-can handle both dichotomous and polytomous item response theory (IRT) models.
+This function computes classification accuracy and consistency indices for
+complex assessments based on the method proposed by Lee (2010). This function
+supports both dichotomous and polytomous item response theory (IRT) models.
 }
 \details{
-The function works by first checking the provided inputs. If both theta and weights are NULL,
-the function will stop and return an error message. Depending on the provided inputs, the function
-will then compute the classification accuracy and consistency indices using either the quadrature
-points and corresponding weights (D method) or individual ability estimates (P method). The function
-returns a list containing the confusion matrix, marginal and conditional classification accuracy and
-consistency indices, probabilities of being assigned to each level category, and cut scores.
+This function first validates the input arguments. If both \code{theta} and \code{weights}
+are \code{NULL}, the function will stop and return an error message. Either \code{theta}
+(a vector of ability estimates) or \code{weights} (a quadrature-based weight matrix)
+must be specified.
+
+If \code{cut.obs = FALSE}, the provided cut scores are assumed to be on the theta (ability)
+scale, and they are internally converted to the observed summed score scale using the
+test characteristic curve (TCC). This transformation allows classification to be carried
+out on the summed score metric, even if theta-based cut points are provided.
+
+When \code{weights} are provided (D method), the function uses the Lord-Wingersky recursive
+algorithm to compute the conditional distribution of observed total scores at each node.
+These conditional distributions are used to compute:
+\itemize{
+\item the probability of being classified into each performance level,
+\item conditional classification accuracy (probability of correct classification), and
+\item conditional classification consistency (probability of being assigned to the same level
+upon repeated testing).
+}
+
+When \code{theta} values are provided instead (P method), the same logic applies, but using
+an empirical distribution of examinees instead of quadrature-based integration.
+In this case, uniform weights are assigned to all examinees.
+
+Finally, marginal classification accuracy and consistency are computed as weighted
+averages of the conditional statistics across the ability distribution.
 }
 \examples{
 \donttest{
-## ------------------------------------------------------------------------------
-# 1. When the empirical ability distribution of the population is available
-#    (D method)
-## ------------------------------------------------------------------------------
-## import the "-prm.txt" output file from flexMIRT
+## --------------------------------------------------------------------------
+## 1. When the empirical ability distribution of the population is available
+##    (D method)
+## --------------------------------------------------------------------------
+
+# Import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# read item parameter data and transform it to item metadata
+# Read item parameter data and convert it to item metadata
 x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
-# set the cut scores on the observed-summed score metric
+# Set the cut scores on the observed summed score scale
 cutscore <- c(10, 20, 30, 50)
 
-# create the data frame including the quadrature points
-# and the corresponding weights
+# Create a data frame containing the quadrature points and corresponding weights
 node <- seq(-4, 4, 0.25)
 weights <- gen.weight(dist = "norm", mu = 0, sigma = 1, theta = node)
 
-# calculate the classification accuracy and consistency
+# Calculate classification accuracy and consistency
 cac_1 <- cac_lee(x = x, cutscore = cutscore, weights = weights, D = 1)
 print(cac_1)
 
-## ------------------------------------------------------------------------------
-# 2. When individual ability estimates are available (P method)
-## ------------------------------------------------------------------------------
-# randomly select the true abilities from N(0, 1)
+## -------------------------------------------------------------
+## 2. When individual ability estimates are available (P method)
+## -------------------------------------------------------------
+
+# Randomly draw true ability values from N(0, 1)
 set.seed(12)
 theta <- rnorm(n = 1000, mean = 0, sd = 1)
 
-# simulate the item response data
+# Simulate item response data
 data <- simdat(x = x, theta = theta, D = 1)
 
-# estimate the ability parameters using the ML estimation
+# Estimate ability parameters using maximum likelihood (ML)
 est_th <- est_score(
   x = x, data = data, D = 1, method = "ML",
   range = c(-4, 4), se = FALSE
 )$est.theta
 
-# calculate the classification accuracy and consistency
+# Calculate classification accuracy and consistency
 cac_2 <- cac_lee(x = x, cutscore = cutscore, theta = est_th, D = 1)
 print(cac_2)
 
-## ------------------------------------------------------------------------------
-# 3. When individual ability estimates are available,
-#    but, the cutscores are on the IRT theta score metric
-## ------------------------------------------------------------------------------
-# set the theta cut scures
+## ---------------------------------------------------------
+## 3. When individual ability estimates are available,
+##    but cut scores are specified on the IRT theta scale
+## ---------------------------------------------------------
+# Set the cut scores on the theta scale
 cutscore <- c(-2, -0.4, 0.2, 1.0)
 
-# calculate the classification accuracy and consistency
+# Calculate classification accuracy and consistency
 cac_3 <- cac_lee(
   x = x, cutscore = cutscore, theta = est_th, D = 1,
   cut.obs = FALSE
@@ -113,11 +138,12 @@ print(cac_3)
 
 }
 \references{
-Lee, W. C. (2010). Classification consistency and accuracy for complex assessments
-using item response theory. \emph{Journal of Educational Measurement, 47}(1), 1-17.
+Lee, W. C. (2010). Classification consistency and accuracy for
+complex assessments using item response theory. \emph{Journal of Educational
+Measurement, 47}(1), 1-17.
 }
 \seealso{
-\code{\link{gen.weight}}, \code{\link{est_score}}, \code{\link{cac_rud}}
+\code{\link[=gen.weight]{gen.weight()}}, \code{\link[=est_score]{est_score()}}, \code{\link[=cac_rud]{cac_rud()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

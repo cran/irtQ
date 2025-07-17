@@ -1,40 +1,73 @@
 #' Simulated Response Data
 #'
-#' @description This function generates a simulated response data for a single- or a mixed-format test forms. For dichotomous
-#' item response data, the IRT 1PL, 2PL, and 3PL models are available. For polytomous item response data, the graded response model,
-#' the partial credit model, and the generalized partial credit model are available.
+#' This function generates simulated response data for single-format or
+#' mixed-format test forms. For dichotomous item response data, the IRT 1PL,
+#' 2PL, and 3PL models are supported. For polytomous item response data, the
+#' graded response model (GRM), the partial credit model (PCM), and the
+#' generalized partial credit model (GPCM) are supported.
 #'
-#' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...). This data frame
-#' can be easily obtained using the function \code{\link{shape_df}}. See below for details.
-#' @param theta A vector of theta values.
-#' @param a.drm A vector of item discrimination (or slope) parameters for dichotomous response IRT models.
-#' @param b.drm A vector of item difficulty (or threshold) parameters for dichotomous response IRT models.
-#' @param g.drm A vector of item guessing parameters for dichotomous IRT models.
-#' @param a.prm A vector of item discrimination (or slope) parameters for polytomous response IRT models.
-#' @param d.prm A list containing vectors of item threshold (or step) parameters for polytomous response IRT models.
-#' @param cats A vector containing the number of score categories for items.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-#' Default is 1.
-#' @param pr.model A vector of character strings specifying the polytomous model with which response data are simulated.
-#' For each polytomous model, "GRM" for the graded response model or "GPCM" for the (generalized) partial credit model can be
-#' specified.
+#' @param x A data frame containing item metadata. This metadata is required to
+#'   retrieve essential information for each item (e.g., number of score
+#'   categories, IRT model type, etc.) necessary for calibration. You can create
+#'   an empty item metadata frame using the function [irtQ::shape_df()]. See
+#'   **below** for more details. Default is `NULL`.
+#' @param theta A numeric vector of ability (theta) values.
+#' @param a.drm A numeric vector of item discrimination (slope) parameters for
+#'   dichotomous IRT models.
+#' @param b.drm A numeric vector of item difficulty parameters for dichotomous
+#'   IRT models.
+#' @param g.drm A numeric vector of guessing parameters for dichotomous IRT
+#'   models.
+#' @param a.prm A numeric vector of item discrimination (slope) parameters for
+#'   polytomous IRT models.
+#' @param d.prm A list of numeric vectors, where each vector contains difficulty
+#'   (threshold) parameters for a polytomous item.
+#' @param cats A numeric vector indicating the number of score categories for
+#'   each item.
+#' @param D A scaling constant used in IRT models to make the logistic function
+#'   closely approximate the normal ogive function. A value of 1.7 is commonly
+#'   used for this purpose. Default is 1.
+#' @param pr.model A character vector specifying the polytomous IRT model used
+#'   to simulate responses for each polytomous item. Each element should be
+#'   either "GRM" (graded response model) or "GPCM" (generalized partial credit
+#'   model).
 #'
-#' @details There are two ways of generating the simulated response data.
-#' The first way is by using the argument \code{x} to read in a data frame of item metadata. In the data frame, the first column should have item IDs,
-#' the second column should contain unique score category numbers of the items, and the third column should include IRT models being fit to the items.
-#' The available IRT models are "1PLM", "2PLM", "3PLM", and "DRM" for dichotomous item data, and "GRM" and "GPCM" for polytomous item data.
-#' Note that "DRM" covers all dichotomous IRT models (i.e, "1PLM", "2PLM", and "3PLM") and "GRM" and "GPCM" represent the graded
-#' response model and (generalized) partial credit model, respectively. The next columns should include the item parameters of the fitted IRT models.
-#' For dichotomous items, the fourth, fifth, and sixth columns represent the item discrimination (or slope), item difficulty, and
-#' item guessing parameters, respectively. When "1PLM" and "2PLM" are specified in the third column, NAs should be inserted in the sixth column
-#' for the item guessing parameters. For polytomous items, the item discrimination (or slope) parameters should be included in the
-#' fourth column and the item difficulty (or threshold) parameters of category boundaries should be contained from the fifth to the last columns.
-#' When the number of unique score categories differs between items, the empty cells of item parameters should be filled with NAs.
-#' In the \pkg{irtQ} package, the item difficulty (or threshold) parameters of category boundaries for GPCM are expressed as
-#' the item location (or overall difficulty) parameter subtracted by the threshold parameter for unique score categories of the item.
-#' Note that when an GPCM item has \emph{K} unique score categories, \emph{K-1} item difficulty parameters are necessary because
-#' the item difficulty parameter for the first category boundary is always 0. For example, if an GPCM item has five score categories,
-#' four item difficulty parameters should be specified. An example of a data frame with a single-format test is as follows:
+#' @details There are two ways to generate simulated response data. The first is
+#'   by providing a data frame of item metadata using the argument `x`. This
+#'   data frame must follow a specific structure: the first column should
+#'   contain item IDs, the second column should contain the number of unique
+#'   score categories for each item, and the third column should specify the IRT
+#'   model to be fitted to each item. Available IRT models are:
+#'   - `"1PLM"`, `"2PLM"`, `"3PLM"`, and `"DRM"` for dichotomous item data
+#'   - `"GRM"` and `"GPCM"` for polytomous item data
+#'
+#'   Note that `"DRM"` serves as a general label covering all dichotomous IRT
+#'   models (i.e., `"1PLM"`, `"2PLM"`, and `"3PLM"`), while `"GRM"` and `"GPCM"`
+#'   represent the graded response model and (generalized) partial credit model,
+#'   respectively.
+#'
+#'   The subsequent columns should contain the item parameters for the specified
+#'   models. For dichotomous items, the fourth, fifth, and sixth columns
+#'   represent item discrimination (slope), item difficulty, and item guessing
+#'   parameters, respectively. When `"1PLM"` or `"2PLM"` is specified in the
+#'   third column, `NA`s must be entered in the sixth column for the guessing
+#'   parameters.
+#'
+#'   For polytomous items, the item discrimination (slope) parameter should
+#'   appear in the fourth column, and the item difficulty (or threshold)
+#'   parameters for category boundaries should occupy the fifth through the last
+#'   columns. When the number of unique score categories differs across items,
+#'   unused parameter cells should be filled with `NA`s.
+#'
+#'   In the \pkg{irtQ} package, the threshold parameters for GPCM items are
+#'   expressed as the item location (or overall difficulty) minus the threshold
+#'   values for each score category. Note that when a GPCM item has *K* unique
+#'   score categories, *K - 1* threshold parameters are required, since the
+#'   threshold for the first category boundary is always fixed at 0. For
+#'   example, if a GPCM item has five score categories, four threshold
+#'   parameters must be provided.
+#'
+#'   An example of a data frame for a single-format test is shown below:
 #' \tabular{lrlrrrrr}{
 #'   ITEM1  \tab 2 \tab 1PLM \tab 1.000 \tab  1.461 \tab         NA \cr
 #'   ITEM2  \tab 2 \tab 2PLM \tab 1.921 \tab -1.049 \tab         NA \cr
@@ -42,7 +75,8 @@
 #'   ITEM4  \tab 2 \tab 3PLM \tab 0.835 \tab -1.049 \tab  0.182 \cr
 #'   ITEM5  \tab 2 \tab DRM \tab 0.926 \tab  0.394 \tab  0.099
 #' }
-#' And an example of a data frame for a mixed-format test is as follows:
+#'
+#'   An example of a data frame for a mixed-format test is shown below:
 #' \tabular{lrlrrrrr}{
 #'   ITEM1  \tab 2 \tab 1PLM \tab 1.000 \tab  1.461 \tab         NA \tab         NA \tab         NA\cr
 #'   ITEM2  \tab 2 \tab 2PLM \tab 1.921 \tab -1.049 \tab         NA \tab         NA \tab         NA\cr
@@ -53,81 +87,111 @@
 #'   ITEM7  \tab 4 \tab GPCM  \tab 1.137 \tab -0.374 \tab  0.215 \tab  0.848 \tab         NA \cr
 #'   ITEM8  \tab 5 \tab GPCM  \tab 1.233 \tab -2.078 \tab -1.347 \tab -0.705 \tab -0.116
 #' }
-#' See \code{IRT Models} section in the page of \code{\link{irtQ-package}} for more details about the IRT models used in the \pkg{irtQ} package.
-#' An easier way to create a data frame for the argument \code{x} is by using the function \code{\link{shape_df}}.
 #'
-#' The second way is by directly specifying item parameters for each item for which response data should be simulated
-#' (i.e., without using a data frame, as shown in the examples that follow). In addition to item parameters,
-#' \code{theta}, \code{cats}, \code{pr.model}, and  \code{D} should be specified as well. \code{g.drm} does not need to be specified when only
-#' the 1PL and 2PL models are used for dichotomous item response data. For dichotomous items, 2s should be specified in \code{cats}.
-#' For polytomous items, the number of unique score categories should be specified in \code{cats}. When a response data set is generated with
-#' a mixed-format test, it is important to clearly specify \code{cats} according to the order of items in the test form. Suppose that the response
-#' data of ten examinees are simulated with five items, including three dichotomous items and two polytomous items with three categories.
-#' Also, suppose that the second and the forth items are the polytomous items. Then, \code{cats = c(2, 3, 2, 3, 2)} should be used.
-#' Additionally, among those two polytomous items, if the first and second item response data are simulated from the graded response model
-#' and generalized partial credit model, respectively, then \code{pr.model = c('GRM', 'GPCM')}.
+#'   See the *IRT Models* section in the [irtQ-package] documentation for more
+#'   details about the IRT models used in the \pkg{irtQ} package. A convenient
+#'   way to create a data frame for the argument `x` is by using the function
+#'   [irtQ::shape_df()].
 #'
-#' @return This function returns a vector or a matrix. When a matrix is returned, rows indicate theta values and columns represent items.
+#'   The second approach is to simulate response data by directly specifying
+#'   item parameters, instead of providing a metadata data frame via the `x`
+#'   argument (see examples below). In this case, the following arguments must
+#'   also be specified: `theta`, `cats`, `pr.model`, and `D`.
+#'
+#'   The `g.drm` argument is only required when simulating dichotomous item
+#'   responses under the 3PL model. It can be omitted entirely if all
+#'   dichotomous items follow the 1PL or 2PL model. However, if the test
+#'   includes a mixture of 1PL, 2PL, and 3PL items, the `g.drm` vector must be
+#'   specified for all items, using `NA` for non-3PL items. For example, if a
+#'   test consists of four dichotomous items where the first two follow the 3PL
+#'   model and the third and fourth follow the 1PL and 2PL models respectively,
+#'   then `g.drm = c(0.2, 0.1, NA, NA)` should be used.
+#'
+#'   For dichotomous items, each element in `cats` should be set to 2. For
+#'   polytomous items, the number of unique score categories should be specified
+#'   in `cats`. When simulating data for a mixed-format test, it is important to
+#'   specify `cats` in the correct item order. For example, suppose responses
+#'   are simulated for 10 examinees across 5 items, including 3 dichotomous
+#'   items and 2 polytomous items (each with 3 categories), where the second and
+#'   fourth items are polytomous. In this case, `cats = c(2, 3, 2, 3, 2)` should
+#'   be used.
+#'
+#'   Furthermore, if the two polytomous items are modeled using the graded
+#'   response model and the generalized partial credit model, respectively, then
+#'   `pr.model = c("GRM", "GPCM")`.
+#'
+#' @return A matrix or vector of simulated item responses.
+#'   If a matrix is returned, rows correspond to examinees (theta values) and
+#'   columns to items.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{drm}}, \code{\link{prm}}
+#' @seealso [irtQ::drm()], [irtQ::prm()]
 #'
 #' @examples
-#' ## example 1.
-#' ## simulates response data with a mixed-format test.
-#' ## for the first two polytomous items, the generalized partial credit model is used
-#' ## for the last polytomous item, the graded response model is used
-#' # 100 examinees are sampled
+#' ## Example 1:
+#' ## Simulate response data for a mixed-format test.
+#' ## The first two polytomous items use the generalized partial credit model (GPCM),
+#' ## and the last polytomous item uses the graded response model (GRM).
+#' # Generate theta values for 100 examinees
 #' theta <- rnorm(100)
 #'
-#' # set item parameters for three dichotomous items with the 3PL model
+#' # Set item parameters for three dichotomous items under the 3PL model
 #' a.drm <- c(1, 1.2, 1.3)
 #' b.drm <- c(-1, 0, 1)
 #' g.drm <- rep(0.2, 3)
 #'
-#' # set item parameters for three polytomous item parameters
-#' # note that 4, 4, and 5 categories are used for polytomous items
+#' # Set item parameters for three polytomous items
+#' # These items have 4, 4, and 5 response categories, respectively
 #' a.prm <- c(1.3, 1.2, 1.7)
 #' d.prm <- list(c(-1.2, -0.3, 0.4), c(-0.2, 0.5, 1.6), c(-1.7, 0.2, 1.1, 2.0))
 #'
-#' # create a numeric vector of score categories for both dichotomous and polytomous item data
-#' # this score category vector is used to specify the location of the polytomous items
+#' # Specify the number of score categories for all items
+#' # This vector also determines the location of polytomous items
 #' cats <- c(2, 2, 4, 4, 5, 2)
 #'
-#' # create a character vector of the IRT model for the polytomous items
+#' # Specify the IRT models for the polytomous items
 #' pr.model <- c("GPCM", "GPCM", "GRM")
 #'
-#' # simulate the response data
+#' # Simulate the response data
 #' simdat(
 #'   theta = theta, a.drm = a.drm, b.drm = b.drm, g.drm = NULL,
 #'   a.prm = a.prm, d.prm = d.prm, cats = cats, pr.model = pr.model, D = 1
 #' )
 #'
-#'
-#' ## example 2.
-#' ## simulates response data with a single-format test with the 2PL model.
-#' # create a numeric vector of score categories for the three 2PL model items
+#' ## Example 2:
+#' ## Simulate response data for a single-format test using the 2PL model
+#' # Specify score categories (2 for each dichotomous item)
 #' cats <- rep(2, 3)
 #'
-#' # simulate the response data
+#' # Simulate the response data
 #' simdat(theta = theta, a.drm = a.drm, b.drm = b.drm, cats = cats, D = 1)
 #'
-#' ## example 3.
-#' ## the use of a "-prm.txt" file obtained from a flexMIRT
-#' # import the "-prm.txt" output file from flexMIRT
+#' ## Example 3:
+#' ## Simulate response data using a "-prm.txt" file exported from flexMIRT
+#' # Load the flexMIRT parameter file
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # read item parameters and transform them to item metadata
+#' # Convert the flexMIRT parameters to item metadata
 #' test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
-#' # simulate the response data
-#' simdat(x = test_flex, theta = theta, D = 1) # use a data.frame of item meta information
+#' # Simulate the response data using the item metadata
+#' simdat(x = test_flex, theta = theta, D = 1)
 #'
 #' @importFrom stats na.exclude
 #' @export
 #'
-simdat <- function(x = NULL, theta, a.drm, b.drm, g.drm = NULL, a.prm, d.prm, cats, pr.model, D = 1) {
+simdat <- function(x = NULL,
+                   theta,
+                   a.drm,
+                   b.drm,
+                   g.drm = NULL,
+                   a.prm,
+                   d.prm,
+                   cats,
+                   pr.model,
+                   D = 1) {
+
   if (!is.null(x)) { # if the item metadata is inserted in the x argument
 
     # confirm and correct all item metadata information

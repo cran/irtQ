@@ -5,7 +5,8 @@
 \alias{grdif.default}
 \alias{grdif.est_irt}
 \alias{grdif.est_item}
-\title{Generalized IRT residual-based DIF detection framework for multiple groups (GRDIF)}
+\title{Generalized IRT residual-based DIF detection framework for multiple groups
+(GRDIF)}
 \usage{
 grdif(x, ...)
 
@@ -77,207 +78,260 @@ grdif(x, ...)
 )
 }
 \arguments{
-\item{x}{A data frame containing item metadata (e.g., item parameters, number of categories, models, etc.),
-an object of class \code{\link{est_item}} obtained from the function \code{\link{est_item}}, or an object of class
-\code{\link{est_irt}} obtained from the function \code{\link{est_irt}}. The item metadata can be easily created
-using the function \code{\link{shape_df}}. See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}} or
-\code{\link{simdat}} for more details about the item metadata.}
+\item{x}{A data frame containing item metadata (e.g., item parameters,
+number of categories, IRT model types, etc.); or an object of class
+\code{est_irt} obtained from \code{\link[=est_irt]{est_irt()}}, or \code{est_item} from
+\code{\link[=est_item]{est_item()}}.
 
-\item{...}{Additional arguments that will be forwarded to the \code{\link{est_score}} function.}
+See \code{\link[=est_irt]{est_irt()}} or \code{\link[=simdat]{simdat()}} for more details about the item
+metadata. This data frame can be easily created using the
+\code{\link[=shape_df]{shape_df()}} function.}
 
-\item{data}{A matrix containing examinees' response data for items in \code{x}. Rows and columns represent
-examinees and items, respectively.}
+\item{...}{Additional arguments passed to the \code{\link[=est_score]{est_score()}} function.}
 
-\item{score}{A vector of examinees' ability estimates. If abilities are not provided, \code{\link{grdif}}
-estimates abilities before computing GRDIF statistics. See \code{\link{est_score}} for more details
-about scoring methods. Default is NULL.}
+\item{data}{A matrix of examinees' item responses corresponding to the items
+specified in the \code{x} argument. Rows represent examinees and columns
+represent items.}
 
-\item{group}{A numeric or character vector indicating group membership of examinees. The length of the vector
-should be the same as the number of rows in the response data matrix.}
+\item{score}{A numeric vector containing examinees' ability estimates (theta
+values). If not provided, \code{\link[=grdif]{grdif()}} will estimate ability parameters
+internally before computing the GRDIF statistics. See \code{\link[=est_score]{est_score()}}
+for more information on scoring methods. Default is \code{NULL}.}
 
-\item{focal.name}{A character or numeric vector representing levels associated with focal groups.
-For instance, consider \code{group = c(0, 0, 1, 2, 2, 3, 3)} where '1', '2', and '3' indicate three distinct
-focal groups, and '0' represents the reference group. In this case, set \code{focal.name = c(1, 2, 3)}.}
+\item{group}{A numeric or character vector indicating examinees' group
+membership. The length of the vector must match the number of rows in the
+response data matrix.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible to the normal
-ogive function (if set to 1.7). Default is 1.}
+\item{focal.name}{A numeric or character vector specifying the levels
+associated with the focal groups. For example, consider \code{group = c(0, 0, 1, 2, 2, 3, 3)}, where '1', '2', and '3' indicate three distinct focal groups
+and '0' represents the reference group. In this case, set \code{focal.name = c(1, 2, 3)}.}
 
-\item{alpha}{A numeric value to specify the significance \eqn{\alpha}-level of the hypothesis test using
-GRDIF statistics. Default is .05.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{missing}{A value indicating missing values in the response data set. Default is NA.}
+\item{alpha}{A numeric value specifying the significance level (\eqn{\alpha})
+for hypothesis testing using the GRDIF statistics. Default is \code{0.05}.}
 
-\item{purify}{A logical value indicating whether a purification process will be implemented or not.
-Default is FALSE.}
+\item{missing}{A value indicating missing responses in the data set. Default
+is \code{NA}.}
 
-\item{purify.by}{A character string specifying a GRDIF statistic with which the purification
-is implemented. Available statistics are "grdifrs" for \eqn{GRDIF_{RS}}, "grdifr" for
-\eqn{GRDIF_{R}}, and "grdifs" for \eqn{GRDIF_{S}}.}
+\item{purify}{Logical. Indicates whether to apply a purification procedure.
+Default is \code{FALSE}.}
 
-\item{max.iter}{A positive integer value specifying the maximum number of iterations for
-the purification process. Default is 10.}
+\item{purify.by}{A character string specifying which GRDIF statistic is used
+to perform the purification. Available options are "grdifrs" for
+\eqn{GRDIF_{RS}}, "grdifr" for \eqn{GRDIF_{R}}, and "grdifs" for
+\eqn{GRDIF_{S}}.}
 
-\item{min.resp}{A positive integer value specifying the minimum number of item responses for an examinee
-required to compute the ability estimate. Default is NULL. See details below for more information.}
+\item{max.iter}{A positive integer specifying the maximum number of
+iterations allowed for the purification process. Default is \code{10}.}
 
-\item{post.hoc}{A logical value indicating whether to conduct a post-hoc RDIF analysis for
-all possible combinations of paired groups for statistically flagged items. The default is TRUE.
-See below for more details.}
+\item{min.resp}{A positive integer specifying the minimum number of valid
+item responses required from an examinee in order to compute an ability
+estimate. Default is \code{NULL}. See \strong{Details} for more information.}
 
-\item{method}{A character string indicating a scoring method. Available methods are "ML" for maximum
-likelihood estimation, "WL" for the weighted likelihood estimation, "MAP" for maximum a posteriori estimation,
-and "EAP" for expected a posteriori estimation. The default method is "ML".}
+\item{post.hoc}{A logical value indicating whether to perform post-hoc RDIF
+analyses for all possible pairwise group comparisons on items flagged as
+statistically significant. Default is TRUE. See details below.}
 
-\item{range}{A numeric vector with two components to restrict the ability scale range for ML, WL, EAP,
-and MAP scoring methods. The default is c(-5, 5).}
+\item{method}{A character string indicating the scoring method to use.
+Available options are:
+\itemize{
+\item \code{"ML"}: Maximum likelihood estimation
+\item \code{"WL"}: Weighted likelihood estimation (Warm, 1989)
+\item \code{"MAP"}: Maximum a posteriori estimation (Hambleton et al., 1991)
+\item \code{"EAP"}: Expected a posteriori estimation (Bock & Mislevy, 1982)
+}
 
-\item{norm.prior}{A numeric vector with two components specifying the mean and standard deviation of
-the normal prior distribution. These parameters are used to obtain Gaussian quadrature points
-and their corresponding weights from the normal distribution. The default is c(0,1). Ignored if \code{method} is
-"ML" or "WL".}
+Default is \code{"ML"}.}
 
-\item{nquad}{An integer value specifying the number of Gaussian quadrature points from the normal
-prior distribution. The default is 41. Ignored if \code{method} is "ML", "WL", or "MAP".}
+\item{range}{A numeric vector of length two specifying the lower and upper
+bounds of the ability scale. This is used for the following scoring
+methods: \code{"ML"}, \code{"WL"}, and \code{"MAP"}. Default is \code{c(-5, 5)}.}
 
-\item{weights}{A two-column matrix or data frame containing the quadrature points (in the first column)
-and their corresponding weights (in the second column) for the latent variable prior distribution.
-The weights and quadrature points can be obtained using the \code{\link{gen.weight}} function.
-If NULL and \code{method} is "EAP", default values are used (see the \code{norm.prior}
-and \code{nquad} arguments). Ignored if \code{method} is "ML", "WL", or "MAP".}
+\item{norm.prior}{A numeric vector of length two specifying the mean and
+standard deviation of the normal prior distribution. These values are used
+to generate the Gaussian quadrature points and weights. Ignored if \code{method}
+is \code{"ML"} or \code{"WL"}. Default is \code{c(0, 1)}.}
 
-\item{ncore}{The number of logical CPU cores to use. The default is 1. See \code{\link{est_score}} for details.}
+\item{nquad}{An integer indicating the number of Gaussian quadrature points
+to be generated from the normal prior distribution. Used only when \code{method}
+is \code{"EAP"}. Ignored for \code{"ML"}, \code{"WL"}, and \code{"MAP"}. Default is 41.}
 
-\item{verbose}{A logical value. If TRUE, progress messages for the purification procedure are suppressed.
-The default is TRUE.}
+\item{weights}{A two-column matrix or data frame containing the quadrature
+points (in the first column) and their corresponding weights (in the second
+column) for the latent variable prior distribution. The weights and points
+can be conveniently generated using the function \code{\link[=gen.weight]{gen.weight()}}.
+
+If \code{NULL} and \code{method = "EAP"}, default quadrature values are generated
+based on the \code{norm.prior} and \code{nquad} arguments. Ignored if \code{method} is
+\code{"ML"}, \code{"WL"}, or \code{"MAP"}.}
+
+\item{ncore}{An integer specifying the number of logical CPU cores to use for
+parallel processing. Default is \code{1}. See \code{\link[=est_score]{est_score()}} for details.}
+
+\item{verbose}{Logical. If \code{TRUE}, progress messages from the purification
+procedure will be displayed; if \code{FALSE}, the messages will be suppressed.
+Default is \code{TRUE}.}
 }
 \value{
-This function returns a list of four internal objects. The four objects are:
-\item{no_purify}{A list of several sub-objects containing the results of DIF analysis without
- a purification procedure. The sub-objects are:
-    \describe{
-      \item{dif_stat}{A data frame containing the results of three RDIF statistics for
-       all evaluated items. Starting from the first column, each column represents the item's ID,
-       \eqn{GRDIF_{R}} statistic, \eqn{GRDIF_{S}} statistic, \eqn{GRDIF_{RS}} statistic,
-       p-value of \eqn{GRDIF_{R}}, p-value of \eqn{GRDIF_{S}}, p-value of \eqn{GRDIF_{RS}},
-       sample size of the reference group, sample sizes of the focal groups, and
-       the total sample size, respectively.}
-      \item{moments}{A list of three data frames detailing the moments of mean raw residuals (MRRs)
-       and mean squared residuals (MSRs) across all compared groups. The first data frame contains
-       the means of MRR and MSR, the second data frame includes the variances of MRR and MSR,
-       and the last one displays the covariances of MRR and MSR for all groups.}
-      \item{dif_item}{A list of three numeric vectors indicating potential DIF items flagged
-       by each of the GRDIF statistics. Each numeric vector corresponds to the items identified by
-       \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}, respectively.}
-      \item{score}{A vector of ability estimates used to compute the GRDIF statistics.}
-      \item{post.hoc}{A list of three data frames containing the post-hoc RDIF analysis results of all possible
-       combinations of paired groups. The first, second, and third data frames present the post-hoc analysis outcomes
-       for the items identified by the \eqn{RDIF_{R}}, \eqn{RDIF_{S}}, and \eqn{RDIF_{RS}} statistics, respectively.}
-   }
+This function returns a list containing four main components:
+
+\item{no_purify}{A list of sub-objects presenting the results of DIF analysis
+without a purification procedure. These include:
+\describe{
+\item{dif_stat}{A data frame summarizing the results of the three GRDIF
+statistics for all evaluated items. Columns include item ID,
+\eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}} statistics; their
+corresponding p-values; the sample size of the reference group;
+the sample sizes of the focal groups; and the total sample size.}
+\item{moments}{A list of three data frames reporting the moments of
+mean raw residuals (MRRs) and mean squared residuals (MSRs) across all
+compared groups. The first contains means, the second variances, and
+the third covariances of MRRs and MSRs.}
+\item{dif_item}{A list of three numeric vectors indicating the items
+flagged as potential DIF items by each of the GRDIF statistics
+(\eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}).}
+\item{score}{A numeric vector of ability estimates used to compute
+the GRDIF statistics.}
+\item{post.hoc}{A list of three data frames containing post-hoc RDIF
+analysis results for all possible pairwise group comparisons. Each
+data frame corresponds to the results for items flagged by
+\eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}, respectively.}
 }
-\item{purify}{A logical value indicating whether the purification process was used.}
-\item{with_purify}{A list of several sub-objects containing the results of DIF analysis with a purification procedure. The sub-objects are:
-    \describe{
-      \item{purify.by}{A character string indicating which GRDIF statistic is used for the purification.
-       "grdifr", "grdifs", and "grdifrs" refers to \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and
-       \eqn{GRDIF_{RS}}, respectively.}
-      \item{dif_stat}{A data frame containing the results of three GRDIF statistics for
-       all evaluated items. Starting from the first column, each column represents the item's ID,
-       \eqn{GRDIF_{R}} statistic, \eqn{GRDIF_{S}} statistic, \eqn{GRDIF_{RS}} statistic,
-       p-value of \eqn{GRDIF_{R}}, p-value of \eqn{GRDIF_{S}}, p-value of \eqn{GRDIF_{RS}},
-       sample size of the reference group, sample sizes of the focal groups, total sample size,
-       and \emph{n}th iteration where the GRDIF statistics were computed, respectively.}
-      \item{moments}{A list of three data frames detailing the moments of mean raw residuals (MRRs)
-       and mean squared residuals (MSRs) across all compared groups. The first data frame contains
-       the means of MRR and MSR, the second data frame includes the variances of MRR and MSR,
-       and the last one displays the covariances of MRR and MSR for all groups. In each data frame,
-       the last column indicates the \emph{n}th iteration where the GRDIF statistics were computed.}
-      \item{n.iter}{The total number of iterations implemented for the purification.}
-      \item{score}{A vector of final purified ability estimates used to compute the GRDIF statistics.}
-      \item{post.hoc}{A data frame containing the post-hoc RDIF analysis results for the flagged items
-       across all possible combinations of paired groups. The post-hoc RDIF analysis is conducted
-       for each flagged item at every iteration.}
-      \item{complete}{A logical value indicating whether the purification process was completed.
-       If FALSE, it means that the purification process reached the maximum iteration number
-       but was not completed.}
-    }
 }
-\item{alpha}{A significance \eqn{\alpha}-level used to compute the p-values of RDIF statistics.}
+
+\item{purify}{A logical value indicating whether the purification process
+was applied.}
+
+\item{with_purify}{A list of sub-objects presenting the results of DIF
+analysis with a purification procedure. These include:
+\describe{
+\item{purify.by}{A character string indicating which GRDIF statistic
+was used for purification: "grdifr", "grdifs", or "grdifrs",
+corresponding to \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}},
+respectively.}
+\item{dif_stat}{A data frame summarizing the GRDIF results across
+iterations. Columns include item ID, the three GRDIF statistics and
+their p-values, sample size of the reference group, sample sizes of
+the focal groups, total sample size, and the iteration number at which
+each statistic was computed.}
+\item{moments}{A list of three data frames showing the MRR and MSR
+moments across iterations. The final column in each data frame indicates
+the iteration in which the statistics were computed.}
+\item{n.iter}{The total number of iterations executed during the
+purification process.}
+\item{score}{A numeric vector of the final purified ability estimates
+used for computing GRDIF statistics.}
+\item{post.hoc}{A data frame containing the post-hoc RDIF analysis
+results for flagged items across all possible pairwise group comparisons,
+updated at each iteration.}
+\item{complete}{A logical value indicating whether the purification
+process was completed. If \code{FALSE}, the process reached the maximum number
+of iterations without convergence.}
+}
+}
+
+\item{alpha}{The significance level (\eqn{\alpha}) used for hypothesis
+testing of the GRDIF statistics.}
 }
 \description{
-This function computes three GRDIF statistics, \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}},
-and \eqn{GRDIF_{RS}}, for analyzing differential item functioning (DIF) among multiple groups
-(Lim, Zhu, Choe, & Han, 2023). They are specialized to capture uniform DIF, nonuniform DIF, and
-mixed DIF, respectively.
+This function computes three GRDIF statistics, \eqn{GRDIF_{R}},
+\eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}, for analyzing differential item
+functioning (DIF) among multiple groups (Lim et al., 2024). They are
+specialized to capture uniform DIF, nonuniform DIF, and mixed DIF,
+respectively.
 }
 \details{
-The GRDIF framework (Lim et al., 2023) is a generalized version of the RDIF detection framework,
-designed to assess DIF for multiple groups. The GRDIF framework comprises three statistics: \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}},
-and \eqn{GRDIF_{RS}}, which focus on detecting uniform, nonuniform, and mixed DIF, respectively.
-Under the null hypothesis that a test contains no DIF items, \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}
-asymptotically follow the \eqn{\chi^{2}} distributions with G-1, G-1, and 2(G-1) degrees of freedom, respectively,
-where G represents the total number of groups being compared. For more information on the GRDIF framework, see Lim et al. (2023).
+The GRDIF framework (Lim et al., 2024) is a generalized version of the RDIF
+detection framework, designed to assess DIF across multiple groups. The
+framework includes three statistics: \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and
+\eqn{GRDIF_{RS}}, which are tailored to detect uniform, nonuniform, and mixed
+DIF, respectively. Under the null hypothesis that the test contains no DIF
+items, the statistics \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}
+asymptotically follow \eqn{\chi^{2}} distributions with G-1, G-1, and 2(G-1)
+degrees of freedom, respectively, where \emph{G} represents the number of
+groups being compared. For more information on the GRDIF framework, see
+Lim et al. (2024).
 
-The \code{\link{grdif}} function calculates all three GRDIF statistics: \eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}. The current
-version of the \code{\link{grdif}} function supports both dichotomous and polytomous item response data. To compute these statistics, the \code{\link{grdif}}
-function requires (1) item parameter estimates obtained from aggregate data, regardless of group membership, (2) examinees' ability estimates
-(e.g., MLE), and (3) examinees' item response data. Note that the ability estimates must be computed using the aggregate data-based
-item parameter estimates. The item parameter estimates should be provided in the \code{x} argument, the ability estimates in the
-\code{score} argument, and the response data in the \code{data} argument. When abilities are not given in the \code{score} argument
-(i.e., \code{score = NULL}), the \code{\link{grdif}} function estimates examinees' abilities automatically using the scoring method
-specified in the \code{method} argument (e.g., \code{method = "ML"}).
+The \code{\link[=grdif]{grdif()}} function computes all three GRDIF statistics:
+\eqn{GRDIF_{R}}, \eqn{GRDIF_{S}}, and \eqn{GRDIF_{RS}}. It supports both
+dichotomous and polytomous item response data. To compute these statistics,
+\code{\link[=grdif]{grdif()}} requires: (1) item parameter estimates obtained from aggregate data
+(regardless of group membership); (2) examinees' ability estimates (e.g., ML);
+and (3) their item response data. Note that ability estimates must be computed
+using the item parameters estimated from the aggregate data. The item parameters
+should be provided via the \code{x} argument, the ability estimates via the \code{score}
+argument, and the response data via the \code{data} argument. If ability estimates
+are not supplied (\code{score = NULL}), \code{\link[=grdif]{grdif()}} automatically computes them
+using the scoring method specified in the \code{method} argument (e.g., \code{method = "ML"}).
 
-The \code{group} argument accepts a vector with numeric or character values, indicating the group membership of examinees.
-The vector may include multiple distinct values, where one value represents the reference group and the others represent the focal groups.
-The length of the vector should be the same as the number of rows in the response data, with each value indicating the group membership
-of each examinee. After specifying the \code{group}, a numeric or character vector should be provided in the \code{focal.name} argument
-to define which group values in the \code{group} argument represent the focal groups. The reference group will be the group not included
-in the \code{focal.name} vector.
+The \code{group} argument accepts a vector of numeric or character values,
+indicating the group membership of examinees. The vector may contain multiple
+distinct values, where one represents the reference group and the others
+represent focal groups. Its length must match the number of rows in the
+response data, with each value corresponding to an examinee’s group
+membership. Once \code{group} is specified, a numeric or character vector must be
+supplied via the \code{focal.name} argument to define which group(s) in \code{group}
+represent the focal groups. The reference group is defined as the group not
+included in \code{focal.name}.
 
-Similar to the original RDIF framework for two-groups comparison, the GRDIF framework can implement an iterative purification process.
-When \code{purify = TRUE}, the purification process is executed based on one of the GRDIF statistics specified in the \code{purify.by}
-argument (e.g., \code{purify.by="grdifrs"}). During each iterative purification, examinees' latent abilities are calculated using purified
-items and the scoring method specified in the \code{method} argument. The iterative purification process stops when no additional DIF items
-are identified or when the process reaches a predetermined limit of iterations, which can be set in the \code{max.iter} argument.
-For more information about the purification procedure, refer to Lim et al. (2022).
+Similar to the original RDIF framework for two-group comparisons, the GRDIF
+framework supports an iterative purification process. When \code{purify = TRUE},
+purification is conducted based on the GRDIF statistic specified in the
+\code{purify.by} argument (e.g., \code{purify.by = "grdifrs"}). During each iteration,
+examinees' latent abilities are re-estimated using only the purified items,
+with the scoring method determined by the \code{method} argument. The process
+continues until no additional DIF items are flagged or until the number of
+iterations reaches the specified \code{max.iter} limit. For details on the
+purification procedure, see Lim et al. (2022).
 
-Scoring with a limited number of items can result in large standard errors, which may impact the effectiveness of DIF detection within
-the GRDIF framework. The \code{min.resp} argument can be employed to avoid using scores with significant standard errors when calculating
-the GRDIF statistics, particularly during the purification process. For instance, if \code{min.resp} is not NULL (e.g., \code{min.resp=5}),
-item responses from examinees whose total item responses fall below the specified minimum number are treated as missing values (i.e., NA).
-Consequently, their ability estimates become missing values and are not utilized in computing the GRDIF statistics. If \code{min.resp=NULL},
-an examinee's score will be computed as long as there is at least one item response for the examinee.
+Scoring based on a limited number of items can lead to large standard errors,
+which may compromise the effectiveness of DIF detection within the GRDIF
+framework. The \code{min.resp} argument can be used to exclude ability estimates
+with substantial standard errors, especially during the purification process.
+For example, if \code{min.resp} is not NULL (e.g., \code{min.resp = 5}), examinees whose
+total number of responses falls below the specified threshold will have their
+responses treated as missing values (i.e., NA). Consequently, their ability
+estimates will also be missing and will not be used when computing the GRDIF
+statistics. If \code{min.resp = NULL}, an examinee's score will be computed as long
+as at least one response is available.
 
-The \code{post.hoc} argument allows you to perform a post-hoc RDIF analysis for all possible combinations of paired groups
-for items flagged as statistically significant. For example, consider four groups of examinees: A, B, C, and D. If \code{post.hoc = TRUE},
-the \code{\link{grdif}} function will perform a post-hoc RDIF analysis for all possible pairs of groups
-(A-B, A-C, A-D, B-C, B-D, and C-D) for each flagged item. This helps to identify which specific pairs of groups
-have DIF for each item, providing a more detailed understanding of the DIF patterns in the data. Note that when purification is implemented
-(i.e., \code{purify = TRUE}), the post-hoc RDIF analysis is conducted for each flagged item during each single iteration of
-the purification process.
+The \code{post.hoc} argument enables post-hoc RDIF analyses across all possible
+pairwise group comparisons for items flagged as statistically significant.
+For instance, consider four groups of examinees: A, B, C, and D. If
+\code{post.hoc = TRUE}, the \code{\link[=grdif]{grdif()}} function will perform pairwise RDIF analyses
+for each flagged item across all group pairs (A-B, A-C, A-D, B-C, B-D, and C-D).
+This provides a more detailed understanding of which specific group pairs
+exhibit DIF. Note that when purification is enabled (i.e., \code{purify = TRUE}),
+post-hoc RDIF analyses are conducted for each flagged item at each iteration
+of the purification process.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{grdif(default)}: Default method to computes three GRDIF statistics with multiple group data
-using a data frame \code{x} containing the item metadata.
+\item \code{grdif(default)}: Default method to compute the three GRDIF statistics for
+multiple-group data using a data frame \code{x} that contains item metadata.
 
-\item \code{grdif(est_irt)}: An object created by the function \code{\link{est_irt}}.
+\item \code{grdif(est_irt)}: An object created by the function \code{\link[=est_irt]{est_irt()}}.
 
-\item \code{grdif(est_item)}: An object created by the function \code{\link{est_item}}.
+\item \code{grdif(est_item)}: An object created by the function \code{\link[=est_item]{est_item()}}.
 
 }}
 \examples{
 \donttest{
-# load library
+# Load required library
 library("dplyr")
 
-## Uniform DIF detection for four groups (1R/3F)
+## Uniform DIF detection for four groups (1 reference, 3 focal)
 ########################################################
 # (1) Manipulate uniform DIF for all three focal groups
 ########################################################
+
 # Import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# Select 36 of 3PLM items which are non-DIF items
+# Select 36 non-DIF items modeled under 3PLM
 par_nstd <-
   bring.flexmirt(file = flex_sam, "par")$Group1$full_df \%>\%
   dplyr::filter(.data$model == "3PLM") \%>\%
@@ -285,15 +339,14 @@ par_nstd <-
   dplyr::select(1:6)
 par_nstd$id <- paste0("nondif", 1:36)
 
-# Generate four new items where uniform DIF will be manipulated
+# Generate four new items on which uniform DIF will be imposed
 difpar_ref <-
   shape_df(
     par.drm = list(a = c(0.8, 1.5, 0.8, 1.5), b = c(0.0, 0.0, -0.5, -0.5), g = .15),
     item.id = paste0("dif", 1:4), cats = 2, model = "3PLM"
   )
 
-# Manipulate uniform DIF on the four new items by adjusting the b-parameters
-# for the three focal groups
+# Introduce DIF by shifting b-parameters differently for each focal group
 difpar_foc1 <-
   difpar_ref \%>\%
   dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + c(0.7, 0.7, 0, 0))
@@ -304,21 +357,21 @@ difpar_foc3 <-
   difpar_ref \%>\%
   dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + c(-0.4, -0.4, -0.5, -0.5))
 
-# Combine the 4 DIF and 36 non-DIF item data for both reference and focal groups.
-# Thus, the first four items have uniform DIF for thee three focal groups
+# Combine the 4 DIF and 36 non-DIF items for all four groups
+# Therefore, the first four items contain uniform DIF across all focal groups
 par_ref <- rbind(difpar_ref, par_nstd)
 par_foc1 <- rbind(difpar_foc1, par_nstd)
 par_foc2 <- rbind(difpar_foc2, par_nstd)
 par_foc3 <- rbind(difpar_foc3, par_nstd)
 
-# Generate the true thetas from the different ability distributions
+# Generate true abilities from different distributions
 set.seed(128)
 theta_ref <- rnorm(500, 0.0, 1.0)
 theta_foc1 <- rnorm(500, -1.0, 1.0)
 theta_foc2 <- rnorm(500, 1.0, 1.0)
 theta_foc3 <- rnorm(500, 0.5, 1.0)
 
-# Generate the response data
+# Simulate response data for each group
 resp_ref <- irtQ::simdat(par_ref, theta = theta_ref, D = 1)
 resp_foc1 <- irtQ::simdat(par_foc1, theta = theta_foc1, D = 1)
 resp_foc2 <- irtQ::simdat(par_foc2, theta = theta_foc2, D = 1)
@@ -326,26 +379,27 @@ resp_foc3 <- irtQ::simdat(par_foc3, theta = theta_foc3, D = 1)
 data <- rbind(resp_ref, resp_foc1, resp_foc2, resp_foc3)
 
 ########################################################
-# (2) Estimate the item and ability parameters
-#     using the aggregate data
+# (2) Estimate item and ability parameters
+#     using aggregated data
 ########################################################
-# Estimate the item parameters
+
+# Estimate item parameters
 est_mod <- irtQ::est_irt(data = data, D = 1, model = "3PLM")
 est_par <- est_mod$par.est
 
-# Estimate the ability parameters using MLE
+# Estimate ability parameters using MLE
 score <- irtQ::est_score(x = est_par, data = data, method = "ML")$est.theta
 
 ########################################################
 # (3) Conduct DIF analysis
 ########################################################
-# Create a vector of group membership indicators,
-# where 1, 2 and 3 indicate the three focal groups
+
+# Create a group membership vector:
+# 0 = reference group; 1, 2, 3 = focal groups
 group <- c(rep(0, 500), rep(1, 500), rep(2, 500), rep(3, 500))
 
-# (a) Compute GRDIF statistics without purification
-#     and implement the post-hoc two-groups comparison analysis for
-#     the flagged items
+# (a) Compute GRDIF statistics without purification,
+#     and perform post-hoc pairwise comparisons for flagged items
 dif_nopuri <- grdif(
   x = est_par, data = data, score = score, group = group,
   focal.name = c(1, 2, 3), D = 1, alpha = 0.05,
@@ -353,12 +407,11 @@ dif_nopuri <- grdif(
 )
 print(dif_nopuri)
 
-# Print the post-hoc analysis results for the fagged items
+# Display post-hoc pairwise comparison results
 print(dif_nopuri$no_purify$post.hoc)
 
 # (b) Compute GRDIF statistics with purification
-#     based on \eqn{GRDIF_{R}} and implement the post-hoc
-#     two-groups comparison analysis for flagged items
+#     based on GRDIF_R, including post-hoc comparisons
 dif_puri_r <- grdif(
   x = est_par, data = data, score = score, group = group,
   focal.name = c(1, 2, 3), D = 1, alpha = 0.05,
@@ -366,28 +419,30 @@ dif_puri_r <- grdif(
 )
 print(dif_puri_r)
 
-# Print the post-hoc analysis results without purification
+# Display post-hoc results before purification
 print(dif_puri_r$no_purify$post.hoc)
 
-# Print the post-hoc analysis results with purification
+# Display post-hoc results after purification
 print(dif_puri_r$with_purify$post.hoc)
 }
 
 }
 \references{
-Lim, H., & Choe, E. M. (2023). Detecting differential item functioning in CAT using IRT residual DIF approach.
-\emph{Journal of Educational Measurement}. \doi{doi:10.1111/jedm.12366}.
+Lim, H., & Choe, E. M. (2023). Detecting differential item
+functioning in CAT using IRT residual DIF approach.
+\emph{Journal of Educational Measurement, 60}(4), 626-650. \doi{doi:10.1111/jedm.12366}.
 
-Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential item functioning detection framework in
-item response theory. \emph{Journal of Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
+Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
+item functioning detection framework in item response theory. \emph{Journal of
+Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
 
-Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2023, April). \emph{Detecting differential item functioning among multiple groups
-using IRT residual DIF framework}. Paper presented at the Annual Meeting of the National Council on Measurement
-in Education. Chicago, IL.
+Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2024). Detecting
+differential item functioning among multiple groups using IRT residual DIF
+framework. \emph{Journal of Educational Measurement, 61}(4), 656-681.
 }
 \seealso{
-\code{\link{rdif}} \code{\link{est_item}}, \code{\link{info}}, \code{\link{simdat}}, \code{\link{shape_df}},
-\code{\link{gen.weight}}, \code{\link{est_score}}
+\code{\link[=rdif]{rdif()}} \code{\link[=est_irt]{est_irt()}}, \code{\link[=est_item]{est_item()}},
+\code{\link[=simdat]{simdat()}}, \code{\link[=shape_df]{shape_df()}}, \code{\link[=est_score]{est_score()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

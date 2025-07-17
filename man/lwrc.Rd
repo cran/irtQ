@@ -7,93 +7,108 @@
 lwrc(x = NULL, theta, prob = NULL, cats, D = 1)
 }
 \arguments{
-\item{x}{A data frame containing the item metadata (e.g., item parameters, number of categories, models ...).
-See \code{\link{irtfit}}, \code{\link{info}} or \code{\link{simdat}} for more details about the item metadata.
-This data frame can be easily obtained using the function \code{\link{shape_df}}. If \code{prob = NULL}, this data frame is
-used in the recursion formula. See below for details.}
+\item{x}{A data frame containing item metadata (e.g., item parameters, number
+of categories, IRT model types, etc.). See \code{\link[=est_irt]{est_irt()}} or
+\code{\link[=simdat]{simdat()}} for more details about the item metadata. This data frame
+can be easily created using the \code{\link[=shape_df]{shape_df()}} function. If \code{prob} is
+\code{NULL}, the item metadata in \code{x} is used in the recursion formula. See
+\strong{Details} below.}
 
-\item{theta}{A vector of theta values where the conditional distribution of observed scores are computed.
-The theta values are only required when a data frame is specified in the argument \code{x}.}
+\item{theta}{A vector of theta values at which the conditional distributions
+of observed scores are computed. This argument is required only when item
+metadata is provided via the \code{x} argument.}
 
-\item{prob}{A matrix containing the probability of answering each category of an item. Each row indicates an item and
-each column represents each category of the item. When the number of categories differs between items, the empty cells
-should be filled with zeros or NA values. If \code{x = NULL}, this probability matrix is used in the recursion Formula.}
+\item{prob}{A matrix containing the category response probabilities for each
+item. Each row corresponds to an item, and each column represents a score
+category. If items have different numbers of categories, empty cells should
+be filled with zeros or \code{NA} values. If \code{x} is \code{NULL}, this matrix is used
+in the recursion formula.}
 
-\item{cats}{A numeric vector specifying the number of categories for each item. For example, a dichotomous
-item has two categories. This information is only required when a probability matrix is specified in the argument
-\code{prob}.}
+\item{cats}{A numeric vector specifying the number of score categories for
+each item. For example, a dichotomous item has two categories. This
+argument is required only when a probability matrix is provided via the
+\code{prob} argument.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function
-(if set to 1.7). Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 }
 \value{
-When the \code{prob} argument is provided, this function returns a vector of the probabilities of obtaining every
-observed score on a test. When the \code{x} argument is specified, the function returns a matrix of conditional probabilities
-across all possible observed scores and theta values.
+When the \code{prob} argument is provided, the function returns a vector
+of probabilities for all possible observed scores on a test.
+
+When the \code{x} argument is specified, it returns a matrix of conditional
+probabilities for each observed score across all specified theta values.
 }
 \description{
-This function computes the conditional distributions of number-correct (or observed) scores
-given probabilities of category responses to items or given a set of theta values using Lord and
-Wingersky recursion formula (1984).
+This function computes the conditional distributions of number-correct (or
+observed) scores given either the probabilities of category responses for
+each item or a set of theta values, using the Lord and Wingersky recursion
+formula (1984).
 }
 \details{
-The Lord and Wingersky recursive algorithm is an efficient way of calculating the compound probabilities
-of any number-correct scores on a test based on IRT models. This algorithm is particularly useful when computing
-the IRT model-based observed score distribution for a test.
+The Lord and Wingersky recursive algorithm provides an efficient
+method for calculating the compound probabilities of all possible
+number-correct (i.e., observed) scores on a test, based on IRT models. This
+algorithm is particularly useful for obtaining the IRT model-based
+distribution of observed scores.
 
-To compute the conditional distributions of observed scores, either the item metadata set specified in \code{x} or
-the probability matrix specified in \code{prob} can be used.
+The conditional distributions of observed scores can be computed using
+either the item metadata specified in \code{x} or the category probability
+matrix specified in \code{prob}.
 }
 \examples{
-## example 1: when a matrix of probabilities is used as a data set
-## this is an example from Kolen and Brennan (2004, p. 183)
-# create a matrix of probabilities of getting correct and incorrect answers for three items
+## Example 1: Using a matrix of category probabilities
+## This example is from Kolen and Brennan (2004, p. 183)
+# Create a matrix of probabilities for correct and incorrect responses to three items
 probs <- matrix(c(.74, .73, .82, .26, .27, .18), nrow = 3, ncol = 2, byrow = FALSE)
 
-# create a vector of score categories for the three items
+# Create a vector specifying the number of score categories for each item
 cats <- c(2, 2, 2)
 
-# compute the conditional distributions of observed scores
+# Compute the conditional distribution of observed scores
 lwrc(prob = probs, cats = cats)
 
-## example 2: when a matrix of probabilities is used as a data set
-## with a mixed-format test
-# category probabilities for a dichotomous item
+## Example 2: Using a matrix of category probabilities for a mixed-format test
+# Category probabilities for a dichotomous item
 p1 <- c(0.2, 0.8, 0, 0, 0)
-# category probabilities for a dichotomous item
+
+# Category probabilities for another dichotomous item
 p2 <- c(0.4, 0.6, NA, NA, NA)
-# category probabilities for a polytomous item with five categories
+
+# Category probabilities for a polytomous item with five categories
 p3 <- c(0.1, 0.2, 0.2, 0.4, 0.1)
-# category probabilities for a polytomous item with three categories
+
+# Category probabilities for a polytomous item with three categories
 p4 <- c(0.5, 0.3, 0.2, NA, NA)
 
-# rbind the probability vectors
+# Combine the probability vectors into a matrix
 p <- rbind(p1, p2, p3, p4)
 
-# create a vector of score categories for the four items
+# Create a vector specifying the number of score categories for each item
 cats <- c(2, 2, 5, 3)
 
-# compute the conditional distributions of observed scores
+# Compute the conditional distribution of observed scores
 lwrc(prob = p, cats = cats)
 
-## example 3: when a data frame for the item metadata of
-## a mixed-format test is used.
-# import the "-prm.txt" output file from flexMIRT
+## Example 3: Using a data frame of item metadata for a mixed-format test
+# Import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# read item parameters and transform them to item metadata
+# Read item parameters and convert them to item metadata
 x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
-# compute the conditional distributions of observed scores
+# Compute the conditional distribution of observed scores for a range of theta values
 lwrc(x = x, theta = seq(-4, 4, 0.2), D = 1)
 
 }
 \references{
-Kolen, M. J. & Brennan, R. L. (2004) \emph{Test Equating, Scaling, and Linking} (2nd ed.). New York:
-Springer.
+Kolen, M. J. & Brennan, R. L. (2004) \emph{Test Equating, Scaling, and
+Linking} (2nd ed.). New York: Springer.
 
-Lord, F. & Wingersky, M. (1984). Comparison of IRT true score and equipercentile observed score equatings.
-\emph{Applied Psychological Measurement, 8}(4), 453-461.
+Lord, F. & Wingersky, M. (1984). Comparison of IRT true score and
+equipercentile observed score equatings. \emph{Applied Psychological Measurement,
+8}(4), 453-461.
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

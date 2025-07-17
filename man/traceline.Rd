@@ -16,56 +16,101 @@ traceline(x, ...)
 \method{traceline}{est_irt}(x, theta, ...)
 }
 \arguments{
-\item{x}{A data frame containing the item metadata (e.g., item parameters, number of categories, models ...), an object
-of class \code{\link{est_item}} obtained from the function \code{\link{est_item}}, or an object of class \code{\link{est_irt}}
-obtained from the function \code{\link{est_irt}}. See \code{\link{irtfit}}, \code{\link{info}}, or \code{\link{simdat}}
-for more details about the item metadata. The data frame of item metadata can be easily obtained using the function \code{\link{shape_df}}.}
+\item{x}{A data frame containing item metadata (e.g., item parameters,
+number of categories, IRT model types, etc.); or an object of class
+\code{est_irt} obtained from \code{\link[=est_irt]{est_irt()}}, or \code{est_item} from
+\code{\link[=est_item]{est_item()}}.
+
+See \code{\link[=est_irt]{est_irt()}} or \code{\link[=simdat]{simdat()}} for more details about the item
+metadata. This data frame can be easily created using the
+\code{\link[=shape_df]{shape_df()}} function.}
 
 \item{...}{Further arguments passed to or from other methods.}
 
-\item{theta}{A vector of theta values.}
+\item{theta}{A numeric vector of theta values at which item and test
+characteristic curves are computed.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 }
 \value{
-This function returns an object of class \code{\link{traceline}}. This object contains a list containing
-the item category probabilities, item characteristic function, and test characteristic function.
+This function returns an object of class \code{traceline}, which is a list
+containing the following components:
+
+\item{prob.cats}{A list of data frames containing the category response
+probabilities for each item across the specified theta values. Each data
+frame corresponds to an item, with rows representing theta values and
+columns representing response categories (e.g., \code{"resp.0"}, \code{"resp.1"}, ...).}
+
+\item{icc}{A numeric matrix representing ICCs. Each column corresponds to
+an item, and each row represents the expected item score at a given theta value.
+The column names are the item IDs.}
+
+\item{tcc}{A numeric vector representing the TCC, computed as the sum of
+expected item scores across all items at each theta value.}
+
+\item{theta}{A numeric vector of theta values at which the item and test
+information functions are evaluated. This matches the user-supplied
+\code{theta} argument.}
 }
 \description{
-This function computes the item category probabilities, item characteristic function, and
-test characteristic function given a set of theta values. The returned object of this function can be used
-to draw the item or test characteristic curve using the function \code{\link{plot.traceline}}.
+This function computes item category probabilities, item characteristic
+curves (ICCs), and the test characteristic curve (TCC) for a given set of
+theta values. The returned object can be used to visualize these functions
+using \code{\link[=plot.traceline]{plot.traceline()}}.
+}
+\details{
+This function computes the item and test characteristic functions commonly
+used in IRT. For each item, the function computes the category response
+probabilities across a specified set of theta values. These probabilities are
+used to derive:
+\itemize{
+\item The item characteristic curve (ICC), which represents the expected score
+of each item as a function of theta.
+\item The test characteristic curve (TCC), which is the sum of expected item
+scores at each theta value.
+}
+
+The output object can be visualized using the \link{plot.traceline} to
+inspect the relationship between ability levels (theta) and expected
+item/test scores.
+
+If the input \code{x} is an object of class \code{est_item} or \code{est_irt}, the function
+automatically extracts item parameter estimates and the scaling constant
+\code{D} from the object. Otherwise, a properly formatted item metadata data frame
+must be provided.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{traceline(default)}: Default method to compute the item category probabilities, item characteristic function, and
-test characteristic function for a data frame \code{x} containing the item metadata.
+\item \code{traceline(default)}: Default method to compute the item category probabilities,
+item characteristic function, and test characteristic function for a data frame
+\code{x} containing the item metadata.
 
-\item \code{traceline(est_item)}: An object created by the function \code{\link{est_item}}.
+\item \code{traceline(est_item)}: An object created by the function \code{\link[=est_item]{est_item()}}.
 
-\item \code{traceline(est_irt)}: An object created by the function \code{\link{est_irt}}.
+\item \code{traceline(est_irt)}: An object created by the function \code{\link[=est_irt]{est_irt()}}.
 
 }}
 \examples{
-## example
-## using a "-prm.txt" file obtained from a flexMIRT
-# import the "-prm.txt" output file from flexMIRT
+## Example using a "-prm.txt" file exported from flexMIRT
+
+# Import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# read item parameters and transform them to item metadata
+# Read the item parameters and convert them into item metadata
 test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
-# set theta values
+# Define a sequence of theta values
 theta <- seq(-3, 3, 0.5)
 
-# compute the item category probabilities and item/test
-# characteristic functions given the theta values
+# Compute item category probabilities, ICCs,
+# and the TCC for the given theta values
 traceline(x = test_flex, theta, D = 1)
 
 }
 \seealso{
-\code{\link{plot.traceline}}, \code{\link{est_item}}
+\code{\link[=plot.traceline]{plot.traceline()}}, \code{\link[=est_irt]{est_irt()}}, \code{\link[=est_item]{est_item()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

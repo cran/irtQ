@@ -1,54 +1,81 @@
-#' Create a data frame of item metadata
+#' Create a Data Frame of Item Metadata
 #'
-#' @description This function creates a data frame which includes item meta (e.g., item parameter, categories, models ...) to be
-#' used for the IRT model-data fit analysis as well as other analyses.
+#' This function creates a data frame of item metadata—including item
+#' parameters, the number of score categories, and IRT model specifications—to
+#' be used in various IRT-related analyses within the \pkg{irtQ} package.
 #'
-#' @param par.drm A list containing three vectors of dichotomous item parameters. Namely, the item discrimination (a), item difficulty (b),
-#' and item guessing parameters.
-#' @param par.prm A list containing a vector of polytomous item discrimination (or slope) parameters and a list of polytomous item threshold
-#' (or step) parameters. In this list, the argument \code{a} should have a vector of slope parameters and the argument \code{d} should include
-#' a list of threshold (or step) parameters. See below for more details.
-#' @param item.id A character vector of item IDs. If NULL, an ID is automatically given to each item.
-#' @param cats A vector containing the number of score categories for items.
-#' @param model A character vector of IRT models corresponding to items. The available IRT models are "1PLM", "2PLM", "3PLM", and "DRM" for
-#' dichotomous items, and "GRM" and "GPCM" for polytomous items. Note that "DRM" covers all dichotomous IRT models (i.e, "1PLM", "2PLM", and
-#' "3PLM") and "GRM" and "GPCM" represent the graded response model and (generalized) partial credit model, respectively.
-#' @param default.par A logical value to create an item meta with default item parameters. If TRUE, the number of score categories
-#' and corresponding IRT models should be specified in the arguments of \code{cats} and \code{model}, respectively. In the default
-#' item meta, the item slope parameter has a fixed value of 1, the item difficulty (or threshold) parameter(s) has(have) a fixed value of 0,
-#' and the item guessing parameter has a fixed value of .2. Default is FALSE.
+#' @param par.drm A list containing three numeric vectors for dichotomous item
+#'   parameters: item discrimination (`a`), item difficulty (`b`), and guessing
+#'   parameters (`g`).
+#' @param par.prm A list containing polytomous item parameters. The list must
+#'   include a numeric vector `a` for item discrimination (slope) parameters,
+#'   and a list `d` of numeric vectors specifying difficulty (or threshold)
+#'   parameters for each item. See the **Details** section for more information.
+#' @param item.id A character vector of item IDs. If `NULL`, default IDs (e.g.,
+#'   "V1", "V2", ...) are assigned automatically.
+#' @param cats A numeric vector indicating the number of score categories for
+#'   each item.
+#' @param model A character vector specifying the IRT model for each item.
+#'   Available options are `"1PLM"`, `"2PLM"`, `"3PLM"`, and `"DRM"` for
+#'   dichotomous items, and `"GRM"` and `"GPCM"` for polytomous items. The label
+#'   `"DRM"` serves as a general category that encompasses all dichotomous
+#'   models (`"1PLM"`, `"2PLM"`, and `"3PLM"`), while `"GRM"` and `"GPCM"` refer
+#'   to the graded response model and (generalized) partial credit model,
+#'   respectively.
+#' @param default.par Logical. If `TRUE`, default item parameters are generated
+#'   based on the specified `cats` and `model`. In this case, the slope
+#'   parameter is set to 1, all difficulty (or threshold) parameters are set to
+#'   0, and the guessing parameter is set to 0.2 for `"3PLM"` or `"DRM"` items.
+#'   The default is `FALSE`.
 #'
-#' @details For any item where "1PLM" or "2PLM" is specified in \code{model}, the item guessing parameter will be NA. If \code{model} is
-#' a vector of \eqn{length = 1}, the specified model is replicated across all items. As in the function \code{\link{simdat}}, it is important
-#' to clearly specify \code{cats} according to the order of items in the test form when a data frame for a mixed-format test needs to be created.
-#' See \code{\link{simdat}} for more details about how to specify \code{cats}.
+#' @details For any item where `"1PLM"` or `"2PLM"` is specified in `model`, the
+#'   guessing parameter will be set to `NA`. If `model` is a vector of length 1,
+#'   the specified model will be replicated across all items.
 #'
-#' When specifying item parameters in \code{par.drm} and/or \code{par.prm}, keep the order of item parameter types. For example,
-#' in the \code{par.drm} argument, the first argument \code{a} should contain the slope parameter vector, the second argument \code{b}
-#' should contain the difficulty vector, and the third argument \code{g} should contain the guessing parameter vector.
-#' In the \code{par.drm} argument, the first argument \code{a} should contain the slope parameter vector and the second argument \code{d}
-#' should contain a list including vectors of item threshold (or step) parameters for polytomous response IRT models. Note that when an item follows
-#' the (generalized) partial credit model, the item step parameters are the overall item difficulty (or location) parameter subtracted by
-#' the difficulty (or threshold) parameter for each category. Thus, the number of step parameters for item with m categories is m-1 because
-#' a step parameter for the first category does not affect the category probabilities.
+#'   As in the [irtQ::simdat()] function, when constructing a mixed-format test
+#'   form, it is important to specify the `cats` argument to reflect the correct
+#'   number of score categories for each item, in the exact order that the items
+#'   appear. See [irtQ::simdat()] for further guidance on how to specify `cats`.
 #'
-#' @return This function returns a data frame.
+#'   When specifying item parameters using `par.drm` and/or `par.prm`, the
+#'   internal structure and ordering of elements must be followed.
+#'   - `par.drm` should be a list with three components:
+#'     - `a`: a numeric vector of slope parameters
+#'     - `b`: a numeric vector of difficulty parameters
+#'     - `g`: a numeric vector of guessing parameters
+#'   - `par.prm` should be a list with two components:
+#'     - `a`: a numeric vector of slope parameters for polytomous items
+#'     - `d`: a list of numeric vectors specifying threshold (or step) parameters
+#'       for each polytomous item
+#'
+#'
+#' For items following the (generalized) partial credit model (`"GPCM"`), the
+#' threshold (or step) parameters are computed as the overall item difficulty
+#' (location) minus the category-specific thresholds. Therefore, for an item
+#' with `m` score categories, `m - 1` step parameters must be provided, since
+#' the first category threshold is fixed and does not contribute to category
+#' probabilities.
+#'
+#' @return A data frame containing item metadata, including item IDs, number of
+#'   score categories, IRT model types, and associated item parameters. This
+#'   data frame can be used as input for other functions in the \pkg{irtQ}
+#'   package, such as [irtQ::est_irt()] or [irtQ::simdat()].
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{info}}
+#' @seealso [irtQ::est_irt()], [irtQ::simdat()], [irtQ::shape_df_fipc()]
 #'
 #' @examples
-#' ## a mixed-item format test form
-#' ## with five dichotomous and two polytomous items
-#' # create a list containing the dichotomous item parameters
+#' ## A mixed-format test form
+#' ## containing five dichotomous items and two polytomous items
+#' # Create a list of dichotomous item parameters
 #' par.drm <- list(
 #'   a = c(1.1, 1.2, 0.9, 1.8, 1.4),
 #'   b = c(0.1, -1.6, -0.2, 1.0, 1.2),
 #'   g = rep(0.2, 5)
 #' )
 #'
-#' # create a list containing the polytomous item parameters
+#' # Create a list of polytomous item parameters
 #' par.prm <- list(
 #'   a = c(1.4, 0.6),
 #'   d = list(
@@ -57,32 +84,38 @@
 #'   )
 #' )
 #'
-#' # create a numeric vector of score categories for the items
+#' # Create a numeric vector indicating the number of score categories for each item
 #' cats <- c(2, 4, 2, 2, 5, 2, 2)
 #'
-#' # create a character vector of IRT models for the items
+#' # Create a character vector specifying the IRT model for each item
 #' model <- c("DRM", "GRM", "DRM", "DRM", "GPCM", "DRM", "DRM")
 #'
-#' # create an item meta set
+#' # Generate an item metadata set using the specified parameters
 #' shape_df(par.drm = par.drm, par.prm = par.prm, cats = cats, model = model)
 #'
-#' ## an empty item meta with five dichotomous and two polytomous items
-#' # create a numeric vector of score categories for the items
+#' ## An empty item metadata frame with five dichotomous items and two polytomous items
+#' # Create a numeric vector indicating the number of score categories for each item
 #' cats <- c(2, 4, 3, 2, 5, 2, 2)
 #'
-#' # create a character vector of IRT models for the items
+#' # Create a character vector specifying the IRT model for each item
 #' model <- c("1PLM", "GRM", "GRM", "2PLM", "GPCM", "DRM", "3PLM")
 #'
-#' # create an empty item meta set
+#' # Generate an item metadata frame with default parameters
 #' shape_df(cats = cats, model = model, default.par = TRUE)
 #'
-#' ## an item meta for a single-item format test form with five dichotomous
+#' ## A single-format test form consisting of five dichotomous items
+#' # Generate the item metadata
 #' shape_df(par.drm = par.drm, cats = rep(2, 5), model = "DRM")
 #'
 #' @export
 #'
-shape_df <- function(par.drm = list(a = NULL, b = NULL, g = NULL), par.prm = list(a = NULL, d = NULL),
-                     item.id = NULL, cats, model, default.par = FALSE) {
+shape_df <- function(par.drm = list(a = NULL, b = NULL, g = NULL),
+                     par.prm = list(a = NULL, d = NULL),
+                     item.id = NULL,
+                     cats,
+                     model,
+                     default.par = FALSE) {
+
   # ensure that the model names are all upper cases
   model <- toupper(model)
 

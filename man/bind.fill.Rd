@@ -7,35 +7,36 @@
 bind.fill(List, type = c("rbind", "cbind"), fill = NA)
 }
 \arguments{
-\item{List}{A list containing different length of numeric vectors}
+\item{List}{A list containing numeric vectors of possibly different lengths.}
 
-\item{type}{A character string specifying whether rbind is used or cbind is used.}
+\item{type}{A character string indicating the type of binding to perform.
+Options are \code{"rbind"} or \code{"cbind"}.}
 
-\item{fill}{The value used to fill in missing data when aligning datasets. For \code{type = "cbind"},
-this fills missing rows in shorter columns. For \code{type = "rbind"}, this fills missing columns in shorter rows.
-Accepts any R object (e.g., numeric, character, logical). Defaults to NA.}
+\item{fill}{A value used to fill missing elements when aligning the vectors.
+For \code{type = "cbind"}, this fills missing rows in shorter columns; for \code{type = "rbind"}, this fills missing columns in shorter rows. Accepts any R
+object (e.g., numeric, character, logical). Default is \code{NA}.}
 }
 \value{
-A matrix.
+A matrix formed by binding the elements of the list either row-wise
+or column-wise, with shorter vectors padded by the specified \code{fill} value.
 }
 \description{
-This function creates a cbind matrix or rbind matrix using a list containing different length
-of numeric vectors.
+This function creates a matrix using either row-wise (\code{rbind}) or column-wise
+(\code{cbind}) binding of a list of numeric vectors with varying lengths. Shorter
+vectors are padded with a specified fill value.
 }
 \examples{
-# sample list
-score_list <- list(item1=c(0:3), item2=c(0:2), item3=c(0:5), item3=c(0:4))
+# Sample list
+score_list <- list(item1 = 0:3, item2 = 0:2, item3 = 0:5, item4 = 0:4)
 
-# examples
-# 1) create a rbind with the sample score list
-bind.fill(score_list, type="rbind")
+# 1) Create a row-bound matrix (rbind)
+bind.fill(score_list, type = "rbind")
 
-# 2) create a cbind with the sample score list
-bind.fill(score_list, type="cbind")
+# 2) Create a column-bound matrix (cbind)
+bind.fill(score_list, type = "cbind")
 
-# 3) create a cbind with the sample score list,
-#    and fill missing data with 0s.
-bind.fill(score_list, type="cbind", fill = 0L)
+# 3) Create a column-bound matrix and fill missing values with 0
+bind.fill(score_list, type = "cbind", fill = 0L)
 
 }
 \author{

@@ -1,16 +1,23 @@
-#' Simulated mixed-item format CAT Data
+#' Simulated Mixed-Item Format CAT Data
 #'
-#' This data set contains an item pool information, response data, and examinee's ability estimates.
+#' A simulated dataset for computerized adaptive testing (CAT), containing an
+#' item pool, sparse response data, and examinee ability estimates. The item
+#' pool includes both dichotomous and polytomous items.
 #'
 #' @usage simCAT_MX
 #'
-#' @format This data includes a list of length three. The first internal object is a data.frame of
-#' the item pool consisting of 200 dichotomous items and 30 polytomous items. The dichotomous items were
-#' calibrated with the IRT 3PL model and the polytomous items were calibrated with the generalized
-#' partial credit model. All polytomous items have three score categories (i.e., 0, 1, 2). The second
-#' internal object is the response data set including a sparse response data set of 30,000 examinees
-#' for the items in the item pool. The third internal object is the examinee's ability estimates
-#' for 30,000 examinees.
+#' @format A list of length three:
+#' \describe{
+#'   \item{item_pool}{A data frame in item metadata format consisting of 200
+#'   dichotomous items and 30 polytomous items.
+#'   - Dichotomous items: Calibrated using the IRT 3PL model.
+#'   - Polytomous items: Calibrated using the Generalized Partial Credit Model
+#'   (GPCM), with three score categories (0, 1, 2).}
+#'
+#'   \item{response_data}{A sparse matrix of item responses from 30,000 examinees.}
+#'   \item{theta_estimates}{A numeric vector of ability estimates for the 30,000
+#'   examinees.}
+#' }
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'

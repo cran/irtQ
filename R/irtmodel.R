@@ -1,33 +1,37 @@
 #' Dichotomous Response Model (DRM) Probabilities
 #'
-#' @description This function computes the probability of correct answers for multiple items
-#' for a given set of theta values using the IRT 1PL, 2PL, and 3PL models.
+#' This function computes the probability of a correct response for multiple items
+#' given a set of theta values using the 1PL, 2PL, or 3PL item response models.
 #'
-#' @param theta A vector of ability values.
-#' @param a A vector of item discrimination (or slope) parameters.
-#' @param b A vector of item difficulty (or threshold) parameters.
-#' @param g A vector of item guessing parameters.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible
-#' to the normal ogive function (if set to 1.7). Default is 1.
+#' @param theta A numeric vector of ability values (latent traits).
+#' @param a A numeric vector of item discrimination (slope) parameters.
+#' @param b A numeric vector of item difficulty parameters.
+#' @param g A numeric vector of item guessing parameters. Not required for 1PL or 2PL models.
+#' @param D A scaling constant used in IRT models to make the logistic function
+#'   closely approximate the normal ogive function. A value of 1.7 is commonly
+#'   used for this purpose. Default is 1.
 #'
-#' @details \code{g} does not need to be specified when the response probabilities of
-#' the 1PL and 2PL models are computed.
+#' @details
+#' If `g` is not specified, the function assumes a guessing parameter of 0 for all items,
+#' corresponding to the 1PL or 2PL model. The function automatically adjusts the model
+#' form based on the presence of `g`.
 #'
-#' @return This function returns a matrix where a row indicates the ability and a column
-#' represents the item.
+#' @return
+#' A matrix of response probabilities, where rows represent ability values (theta)
+#' and columns represent items.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{prm}}
+#' @seealso [irtQ::prm()]
 #'
 #' @examples
-#' ## when vectors are used for both theta values and item parameters (3PLM)
+#' ## Example 1: theta and item parameters for 3PL model
 #' drm(c(-0.1, 0.0, 1.5), a = c(1, 2), b = c(0, 1), g = c(0.2, 0.1), D = 1)
 #'
-#' ## when vectors are only used for item parameters (2PLM)
+#' ## Example 2: single theta value with 2PL item parameters
 #' drm(0.0, a = c(1, 2), b = c(0, 1), D = 1)
 #'
-#' ## when vectors are only used for theta values (3PLM)
+#' ## Example 3: multiple theta values with a single item (3PL model)
 #' drm(c(-0.1, 0.0, 1.5), a = 1, b = 1, g = 0.2, D = 1)
 #'
 #' @importFrom Rfast Outer
@@ -56,40 +60,45 @@ drm <- function(theta, a, b, g = NULL, D = 1) {
 
 #' Polytomous Response Model (PRM) Probabilities (GRM and GPCM)
 #'
-#' @description This function computes the probability of selecting a specific category for an item
-#' for a given set of theta values using the graded response model and (generalized) partial credit model.
+#' This function computes the probability of selecting each response category
+#' for an item, given a set of theta values, using the graded response model
+#' (GRM) or the (generalized) partial credit model (GPCM).
 #'
-#' @param theta A vector of ability values.
-#' @param a A numeric value of item discrimination (or slope) parameter.
-#' @param d A vector of item difficulty (or threshold) parameters.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal
-#' ogive function  (if set to 1.7). Default is 1.
-#' @param pr.model A character string indicating the polytomous model being used. Available models are "GRM" for
-#' the the graded response model and "GPCM" for the (generalized) partial credit model.
+#' @inheritParams drm
+#' @param d A numeric vector of item difficulty (or threshold) parameters.
+#' @param pr.model A character string specifying the polytomous IRT model.
+#'   Available options are `"GRM"` for the graded response model and `"GPCM"`
+#'   for the (generalized) partial credit model.
 #'
-#' @details When the category probabilities are computed for an item with the partial credit model, provide \code{a = 1} for that item.
-#' When \code{model = "GPCM"}, \code{d} should include the item difficulty (or threshold) parameters. In the \pkg{irtQ} package,
-#' the item difficulty (or threshold) parameters of category boundaries for GPCM are expressed as the item location (or overall difficulty)
-#' parameter subtracted by the threshold parameter for unique score categories of the item. Note that when an GPCM item has \emph{K}
-#' unique score categories, \emph{K-1} item difficulty parameters are necessary because the item difficulty parameter for the first category
-#' boundary is always 0. For example, if an GPCM item has five score categories, four item difficulty parameters should be specified.
-#' For more details about the parameterization of the (generalized) partial credit model, See \code{IRT Models} section
-#' in the page of \code{\link{irtQ-package}}.
+#' @details When computing category probabilities using the partial credit model
+#' (PCM), set `a = 1`.
 #'
-#' @return This function returns a matrix where a row indicates the ability and a column represents
-#' score categories of the item.
+#' For `pr.model = "GPCM"`, the vector `d` should contain threshold parameters
+#' that define the boundaries between adjacent score categories. In the
+#' \pkg{irtQ} package, these thresholds are expressed as the item location
+#' (overall difficulty) minus the step parameters for each category. If an item
+#' has *K* score categories, *K - 1* threshold parameters must be provided; the
+#' first is assumed to be 0. For example, for a GPCM item with five categories,
+#' provide four threshold parameters.
+#'
+#' For more details on the parameterization of the (generalized) partial credit
+#' model, refer to the *IRT Models* section in the [irtQ-package] documentation.
+#'
+#' @return A matrix of category response probabilities, where each row
+#' corresponds to a theta value and each column represents a score category of
+#' the item.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{drm}}, \code{\link{irtfit}}
+#' @seealso [irtQ::drm()]
 #'
 #' @examples
 #' ## Category probabilities for an item with four categories
-#' ## using a generalized partial credit model
+#' ## using the generalized partial credit model (GPCM)
 #' prm(theta = c(-0.2, 0, 0.5), a = 1.4, d = c(-0.2, 0, 0.5), D = 1, pr.model = "GPCM")
 #'
 #' ## Category probabilities for an item with five categories
-#' ## using a graded response model
+#' ## using the graded response model (GRM)
 #' prm(theta = c(-0.2, 0, 0.5), a = 1.2, d = c(-0.4, -0.2, 0.4, 1.5), D = 1, pr.model = "GRM")
 #'
 #' @export

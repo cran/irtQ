@@ -1,193 +1,305 @@
 #' Estimate examinees' ability (proficiency) parameters
 #'
-#' @description This function estimates examinees' latent ability parameters. Available scoring methods are maximum likelihood estimation (ML),
-#' maximum likelihood estimation with fences (MLF; Han, 2016), weighted likelihood estimation (Warm, 1989), maximum a posteriori estimation
-#' (MAP; Hambleton et al., 1991), expected a posteriori estimation (EAP; Bock & Mislevy, 1982), EAP summed scoring
-#' (Thissen et al., 1995; Thissen & Orlando, 2001), and inverse test characteristic curve (TCC) scoring
-#' (e.g., Kolen & Brennan, 2004; Kolen & Tong, 2010; Stocking, 1996).
+#' This function estimates examinees' latent ability parameters. Available
+#' scoring methods include maximum likelihood estimation (ML), maximum
+#' likelihood estimation with fences (MLF; Han, 2016), weighted likelihood
+#' estimation (WL; Warm, 1989), maximum a posteriori estimation (MAP; Hambleton
+#' et al., 1991), expected a posteriori estimation (EAP; Bock & Mislevy, 1982),
+#' EAP summed scoring (Thissen et al., 1995; Thissen & Orlando, 2001), and
+#' inverse test characteristic curve (TCC) scoring (e.g., Kolen & Brennan, 2004;
+#' Kolen & Tong, 2010; Stocking, 1996).
 #'
-#' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...) or an object of
-#' class \code{\link{est_irt}} obtained from the function \code{\link{est_irt}}. See \code{\link{irtfit}}, \code{\link{info}},
-#' or \code{\link{simdat}} for more details about the item metadata. This data frame can be easily obtained using the function \code{\link{shape_df}}.
-#' @param data A matrix or vector containing examinees' response data for the items in the argument \code{x}. When a matrix is used, a row and column indicate
-#' the examinees and items, respectively. When a vector is used, it should contains the item response data for an examinee.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-#' Default is 1.
-#' @param method A character string indicating a scoring method. Available methods are "ML" for the maximum likelihood estimation,
-#' "MLF" for the maximum likelihood estimation with fences, "WL" for the weighted likelihood estimation, "MAP" for the maximum a posteriori estimation,
-#' "EAP" for the expected a posteriori estimation, "EAP.SUM" for the expected a posteriori summed scoring, and "INV.TCC" for the inverse TCC scoring.
-#' Default method is "ML".
-#' @param range A numeric vector of two components to restrict the range of ability scale for the ML, MLF, WL, and MAP scoring methods. Default is c(-5, 5).
-#' @param norm.prior A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
-#' These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution. Default is
-#' c(0,1). Ignored if \code{method} is "ML", "MLF", "WL", or "INV.TCC".
-#' @param nquad An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 41.
-#' Ignored if \code{method} is "ML", "MLF", "WL", "MAP", or "INV.TCC".
-#' @param weights A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
-#' (in the second column) of the latent variable prior distribution. The weights and quadrature points can be easily obtained
-#' using the function \code{\link{gen.weight}}. If NULL and \code{method} is "EAP" or "EAP.SUM", default values are used (see the arguments
-#' of \code{norm.prior} and \code{nquad}). Ignored if \code{method} is "ML", "MLF", "WL", "MAP", or "INV.TCC".
-#' @param fence.a A numeric value specifying the item slope parameter (i.e., \emph{a}-parameter) for the two imaginary items in MLF. See below for details.
-#' Default is 3.0.
-#' @param fence.b A numeric vector of two components specifying the lower and upper fences of item difficulty parameters (i.e., \emph{b}-parameters)
-#' for the two imaginary items, respectively, in MLF. When \code{fence.b = NULL}, the \code{range} values were used to set the lower and upper fences of
-#' item difficulty parameters. Default is NULL.
-#' @param tol A numeric value of the convergent tolerance for the ML, MLF, WL, MAP, and inverse TCC scoring methods. For the ML, MLF, WL, and MAP,
-#' Newton Raphson method is implemented for optimization. For the inverse TCC scoring, the bisection method is used. Default is 1e-4.
-#' @param max.iter An positive integer value specifying the maximum number of iterations of Newton Raphson method. Default is 100.
-#' @param stval.opt An positive integer value specifying the starting value option for the ML, MLF, WL, and MAP scoring methods.
-#' Available options are 1 for the brute-force method, 2 for the observed sum score-based method, and 3 for setting to 0. Default is 1.
-#' See below for details.
-#' @param se A logical value. If TRUE, the standard errors of ability estimates are computed. However, if \code{method} is "EAP.SUM" or "INV.TCC", the standard
-#' errors are always returned. Default is TRUE.
-#' @param intpol A logical value. If TRUE and \code{method = "INV.TCC"}, linear interpolation method is used to approximate the ability estimates
-#' corresponding to the observed sum scores in which ability estimates cannot be obtained using the TCC (e.g., observed sum scores less than
-#' the sum of item guessing parameters). Default is TRUE. See below for details.
-#' @param range.tcc A numeric vector of two components to be used as the lower and upper bounds of ability estimates when \code{method = "INV.TCC"}.
-#' Default is c(-7, 7).
-#' @param missing A value indicating missing values in the response data set. Default is NA. See below for details.
-#' @param ncore The number of logical CPU cores to use. Default is 1. See below for details.
-#' @param ... additional arguments to pass to \code{parallel::makeCluster}.
+#' @inheritParams est_irt
+#' @param x A data frame containing item metadata (e.g., item parameters, number
+#'   of categories, IRT model types, etc.); or an object of class `est_irt`
+#'   obtained from [irtQ::est_irt()], or `est_item` from [irtQ::est_item()].
 #'
-#' @details For MAP scoring method, only the normal prior distribution is available for the population distribution.
+#'   See [irtQ::est_irt()] or [irtQ::simdat()] for more details about the item
+#'   metadata. This data frame can be easily created using the
+#'   [irtQ::shape_df()] function.
+#' @param method A character string indicating the scoring method to use.
+#'   Available options are:
+#'   - `"ML"`: Maximum likelihood estimation
+#'   - `"MLF"`: Maximum likelihood estimation with fences (Han, 2016)
+#'   - `"WL"`: Weighted likelihood estimation (Warm, 1989)
+#'   - `"MAP"`: Maximum a posteriori estimation (Hambleton et al., 1991)
+#'   - `"EAP"`: Expected a posteriori estimation (Bock & Mislevy, 1982)
+#'   - `"EAP.SUM"`: Expected a posteriori summed scoring (Thissen et al., 1995;
+#'   Thissen & Orlando, 2001)
+#'   - `"INV.TCC"`: Inverse test characteristic curve scoring
+#'   (e.g., Kolen & Brennan, 2004; Kolen & Tong, 2010; Stocking, 1996)
 #'
-#' When there are missing data in the response data set, the missing value must be specified in \code{missing}. The missing data are taken into account
-#' when either of ML, MLF, WL, MAP, and EAP is used. When "EAP.SUM" or "INV.TCC" is used, however, any missing responses are replaced with incorrect
-#' responses (i.e., 0s).
+#'   Default is `"ML"`.
+#' @param range A numeric vector of length two specifying the lower and upper
+#'   bounds of the ability scale. This is used for the following scoring
+#'   methods: `"ML"`, `"MLF"`, `"WL"`, and `"MAP"`. Default is `c(-5, 5)`.
+#' @param norm.prior A numeric vector of length two specifying the mean and
+#'   standard deviation of the normal prior distribution. These values are used
+#'   to generate the Gaussian quadrature points and weights. Ignored if `method`
+#'   is `"ML"`, `"MLF"`, `"WL"`, or `"INV.TCC"`. Default is `c(0, 1)`.
+#' @param nquad An integer indicating the number of Gaussian quadrature points
+#'   to be generated from the normal prior distribution. Used only when `method`
+#'   is `"EAP"` or `"EAP.SUM"`. Ignored for `"ML"`, `"MLF"`, `"WL"`, `"MAP"`,
+#'   and `"INV.TCC"`. Default is `41`.
+#' @param weights A two-column matrix or data frame containing the quadrature
+#'   points (in the first column) and their corresponding weights (in the second
+#'   column) for the latent variable prior distribution. The weights and points
+#'   can be conveniently generated using the function [irtQ::gen.weight()].
 #'
-#' In the maximum likelihood estimation with fences (MLF; Han, 2016), two 2PLM imaginary items are necessary. The first imaginary item serves as the lower
-#' fence and its difficulty parameter (i.e., \emph{b}-parameters) should be lower than any difficulty parameter values in the test form. Likewise, the second
-#' imaginary item serves as the upper fence and its difficulty parameter should be greater than any difficulty parameter values in the test form. Also, the two
-#' imaginary items should have a very high item slope parameter (i.e., \emph{a}-parameter) value. See Han (2016) for more details. When \code{fence.b = NULL} in MLF,
-#' the function automatically sets the lower and upper fences of item difficulty parameters using the values
-#' in the \code{range} argument.
+#'   If `NULL` and `method` is either `"EAP"` or `"EAP.SUM"`, default quadrature
+#'   values are generated based on the `norm.prior` and `nquad` arguments.
+#'   Ignored if `method` is `"ML"`, `"MLF"`, `"WL"`, `"MAP"`, or `"INV.TCC"`.
+#' @param fence.a A numeric value specifying the item slope parameter (i.e.,
+#'   *a*-parameter) for the two imaginary items used in MLF. See **Details** below.
+#'   Default is 3.0.
+#' @param fence.b A numeric vector of length two specifying the lower and upper
+#'   bounds of the item difficulty parameters (i.e., *b*-parameters) for the two
+#'   imaginary items in MLF. If `fence.b = NULL`, the values specified in the
+#'   `range` argument are used instead. Default is NULL.
+#' @param tol A numeric value specifying the convergence tolerance for the ML,
+#'   MLF, WL, MAP, and inverse TCC scoring methods. Newton-Raphson optimization
+#'   is used for ML, MLF, WL, and MAP, while the bisection method is used for
+#'   inverse TCC. Default is 1e-4.
+#' @param max.iter A positive integer specifying the maximum number of
+#'   iterations allowed for the Newton-Raphson optimization. Default is 100.
+#' @param stval.opt A positive integer specifying the starting value option for
+#'   the ML, MLF, WL, and MAP scoring methods. Available options are:
+#'   - 1: Brute-force search (default)
+#'   - 2: Based on observed sum scores
+#'   - 3: Fixed at 0
 #'
-#' When "INV.TCC" method is used employing the IRT 3-parameter logistic model (3PLM) in a test, ability estimates for the observed sum scores less than the
-#' sum of item guessing parameters are not attainable. In this case, linear interpolation can be applied by setting \code{intpol = TRUE}.
-#' Let \eqn{\theta_{min}} and \eqn{\theta_{max}} be the minimum and maximum ability estimates and \eqn{\theta_{X}} be the ability estimate for
-#' the smallest observed sum score, X, but greater than or equal to the sum of item guessing parameters. When linear interpolation method is used,
-#' the first value of the \code{range.tcc} is set to \eqn{\theta_{min}}. Then, a linear line is constructed between two points of
-#' (x=\eqn{\theta_{min}}, y=0) and (x=\eqn{\theta_{X}}, y=X). Also, the first value of the \code{range.tcc} is set to \eqn{\theta_{max}}, which is
-#' the ability estimates corresponding to the maximum observed sum score. When it comes to the scoring method of "INV.TCC", the standard errors of ability
-#' estimates are computed using an approach suggested by Lim, Davey, and Wells (2020). The code for the inverse TCC scoring was written by modifying
-#' the function \code{irt.eq.tse} of the \pkg{SNSequate} R package (González, 2014).
+#'   See **Details** below for more information.
+#' @param se Logical. If `TRUE`, standard errors of ability estimates are
+#'   computed. If `method` is "EAP.SUM" or "INV.TCC", standard errors are always
+#'   returned regardless of this setting. Default is `TRUE`.
+#' @param intpol Logical. If `TRUE` and `method = "INV.TCC"`, linear
+#'   interpolation is applied to approximate ability estimates for sum scores
+#'   that cannot be directly mapped using the TCC (e.g., when the observed sum
+#'   score is less than the total of item guessing parameters). Default is
+#'   `TRUE`. See **Details** below.
+#' @param range.tcc A numeric vector of length two specifying the lower and
+#'   upper bounds of ability estimates when `method = "INV.TCC"`. Default is
+#'   `c(-7, 7)`.
+#' @param missing A value indicating missing responses in the data set. Default
+#'   is `NA`. See **Details** below.
+#' @param ncore An integer specifying the number of logical CPU cores to use for
+#'   parallel processing. Default is 1. See **Details** below.
+#' @param ... Additional arguments passed to [parallel::makeCluster()].
 #'
-#' In terms of the starting value to be used for ML, MLF, WL, and MAP scoring methods, the brute-force method is used when \code{stval.opt = 1}. With this option,
-#' the log-likelihood values were evaluated at the discrete theta values with increments of 0.1 given \code{range}. The theta node that has the largest
-#' log-likelihood is used as the starting value. when \code{stval.opt = 2}, the starting value is obtained based on the observed sum score. For example,
-#' if the maximum observed sum score (max.score) is 30 for a test and an examinee has an observed sum score of 20 (obs.score), then the starting value
-#' is "log(obs.score / (max.score - obs.score))". For all incorrect response, the starting value is "log(1 / max.score)" and for all correct responses,
-#' it is "log(max.score / 1)".
+#' @details For the MAP scoring method, only a normal prior distribution is
+#'   supported for the population distribution.
 #'
-#' To speed up the ability estimation for ML, MLF, WL, MAP, and EAP methods, this function applies a parallel process using multiple logical CPU cores.
-#' You can set the number of logical CPU cores by specifying a positive integer value in the argument \code{ncore}. Default value is 1.
+#'   When there are missing responses in the data set, the missing value must be
+#'   explicitly specified using the `missing` argument. Missing data are
+#'   properly handled when using the ML, MLF, WL, MAP, or EAP methods. However,
+#'   when using the "EAP.SUM" or "INV.TCC" methods, any missing responses are
+#'   automatically treated as incorrect (i.e., recoded as 0s).
 #'
-#' Note that the standard errors of ability estimates are computed using the Fisher expected information for ML, MLF, WL, and MAP methods.
+#'   In the maximum likelihood estimation with fences (MLF; Han, 2016), two
+#'   imaginary items based on the 2PL model are introduced. The first imaginary
+#'   item functions as the lower fence, and its difficulty parameter (*b*)
+#'   should be smaller than any of the difficulty parameters in the test form.
+#'   Similarly, the second imaginary item serves as the upper fence, and its *b*
+#'   parameter should be greater than any difficulty value in the test form.
+#'   Both imaginary items should also have very steep slopes (i.e., high
+#'   *a*-parameter values). See Han (2016) for more details. If `fence.b =
+#'   NULL`, the function will automatically assign the lower and upper fences
+#'   based on the values provided in the `range` argument.
 #'
-#' To implement WL method, the \code{Pi}, \code{Ji}, and \code{Ii} functions of \pkg{catR}
-#' (Magis & Barrada, 2017) were referred.
+#'   When the "INV.TCC" method is used with the 3PL model, ability estimates
+#'   cannot be obtained for observed sum scores that are less than the sum of
+#'   the items' guessing parameters. In such cases, linear interpolation can be
+#'   applied by setting `intpol = TRUE`.
 #'
-#' @return When \code{method} is either of "ML", "MLF", "WL", "MAP", or "EAP", a two column data frame including the ability estimates (1st column)
-#' and the standard errors of ability estimates (2nd column) is returned. When \code{method} is "EAP.SUM" or "INV.TCC", a list of two internal
-#' objects are returned. The first object is a three column data frame including the observed sum scores (1st column), the ability estimates (2nd column),
-#' and the standard errors of ability estimates (3rd column). The second object is a score table including the possible raw sum scores
-#' and corresponding ability and standard error estimates.
+#'   Let \eqn{\theta_{min}} and \eqn{\theta_{max}} denote the minimum and
+#'   maximum ability estimates, respectively, and let \eqn{\theta_{X}} be the
+#'   ability estimate corresponding to the smallest observed sum score, X, that
+#'   is greater than or equal to the sum of the guessing parameters.When linear
+#'   interpolation is applied, the first value in the `range.tcc` argument is
+#'   treated as \eqn{\theta_{min}}. A line is then constructed between the
+#'   points \eqn{(x = \theta_{min}, y = 0)} and \eqn{(x = \theta_{X}, y = X)}.
+#'   The second value in `range.tcc` is interpreted as \eqn{\theta_{max}}, which
+#'   corresponds to the ability estimate for the maximum observed sum score.
+#'
+#'   For the "INV.TCC" method, standard errors of ability estimates are computed
+#'   using the approach proposed by Lim et al. (2020). The implementation of
+#'   inverse TCC scoring in this function is based on a modified version of the
+#'   `SNSequate::irt.eq.tse()` function from the \pkg{SNSequate} package
+#'   (González, 2014).
+#'
+#'   For the ML, MLF, WL, and MAP scoring methods, different strategies can be
+#'   used to determine the starting value for ability estimation based on the
+#'   `stval.opt` argument:
+#'
+#'   - When `stval.opt = 1` (default), a brute-force search is performed by
+#'   evaluating the log-likelihood at discrete theta values within the range
+#'   specified by `range`, using 0.1 increments. The theta value yielding the
+#'   highest log-likelihood is chosen as the starting value.
+#'
+#'   - When `stval.opt = 2`, the starting value is derived from the observed
+#'   sum score using a logistic transformation. For example, if the maximum
+#'   possible score (`max.score`) is 30 and the examinee’s observed sum score
+#'   (`obs.score`) is 20, the starting value is `log(obs.score / (max.score -
+#'   obs.score))`.
+#'     - If all responses are incorrect (i.e., `obs.score = 0`), the starting
+#'   value is `log(1 / max.score)`.
+#'     - If all responses are correct (`obs.score = max.score`), the starting
+#'   value is `log(max.score / 1)`.
+#'
+#'   - When `stval.opt = 3`, the starting value is fixed at 0.
+#'
+#'   To accelerate ability estimation using the ML, MLF, WL, MAP, and EAP
+#'   methods, this function supports parallel processing across multiple logical
+#'   CPU cores. The number of cores can be specified via the `ncore` argument
+#'   (default is 1).
+#'
+#'   Note that the standard errors of ability estimates are computed based on
+#'   the Fisher expected information for the ML, MLF, WL, and MAP methods.
+#'
+#'   For the implementation of the WL method, the function references the
+#'   `catR::Pi()`, `catR::Ji()`, and `catR::Ii()` functions from the \pkg{catR}
+#'   package (Magis & Barrada, 2017).
+#'
+#' @return When `method` is one of `"ML"`, `"MLF"`, `"WL"`, `"MAP"`, or `"EAP"`,
+#' a two-column data frame is returned:
+#' * Column 1: Ability estimates
+#' * Column 2: Standard errors of the ability estimates
+#'
+#' When `method` is either `"EAP.SUM"` or `"INV.TCC"`, a list with two
+#' components is returned:
+#' * Object 1: A three-column data frame including:
+#'    * Column 1: Observed sum scores
+#'    * Column 2: Ability estimates
+#'    * Column 3: Standard errors of the ability estimates
+#' * Object 2: A score table showing possible raw sum scores and the corresponding
+#' ability and standard error estimates
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{irtfit}}, \code{\link{info}}, \code{\link{simdat}}, \code{\link{shape_df}}, \code{\link{gen.weight}}
+#' @seealso [irtQ::est_irt()], [irtQ::simdat()], [irtQ::shape_df()],
+#'   [irtQ::gen.weight()]
 #'
-#' @references
-#' Bock, R. D., & Mislevy, R. J. (1982). Adaptive EAP estimation of ability in a microcomputer environment. \emph{Psychometrika, 35}, 179-198.
+#' @references Bock, R. D., & Mislevy, R. J. (1982). Adaptive EAP estimation of
+#'   ability in a microcomputer environment. *Psychometrika, 35*, 179-198.
 #'
-#' González, J. (2014). SNSequate: Standard and nonstandard statistical models and methods for test equating.
-#' \emph{Journal of Statistical Software, 59}, 1-30.
+#'   González, J. (2014). SNSequate: Standard and nonstandard statistical models
+#'   and methods for test equating.
+#' *Journal of Statistical Software, 59*, 1-30.
 #'
-#' Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991).\emph{Fundamentals of item response theory}. Newbury Park, CA: Sage.
+#'   Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991).*Fundamentals of
+#'   item response theory*. Newbury Park, CA: Sage.
 #'
-#' Han, K. T. (2016). Maximum likelihood score estimation method with fences for short-length tests and computerized adaptive tests.
-#' \emph{Applied psychological measurement, 40}(4), 289-301.
+#'   Han, K. T. (2016). Maximum likelihood score estimation method with fences
+#'   for short-length tests and computerized adaptive tests.
+#' *Applied psychological measurement, 40*(4), 289-301.
 #'
-#' Howard, J. P. (2017). \emph{Computational methods for numerical analysis with R}. New York:
-#' Chapman and Hall/CRC.
+#'   Howard, J. P. (2017). *Computational methods for numerical analysis with
+#'   R*. New York: Chapman and Hall/CRC.
 #'
-#' Kolen, M. J. & Brennan, R. L. (2004). \emph{Test Equating, Scaling, and Linking} (2nd ed.). New York:
-#' Springer
+#'   Kolen, M. J. & Brennan, R. L. (2004). *Test Equating, Scaling, and Linking*
+#'   (2nd ed.). New York: Springer
 #'
-#' Kolen, M. J. & Tong, Y. (2010). Psychometric properties of IRT proficiency estimates.
-#' \emph{Educational Measurement: Issues and Practice, 29}(3), 8-14.
+#'   Kolen, M. J. & Tong, Y. (2010). Psychometric properties of IRT proficiency
+#'   estimates.
+#' *Educational Measurement: Issues and Practice, 29*(3), 8-14.
 #'
-#' Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical approach to evaluate the performance of MST.
-#' \emph{Journal of Educational Measurement, 58}(2), 154-178.
+#'   Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical
+#'   approach to evaluate the performance of MST.
+#' *Journal of Educational Measurement, 58*(2), 154-178.
 #'
-#' Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R: Recent updates of the package catR.
-#' \emph{Journal of Statistical Software, 76}, 1-19.
+#'   Magis, D., & Barrada, J. R. (2017). Computerized adaptive testing with R:
+#'   Recent updates of the package catR.
+#' *Journal of Statistical Software, 76*, 1-19.
 #'
-#' Stocking, M. L. (1996). An alternative method for scoring adaptive tests.
-#' \emph{Journal of Educational and Behavioral Statistics, 21}(4), 365-389.
+#'   Stocking, M. L. (1996). An alternative method for scoring adaptive tests.
+#' *Journal of Educational and Behavioral Statistics, 21*(4), 365-389.
 #'
-#' Thissen, D. & Orlando, M. (2001). Item response theory for items scored in two categories. In D. Thissen & H. Wainer (Eds.),
-#' \emph{Test scoring} (pp.73-140). Mahwah, NJ: Lawrence Erlbaum.
+#'   Thissen, D. & Orlando, M. (2001). Item response theory for items scored in
+#'   two categories. In D. Thissen & H. Wainer (Eds.),
+#' *Test scoring* (pp.73-140). Mahwah, NJ: Lawrence Erlbaum.
 #'
-#' Thissen, D., Pommerich, M., Billeaud, K., & Williams, V. S. (1995). Item Response Theory
-#' for Scores on Tests Including Polytomous Items with Ordered Responses. \emph{Applied Psychological
-#' Measurement, 19}(1), 39-49.
+#'   Thissen, D., Pommerich, M., Billeaud, K., & Williams, V. S. (1995). Item
+#'   Response Theory for Scores on Tests Including Polytomous Items with Ordered
+#'   Responses. *Applied Psychological Measurement, 19*(1), 39-49.
 #'
-#' Warm, T. A. (1989). Weighted likelihood estimation of ability in item response theory. \emph{Psychometrika, 54}(3),
-#' 427-450.
+#'   Warm, T. A. (1989). Weighted likelihood estimation of ability in item
+#'   response theory. *Psychometrika, 54*(3), 427-450.
 #'
 #' @examples
-#' ## the use of a "-prm.txt" file obtained from a flexMIRT
+#' ## Import the "-prm.txt" output file from flexMIRT
 #' flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # read item parameters and transform them to item metadata
+#' # Read item parameters and convert them into item metadata
 #' x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 #'
-#' # generate examinees abilities
+#' # Generate examinee ability values
 #' set.seed(12)
 #' theta <- rnorm(10)
 #'
-#' # simulate the item response data
+#' # Simulate item response data based on the item metadata and abilities
 #' data <- simdat(x, theta, D = 1)
 #'
 #' \donttest{
-#' # estimate the abilities using ML
+#' # Estimate abilities using maximum likelihood (ML)
 #' est_score(x, data, D = 1, method = "ML", range = c(-4, 4), se = TRUE)
 #'
-#' # estimate the abilities using WL
+#' # Estimate abilities using weighted likelihood (WL)
 #' est_score(x, data, D = 1, method = "WL", range = c(-4, 4), se = TRUE)
 #'
-#' # estimate the abilities using MLF with default fences of item difficulty parameters
-#' est_score(x, data, D = 1, method = "MLF", fence.a = 3.0, fence.b = NULL, se = TRUE)
+#' # Estimate abilities using MLF with default fences
+#' # based on the `range` argument
+#' est_score(x, data, D = 1, method = "MLF",
+#'   fence.a = 3.0, fence.b = NULL, se = TRUE)
 #'
-#' # estimate the abilities using MLF with different fences of item difficulty parameters
-#' est_score(x, data, D = 1, method = "MLF", fence.a = 3.0, fence.b = c(-7, 7), se = TRUE)
+#' # Estimate abilities using MLF with user-specified fences
+#' est_score(x, data, D = 1, method = "MLF", fence.a = 3.0,
+#'   fence.b = c(-7, 7), se = TRUE)
 #'
-#' # estimate the abilities using MAP
-#' est_score(x, data, D = 1, method = "MAP", norm.prior = c(0, 1), nquad = 30, se = TRUE)
+#' # Estimate abilities using maximum a posteriori (MAP)
+#' est_score(x, data, D = 1, method = "MAP", norm.prior = c(0, 1),
+#'   nquad = 30, se = TRUE)
 #'
-#' # estimate the abilities using EAP
-#' est_score(x, data, D = 1, method = "EAP", norm.prior = c(0, 1), nquad = 30, se = TRUE)
+#' # Estimate abilities using expected a posteriori (EAP)
+#' est_score(x, data, D = 1, method = "EAP", norm.prior = c(0, 1),
+#'   nquad = 30, se = TRUE)
 #'
-#' # estimate the abilities using EAP summed scoring
-#' est_score(x, data, D = 1, method = "EAP.SUM", norm.prior = c(0, 1), nquad = 30)
+#' # Estimate abilities using EAP summed scoring
+#' est_score(x, data, D = 1, method = "EAP.SUM", norm.prior = c(0, 1),
+#'   nquad = 30)
 #'
-#' # estimate the abilities using inverse TCC scoring
-#' est_score(x, data, D = 1, method = "INV.TCC", intpol = TRUE, range.tcc = c(-7, 7))
+#' # Estimate abilities using inverse TCC scoring
+#' est_score(x, data, D = 1, method = "INV.TCC", intpol = TRUE,
+#'   range.tcc = c(-7, 7))
 #' }
 #'
 #' @export
 est_score <- function(x, ...) UseMethod("est_score")
 
-#' @describeIn est_score Default method to estimate examinees' latent ability parameters using a data frame \code{x} containing the item metadata.
+#' @describeIn est_score Default method to estimate examinees' latent ability
+#'  parameters using a data frame `x` containing the item metadata.
 #' @importFrom reshape2 melt
 #' @import dplyr
 #' @export
-est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), norm.prior = c(0, 1),
-                              nquad = 41, weights = NULL, fence.a = 3.0, fence.b = NULL,
-                              tol = 1e-4, max.iter = 100, se = TRUE, stval.opt = 1,
-                              intpol = TRUE, range.tcc = c(-7, 7),
-                              missing = NA, ncore = 1, ...) {
+est_score.default <- function(x,
+                              data,
+                              D = 1,
+                              method = "ML",
+                              range = c(-5, 5),
+                              norm.prior = c(0, 1),
+                              nquad = 41,
+                              weights = NULL,
+                              fence.a = 3.0,
+                              fence.b = NULL,
+                              tol = 1e-4,
+                              max.iter = 100,
+                              se = TRUE,
+                              stval.opt = 1,
+                              intpol = TRUE,
+                              range.tcc = c(-7, 7),
+                              missing = NA,
+                              ncore = 1,
+                              ...) {
+
   # check if the data set is a vector of an examinee
   if (is.vector(data)) {
     data <- rbind(data)
@@ -376,14 +488,26 @@ est_score.default <- function(x, data, D = 1, method = "ML", range = c(-5, 5), n
 }
 
 
-#' @describeIn est_score An object created by the function \code{\link{est_irt}}.
+#' @describeIn est_score An object created by the function [irtQ::est_irt()].
 #' @import dplyr
 #' @export
-est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c(0, 1),
-                              nquad = 41, weights = NULL, fence.a = 3.0, fence.b = NULL,
-                              tol = 1e-4, max.iter = 100, se = TRUE, stval.opt = 1,
-                              intpol = TRUE, range.tcc = c(-7, 7),
-                              missing = NA, ncore = 1, ...) {
+est_score.est_irt <- function(x,
+                              method = "ML",
+                              range = c(-5, 5),
+                              norm.prior = c(0, 1),
+                              nquad = 41,
+                              weights = NULL,
+                              fence.a = 3.0,
+                              fence.b = NULL,
+                              tol = 1e-4,
+                              max.iter = 100,
+                              se = TRUE,
+                              stval.opt = 1,
+                              intpol = TRUE,
+                              range.tcc = c(-7, 7),
+                              missing = NA,
+                              ncore = 1,
+                              ...) {
   # extract information from an object
   data <- x$data
   D <- x$scale.D
@@ -578,10 +702,22 @@ est_score.est_irt <- function(x, method = "ML", range = c(-5, 5), norm.prior = c
 
 # This function is used for each single core computation
 #' @import dplyr
-est_score_1core <- function(x, elm_item, data, D = 1, method = "ML",
-                            max.cats, max.col, range = c(-4, 4), norm.prior = c(0, 1), nquad = 41,
-                            weights = NULL, tol = 1e-4, max.iter = 30, se = TRUE,
-                            stval.opt = 1, ji = FALSE) {
+est_score_1core <- function(x,
+                            elm_item,
+                            data,
+                            D = 1,
+                            method = "ML",
+                            max.cats,
+                            max.col,
+                            range = c(-4, 4),
+                            norm.prior = c(0, 1),
+                            nquad = 41,
+                            weights = NULL,
+                            tol = 1e-4,
+                            max.iter = 30,
+                            se = TRUE,
+                            stval.opt = 1,
+                            ji = FALSE) {
   # check the number of examinees
   nstd <- nrow(data)
 
@@ -686,7 +822,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       stval_tmp1 <- theta.nodes[loc_change][which.min(ll_tmp[loc_change])]
 
       # if there is no selected starting value (this means that the negative ll function is
-      # monotonically increasing or descreasing), use the 0
+      # monotonically increasing or decreasing), use the 0
       theta <- ifelse(length(stval_tmp1) > 0L, stval_tmp1, 0)
     } else if (stval.opt == 2) {
       # compute a perfect NC score

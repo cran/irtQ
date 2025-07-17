@@ -1,107 +1,120 @@
-#' S-X2 fit statistic
+#' S-X2 Fit Statistic
 #'
-#' @description This function computes \eqn{S-X^{2}} (Orlando & Thissen, 2000, 2003) item fit statistic.
+#' @description Computes the \eqn{S\text{-}X^2} item fit statistic proposed by
+#'   Orlando and Thissen (2000, 2003). This statistic evaluates the fit of IRT
+#'   models by comparing observed and expected item response frequencies across
+#'   summed score groups.
 #'
-#' @param x A data frame containing the item metadata (e.g., item parameters, number of categories, models ...), an object
-#' of class \code{\link{est_item}} obtained from the function \code{\link{est_item}}, or an object of class \code{\link{est_irt}}
-#' obtained from the function \code{\link{est_irt}}. See \code{\link{irtfit}}, \code{\link{info}}, or \code{\link{simdat}}
-#' for more details about the item metadata. The data frame of item metadata can be easily obtained using the function \code{\link{shape_df}}.
-#' @param data A matrix containing examinees' response data for the items in the argument \code{x}. A row and column indicate
-#' the examinees and items, respectively.
-#' @param D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-#' Default is 1.
-#' @param alpha A numeric value to specify significance \eqn{\alpha}-level of the hypothesis test for \eqn{S-X^{2}} fit statistic. Default is .05.
-#' @param min.collapse An integer value to indicate the minimum frequency of cells to be collapsed. Default is 1. See below for details.
-#' @param norm.prior A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
-#' These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution. Default is
-#' c(0,1).
-#' @param nquad An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 30.
-#' @param weights A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
-#' (in the second column) of the latent variable prior distribution. The weights and quadrature points can be easily obtained
-#' using the function \code{\link{gen.weight}}. If missing, default values are used (see the arguments of \code{norm.prior} and \code{nquad}).
-#' @param pcm.loc A vector of integer values indicating the locations of partial credit model (PCM) items whose slope parameters are fixed
-#' to certain values. Default is NULL.
-#' @param ... Further arguments passed to or from other methods.
+#' @inheritParams est_score
+#' @param alpha A numeric value specifying the significance level (\eqn{\alpha})
+#'   for the hypothesis test associated with the \eqn{S\text{-}X^2} statistic.
+#'   Default is 0.05.
+#' @param min.collapse An integer specifying the minimum expected frequency
+#'   required per cell before adjacent cells are collapsed. Default is 1. See
+#'   **Details**.
+#' @param nquad An integer specifying the number of Gaussian quadrature points
+#'   used to approximate the normal prior distribution. Default is 30.
+#' @param weights A two-column matrix or data frame containing the quadrature
+#'   points (first column) and their corresponding weights (second column) for
+#'   the latent ability distribution. If omitted, default values are generated
+#'   using [irtQ::gen.weight()] according to the `norm.prior` and `nquad` arguments.
+#' @param pcm.loc An optional integer vector indicating the row indices of items
+#'   that follow the partial credit model (PCM), where slope parameters are
+#'   fixed. Default is `NULL`.
+#' @param ... Additional arguments passed to or from other methods.
 #'
-#' @details Often, very small expected frequencies in the contingency tables used to compute \eqn{\chi^{2}} fit statistics could
-#' compromise the accuracy of the \eqn{\chi^{2}} approximation for their distribution (Orlando & Thissen, 2000).
-#' To avoid this problem, Orlando and Thissen (2000) used an algorithm of collapsing adjacent test score groups to maintain
-#' a minimum expected category frequency of 1. However, if Orlando and Thissen's cell collapsing approach is applied to polytomous data,
-#' too much information would be lost (Kang & Chen, 2008). Thus, Kang and Chen (2008) collapsed adjacent cells of item score categories
-#' for a specific score group to ensure a minimum expected category frequency of 1. The same collapsing strategies were applied
-#' in the function \code{\link{sx2_fit}}. If a minimum expected category frequency needs to be set to different number, you can specify
-#' the minimum value in the argument \code{min.collapse}.
+#' @details
+#' The accuracy of the \eqn{\chi^{2}} approximation in item fit statistics can be
+#' compromised when expected cell frequencies in contingency tables are too small
+#' (Orlando & Thissen, 2000). To address this issue, Orlando and Thissen (2000)
+#' proposed collapsing adjacent summed score groups to ensure a minimum expected
+#' frequency of at least 1.
 #'
-#' Note that if "DRM" is specified for an item in the item metadata set, the item is considered as "3PLM" to compute degree of freedom of
-#' the \eqn{S-X^{2}} fit statistic.
+#' However, applying this collapsing approach directly to polytomous item data
+#' can result in excessive information loss (Kang & Chen, 2008). To mitigate this,
+#' Kang and Chen (2008) instead collapsed adjacent response categories *within*
+#' each summed score group, maintaining a minimum expected frequency of 1 per
+#' category. The same collapsing strategies are implemented in [irtQ::sx2_fit()].
+#' If a different minimum expected frequency is desired, it can be specified via
+#' the `min.collapse` argument.
 #'
-#' Also, any missing responses in \code{data} are replaced with incorrect responses (i.e., 0s).
+#' When an item is labeled as "DRM" in the item metadata, it is treated as a 3PLM
+#' item when computing the degrees of freedom for the \eqn{S\text{-}X^2} statistic.
 #'
-#' @return This function returns a list. Within a list, several internal objects are contained such as:
-#' \item{fit_stat}{A data frame containing the results of \eqn{S-X^{2}} fit statistics for all items.}
-#' \item{item_df}{The item metadata specified in the argument \code{x}.}
-#' \item{exp_freq}{A list containing the collapsed expected frequency tables for all items.}
-#' \item{obs_freq}{A list containing the collapsed observed frequency tables for all items.}
-#' \item{exp_prob}{A list containing the collapsed expected probability tables for all items.}
-#' \item{obs_prop}{A list containing the collapsed observed proportion tables for all items.}
+#' Additionally, any missing responses in the `data` are automatically replaced
+#' with incorrect responses (i.e., 0s).
+#'
+#' @return
+#' A list containing the following components:
+#' \item{fit_stat}{A data frame summarizing the \eqn{S\text{-}X^2} fit statistics
+#' for all items, including the chi-square value, degrees of freedom, critical
+#' value, and p-value.}
+#' \item{item_df}{A data frame containing the item metadata as specified in the
+#' input argument `x`.}
+#' \item{exp_freq}{A list of collapsed expected frequency tables for all items.}
+#' \item{obs_freq}{A list of collapsed observed frequency tables for all items.}
+#' \item{exp_prob}{A list of collapsed expected probability tables for all items.}
+#' \item{obs_prop}{A list of collapsed observed proportion tables for all items.}
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{irtfit}}, \code{\link{info}}, \code{\link{simdat}}, \code{\link{shape_df}}, \code{\link{est_item}}
+#' @seealso [irtQ::irtfit()], [irtQ::simdat()], [irtQ::shape_df()],
+#' [irtQ::est_irt()], [irtQ::est_item()]
 #'
-#' @references
-#' Kang, T., & Chen, T. T. (2008). Performance of the generalized S-X2 item fit index for polytomous IRT models.
-#' \emph{Journal of Educational Measurement, 45}(4), 391-406.
+#' @references Kang, T., & Chen, T. T. (2008). Performance of the generalized
+#' S-X2 item fit index for polytomous IRT models.
+#' *Journal of Educational Measurement, 45*(4), 391-406.
 #'
-#' Orlando, M., & Thissen, D. (2000). Likelihood-based item-fit indices for dichotomous item response theory models.
-#' \emph{Applied Psychological Measurement, 24}(1), 50-64.
+#' Orlando, M., & Thissen, D. (2000). Likelihood-based item-fit indices for
+#' dichotomous item response theory models.
+#' *Applied Psychological Measurement, 24*(1), 50-64.
 #'
-#' Orlando, M., & Thissen, D. (2003). Further investigation of the performance of S-X2: An item fit index for use with
-#' dichotomous item response theory models. \emph{Applied Psychological Measurement, 27}(4), 289-298.
+#' Orlando, M., & Thissen, D. (2003). Further investigation of the performance
+#' of S-X2: An item fit index for use with dichotomous item response theory
+#' models. *Applied Psychological Measurement, 27*(4), 289-298.
 #'
 #' @examples
-#'
-#' ## example 1: all five polytomous IRT models are GRM
-#' ## import the "-prm.txt" output file from flexMIRT
+#' ## Example 1: All five polytomous IRT items follow the GRM
+#' ## Import the "-prm.txt" output file from flexMIRT
 #' flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 #'
-#' # select the item metadata
+#' # Select the item metadata
 #' x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 #'
-#' # generate examinees' abilities from N(0, 1)
+#' # Generate examinees' abilities from N(0, 1)
 #' set.seed(23)
 #' score <- rnorm(500, mean = 0, sd = 1)
 #'
-#' # simulate the response data
+#' # Simulate response data
 #' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' \donttest{
-#' # compute fit statistics
+#' # Compute fit statistics
 #' fit1 <- sx2_fit(x = x, data = data, nquad = 30)
 #'
-#' # fit statistics
+#' # Display fit statistics
 #' fit1$fit_stat
 #' }
 #'
-#' ## example 2: first 39th and 40th items follows GRM and 53rd, 54th, and 55th items
-#' ##            follow PCM (thus, the slope parameters are fixed to 1)
-#' # replace the model names with GPCM and
-#' # assign 1 to the slope parameters for the 53rd, 54th, and 55th items
+#' ## Example 2: Items 39 and 40 follow the GRM, and items 53, 54, and 55
+#' ##            follow the PCM (with slope parameters fixed to 1)
+#' # Replace the model names with "GPCM" and
+#' # set the slope parameters of items 53–55 to 1
 #' x[53:55, 3] <- "GPCM"
 #' x[53:55, 4] <- 1
 #'
-#' # generate examinees' abilities from N(0, 1)
+#' # Generate examinees' abilities from N(0, 1)
 #' set.seed(25)
 #' score <- rnorm(1000, mean = 0, sd = 1)
 #'
-#' # simulate the response data
+#' # Simulate response data
 #' data <- simdat(x = x, theta = score, D = 1)
 #'
 #' \donttest{
-#' # compute fit statistics
+#' # Compute fit statistics
 #' fit2 <- sx2_fit(x = x, data = data, nquad = 30, pcm.loc = 53:55)
 #'
-#' # fit statistics
+#' # Display fit statistics
 #' fit2$fit_stat
 #' }
 #'
@@ -109,12 +122,22 @@
 sx2_fit <- function(x, ...) UseMethod("sx2_fit")
 
 
-#' @describeIn sx2_fit Default method to compute \eqn{S-X^{2}} fit statistics for a data frame \code{x} containing the item metadata.
+#' @describeIn sx2_fit Default method for computing \eqn{S\text{-}X^{2}} fit
+#' statistics from a data frame `x` containing item metadata.
 #' @importFrom Rfast rowsums
 #' @import dplyr
 #' @export
-sx2_fit.default <- function(x, data, D = 1, alpha = 0.05, min.collapse = 1, norm.prior = c(0, 1),
-                            nquad = 30, weights, pcm.loc = NULL, ...) {
+sx2_fit.default <- function(x,
+                            data,
+                            D = 1,
+                            alpha = 0.05,
+                            min.collapse = 1,
+                            norm.prior = c(0, 1),
+                            nquad = 30,
+                            weights,
+                            pcm.loc = NULL,
+                            ...) {
+
   ## ------------------------------------------------------------------------------------------------
   # check missing data
   # replace NAs with 0
@@ -135,6 +158,9 @@ sx2_fit.default <- function(x, data, D = 1, alpha = 0.05, min.collapse = 1, norm
   idx.item <- idxfinder(elm_item)
   idx.drm <- idx.item$idx.drm
   idx.prm <- idx.item$idx.prm
+
+  # transform a data set to matrix
+  data <- data.matrix(data)
 
   ## ------------------------------------------------------------------
   ## 1. data preparation
@@ -348,7 +374,7 @@ sx2_fit.default <- function(x, data, D = 1, alpha = 0.05, min.collapse = 1, norm
 }
 
 
-#' @describeIn sx2_fit An object created by the function \code{\link{est_item}}.
+#' @describeIn sx2_fit An object created by the function [irtQ::est_item()].
 #' @import dplyr
 #' @export
 sx2_fit.est_item <- function(x, alpha = 0.05, min.collapse = 1, norm.prior = c(0, 1),
@@ -379,6 +405,9 @@ sx2_fit.est_item <- function(x, alpha = 0.05, min.collapse = 1, norm.prior = c(0
   idx.drm <- idx.item$idx.drm
   idx.prm <- idx.item$idx.prm
 
+  # transform a data set to matrix
+  data <- data.matrix(data)
+
   ## ------------------------------------------------------------------
   ## 1. data preparation
   ## ------------------------------------------------------------------
@@ -590,7 +619,7 @@ sx2_fit.est_item <- function(x, alpha = 0.05, min.collapse = 1, norm.prior = c(0
   )
 }
 
-#' @describeIn sx2_fit An object created by the function \code{\link{est_irt}}.
+#' @describeIn sx2_fit An object created by the function [irtQ::est_irt()].
 #' @importFrom Rfast rowsums
 #' @import dplyr
 #' @export
@@ -621,6 +650,9 @@ sx2_fit.est_irt <- function(x, alpha = 0.05, min.collapse = 1, norm.prior = c(0,
   idx.item <- idxfinder(elm_item)
   idx.drm <- idx.item$idx.drm
   idx.prm <- idx.item$idx.prm
+
+  # transform a data set to matrix
+  data <- data.matrix(data)
 
   ## ------------------------------------------------------------------
   ## 1. data preparation

@@ -7,48 +7,57 @@
 prm(theta, a, d, D = 1, pr.model = c("GRM", "GPCM"))
 }
 \arguments{
-\item{theta}{A vector of ability values.}
+\item{theta}{A numeric vector of ability values (latent traits).}
 
-\item{a}{A numeric value of item discrimination (or slope) parameter.}
+\item{a}{A numeric vector of item discrimination (slope) parameters.}
 
-\item{d}{A vector of item difficulty (or threshold) parameters.}
+\item{d}{A numeric vector of item difficulty (or threshold) parameters.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible to the normal
-ogive function  (if set to 1.7). Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{pr.model}{A character string indicating the polytomous model being used. Available models are "GRM" for
-the the graded response model and "GPCM" for the (generalized) partial credit model.}
+\item{pr.model}{A character string specifying the polytomous IRT model.
+Available options are \code{"GRM"} for the graded response model and \code{"GPCM"}
+for the (generalized) partial credit model.}
 }
 \value{
-This function returns a matrix where a row indicates the ability and a column represents
-score categories of the item.
+A matrix of category response probabilities, where each row
+corresponds to a theta value and each column represents a score category of
+the item.
 }
 \description{
-This function computes the probability of selecting a specific category for an item
-for a given set of theta values using the graded response model and (generalized) partial credit model.
+This function computes the probability of selecting each response category
+for an item, given a set of theta values, using the graded response model
+(GRM) or the (generalized) partial credit model (GPCM).
 }
 \details{
-When the category probabilities are computed for an item with the partial credit model, provide \code{a = 1} for that item.
-When \code{model = "GPCM"}, \code{d} should include the item difficulty (or threshold) parameters. In the \pkg{irtQ} package,
-the item difficulty (or threshold) parameters of category boundaries for GPCM are expressed as the item location (or overall difficulty)
-parameter subtracted by the threshold parameter for unique score categories of the item. Note that when an GPCM item has \emph{K}
-unique score categories, \emph{K-1} item difficulty parameters are necessary because the item difficulty parameter for the first category
-boundary is always 0. For example, if an GPCM item has five score categories, four item difficulty parameters should be specified.
-For more details about the parameterization of the (generalized) partial credit model, See \code{IRT Models} section
-in the page of \code{\link{irtQ-package}}.
+When computing category probabilities using the partial credit model
+(PCM), set \code{a = 1}.
+
+For \code{pr.model = "GPCM"}, the vector \code{d} should contain threshold parameters
+that define the boundaries between adjacent score categories. In the
+\pkg{irtQ} package, these thresholds are expressed as the item location
+(overall difficulty) minus the step parameters for each category. If an item
+has \emph{K} score categories, \emph{K - 1} threshold parameters must be provided; the
+first is assumed to be 0. For example, for a GPCM item with five categories,
+provide four threshold parameters.
+
+For more details on the parameterization of the (generalized) partial credit
+model, refer to the \emph{IRT Models} section in the \link{irtQ-package} documentation.
 }
 \examples{
 ## Category probabilities for an item with four categories
-## using a generalized partial credit model
+## using the generalized partial credit model (GPCM)
 prm(theta = c(-0.2, 0, 0.5), a = 1.4, d = c(-0.2, 0, 0.5), D = 1, pr.model = "GPCM")
 
 ## Category probabilities for an item with five categories
-## using a graded response model
+## using the graded response model (GRM)
 prm(theta = c(-0.2, 0, 0.5), a = 1.2, d = c(-0.4, -0.2, 0.4, 1.5), D = 1, pr.model = "GRM")
 
 }
 \seealso{
-\code{\link{drm}}, \code{\link{irtfit}}
+\code{\link[=drm]{drm()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

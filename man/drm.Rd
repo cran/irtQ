@@ -7,42 +7,44 @@
 drm(theta, a, b, g = NULL, D = 1)
 }
 \arguments{
-\item{theta}{A vector of ability values.}
+\item{theta}{A numeric vector of ability values (latent traits).}
 
-\item{a}{A vector of item discrimination (or slope) parameters.}
+\item{a}{A numeric vector of item discrimination (slope) parameters.}
 
-\item{b}{A vector of item difficulty (or threshold) parameters.}
+\item{b}{A numeric vector of item difficulty parameters.}
 
-\item{g}{A vector of item guessing parameters.}
+\item{g}{A numeric vector of item guessing parameters. Not required for 1PL or 2PL models.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible
-to the normal ogive function (if set to 1.7). Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 }
 \value{
-This function returns a matrix where a row indicates the ability and a column
-represents the item.
+A matrix of response probabilities, where rows represent ability values (theta)
+and columns represent items.
 }
 \description{
-This function computes the probability of correct answers for multiple items
-for a given set of theta values using the IRT 1PL, 2PL, and 3PL models.
+This function computes the probability of a correct response for multiple items
+given a set of theta values using the 1PL, 2PL, or 3PL item response models.
 }
 \details{
-\code{g} does not need to be specified when the response probabilities of
-the 1PL and 2PL models are computed.
+If \code{g} is not specified, the function assumes a guessing parameter of 0 for all items,
+corresponding to the 1PL or 2PL model. The function automatically adjusts the model
+form based on the presence of \code{g}.
 }
 \examples{
-## when vectors are used for both theta values and item parameters (3PLM)
+## Example 1: theta and item parameters for 3PL model
 drm(c(-0.1, 0.0, 1.5), a = c(1, 2), b = c(0, 1), g = c(0.2, 0.1), D = 1)
 
-## when vectors are only used for item parameters (2PLM)
+## Example 2: single theta value with 2PL item parameters
 drm(0.0, a = c(1, 2), b = c(0, 1), D = 1)
 
-## when vectors are only used for theta values (3PLM)
+## Example 3: multiple theta values with a single item (3PL model)
 drm(c(-0.1, 0.0, 1.5), a = 1, b = 1, g = 0.2, D = 1)
 
 }
 \seealso{
-\code{\link{prm}}
+\code{\link[=prm]{prm()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

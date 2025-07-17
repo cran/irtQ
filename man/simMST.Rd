@@ -3,45 +3,50 @@
 \docType{data}
 \name{simMST}
 \alias{simMST}
-\title{Simulated 1-3-3 MST panel data}
+\title{Simulated 1-3-3 MST Panel Data}
 \format{
-This data set includes a list of five internal objects:
+A list containing five internal objects:
 \describe{
-  \item{\code{item_bank}}{The item bank metadata, containing item parameters
-  and other information.}
-  \item{\code{module}}{A binary matrix that maps items from the item bank
-  to modules within the MST panel. This parameter enables precise
-  item-to-module assignments for MST configurations, analogous to
-  the \code{modules} argument in the \code{randomMST} function
-  of the \pkg{mstR} package (Magis et al., 2017).}
-  \item{\code{route_map}}{A binary square matrix that defines the MST structure,
-  illustrating transitions between modules and stages. This concept is inspired
-  by the \code{transMatrix} argument in the \code{randomMST}
-  function from the \pkg{mstR} package (Magis et al., 2017).}
-  \item{\code{cut_score}}{A list defining cut scores for routing test takers
-  through MST stages. Each list element is a vector of cut scores for advancing
-  test takers to subsequent stage modules.}
-  \item{\code{theta}}{A vector of ability levels (theta) at which the MST
-  panel's performance is assessed, allowing for the evaluation of measurement
-  precision across a continuum of ability levels.}
+\item{item_bank}{A data frame of item metadata including item parameters
+and related information.}
+
+\item{module}{A binary matrix that maps items in the item bank to MST
+modules. This structure specifies the item-to-module assignment,
+similar to the \code{modules} argument in the \code{randomMST()} function from
+the \pkg{mstR} package (Magis et al., 2017).}
+
+\item{route_map}{A binary square matrix that defines the MST transition
+structure, showing module pathways across stages.
+This corresponds to the \code{transMatrix} argument in the \code{randomMST()}
+function in the \pkg{mstR} package.}
+
+\item{cut_score}{A list of numeric vectors specifying the routing cut
+scores between MST stages. Each vector represents the cut scores used
+to determine module transitions for a particular stage.}
+
+\item{theta}{A numeric vector of ability (theta) values used to evaluate
+the panel's measurement precision across the latent trait continuum.}
 }
 
-This 1-3-3 MST panel consists of 7 modules in total with 3 stages. Each module
-contains eight items calibrated with the IRT 3 parameter logistic model.
+This 1-3-3 MST panel includes 7 modules across 3 stages. Each module
+contains 8 dichotomously scored items calibrated under the IRT 3-parameter
+logistic (3PL) model.
 }
 \usage{
 simMST
 }
 \description{
-This simulated 1-3-3 MST panel data set was used in Lim et al.' (2020) simulation study.
+A simulated multistage testing (MST) dataset based on a 1-3-3 panel
+structure, used in the simulation study by Lim et al. (2020).
 }
 \references{
-Magis, D., Yan, D., & Von Davier, A. A. (2017). \emph{Computerized adaptive
-and multistage testing with R: Using packages catR and mstR}. Springer.
+Magis, D., Yan, D., & von Davier, A. A. (2017). \emph{Computerized
+adaptive and multistage testing with R: Using packages catR and mstR}.
+Springer.
 
 Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical
 approach to evaluate the performance of MST. \emph{Journal of Educational
-Measurement, 58}(2), 154-178.
+Measurement, 58}(2), 154–178.
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

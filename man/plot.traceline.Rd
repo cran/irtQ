@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_traceline.R
 \name{plot.traceline}
 \alias{plot.traceline}
-\title{Plot ICC and TCC}
+\title{Plot Item and Test Characteristic Curves}
 \usage{
 \method{plot}{traceline}(
   x,
@@ -23,104 +23,138 @@
 )
 }
 \arguments{
-\item{x}{An object of class \code{\link{traceline}}.}
+\item{x}{x An object of class \code{traceline} obtained from \code{\link[=traceline]{traceline()}}.}
 
-\item{item.loc}{A numeric value indicating that the \emph{n}th item (or the location of item) is plotted.
-If NULL, the TCC based on a total test form is drawn. Default is NULL.}
+\item{item.loc}{A numeric vector specifying the position(s) of the item(s) to
+plot. If \code{NULL} (default), the test characteristic curve (TCC) for the
+entire test form is plotted.}
 
-\item{score.curve}{Logical value. If TRUE, item score curve (i.e., a weighted sum of item category probabilities over the item scores) is plotted
-in a panel. Otherwise, ICCs for all score categories are plotted in separate panels. For a dichotomous item, the item score curve is the same as
-the ICC of score category 1. Ignored when \code{item.loc = NULL}. Default is FALSE.}
+\item{score.curve}{Logical. If \code{TRUE}, plots the item score curve, defined
+as the weighted sum of category probabilities across score categories, in
+a panel.
 
-\item{overlap}{Logical value indicating whether multiple item score curves are plotted in one panel.
-If FALSE, the multiple item score curves are displayed with multiple panels, one for each.}
+If \code{FALSE}, plots item characteristic curves (ICCs) for all score categories,
+either in separate panels or in a single panel depending on the \code{overlap}
+setting.
 
-\item{layout.col}{An integer value indicating the number of columns in the panel when displaying ICCs for an item or
-when displaying multiple item scores with multiple panels.}
+For dichotomous items, the item score curve is equivalent to the ICC for
+score category 1. Ignored when \code{item.loc = NULL}. Default is \code{FALSE}.}
 
-\item{xlab.text, ylab.text}{A title for the x and y axes.}
+\item{overlap}{Logical. Determines how multiple curves are displayed when
+plotting ICCs or item score curves.
 
-\item{main.text}{An overall title for the plot.}
+If \code{TRUE}, curves are overlaid in a single panel using different colors.
+If \code{FALSE}, each curve is drawn in a separate panel—either one panel per
+item or per score category, depending on the setting of \code{score.curve}.}
 
-\item{lab.size}{The size of xlab and ylab. Default is 15.}
+\item{layout.col}{An integer value indicating the number of columns in the
+plot when displaying multiple panels. Used only when \code{overlap = FALSE}.
+Default is 2.}
 
-\item{main.size}{The size of \code{main.text}. Default is 15.}
+\item{xlab.text, ylab.text}{Character strings specifying the labels for
+the x and y axes, respectively.}
 
-\item{axis.size}{The size of labels along the x and y axes. Default is 15.}
+\item{main.text}{Character string specifying the overall title of the plot.}
 
-\item{line.color}{A character string specifying the color for a line. See \url{http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/} for more details
-about colors used in ggplot2.}
+\item{lab.size}{Numeric value specifying the font size of axis titles.
+Default is 15.}
 
-\item{line.size}{The size of lines. Default is 1.}
+\item{main.size}{Numeric value specifying the font size of the plot title.
+Default is 15.}
 
-\item{strip.size}{The size of facet labels when ICCs for an item are plotted.}
+\item{axis.size}{Numeric value specifying the font size of axis tick labels.
+Default is 15.}
 
-\item{...}{Further arguments passed from the function \code{geom_line()} in the \pkg{ggplot2} package.}
+\item{line.color}{A character string specifying the color of the plot lines.
+See \url{http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/} for available
+color names.}
+
+\item{line.size}{Numeric value specifying the thickness of plot lines.
+Default is 1.}
+
+\item{strip.size}{Numeric. Font size of facet labels when ICCs are plotted.}
+
+\item{...}{Additional arguments passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}} from
+the \pkg{ggplot2} package.}
 }
 \value{
-This method function displays ICC or TCC plots of the studied item(s).
+This method displays item characteristic curves (ICCs), item score
+curves, or the test characteristic curve (TCC), depending on the specified
+arguments.
 }
 \description{
-This method function plots item or test characteristic curve using the ggplot2 package. The item characteristic
-(or category) curve (ICC) or item score curve is drawn for an individual item. The test characteristic curve (TCC) is drawn
-based on a total test form.
+This method visualizes item characteristic curves (ICCs), item score curves,
+or the test characteristic curve (TCC) using the \pkg{ggplot2} package.
+ICCs or item score curves can be plotted for one or more selected items,
+while the TCC is plotted for the entire test form.
 }
 \details{
-All of the plots are drawn using the ggplot2 package.
-If \code{item.loc = NULL}, the TCC based on the total test form is plotted. In the argument \code{item.loc},
-a vector of positive integer values should be specified to indicate the \emph{n}th items among the total test form. For example,
-if there are ten items in the test form and the score curves of the 1st, 2nd, and 3rd items should be plotted, then \code{item.loc = 1:3}.
+All plots are generated using the \pkg{ggplot2} package.
+If \code{item.loc = NULL}, the test characteristic curve (TCC) for the entire test
+form is plotted. If \code{item.loc} is specified, it should be a vector of
+positive integers indicating the position(s) of the items to be plotted.
+For example, if the test form includes ten items and you wish to plot the
+score curves of the 1st, 2nd, and 3rd items, set \code{item.loc = 1:3}.
 }
 \examples{
-## example
-## using a "-prm.txt" file obtained from a flexMIRT
-# import the "-prm.txt" output file from flexMIRT
+## Example using a "-prm.txt" file exported from flexMIRT
+
+# Import the "-prm.txt" output file from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# read item parameters and transform them to item metadata
+# Read the item parameters and convert them to item metadata
 test_flex <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df
 
-# set theta values
+# Define a sequence of theta values
 theta <- seq(-3, 3, 0.1)
 
-# compute the item category probabilities and item/test
-# characteristic functions given the theta values
+# Compute item category probabilities and item/test characteristic functions
 x <- traceline(x = test_flex, theta, D = 1)
 
-# plot TCC based on the total test form
+# Plot the test characteristic curve (TCC) for the full test form
 plot(x, item.loc = NULL)
 
-# plot ICCs for the first item (dichotomous item)
+# Plot ICCs for the first item (dichotomous),
+# with a separate panel for each score category
 plot(x, item.loc = 1, score.curve = FALSE, layout.col = 2)
 
-# plot item score curve for the first item (dichotomous item)
+# Plot ICCs for the first item in a single panel
+# (all score categories overlaid)
+plot(x, item.loc = 1, score.curve = FALSE, overlap = TRUE)
+
+# Plot ICCs for multiple items (both dichotomous and polytomous),
+# with each item's ICCs shown in a single panel
+plot(x, item.loc = c(1:3, 53:55), score.curve = FALSE, overlap = TRUE)
+
+# Plot the item score curve for the first item (dichotomous)
 plot(x, item.loc = 1, score.curve = TRUE)
 
-# plot item score curves for the first six dichotomous items
-# with multiple panels
+# Plot item score curves for the first six dichotomous items
+# using multiple panels
 plot(x, item.loc = 1:6, score.curve = TRUE, overlap = FALSE)
 
-# plot item score curve for the first six dichotomous items
-# in one panel
+# Plot item score curves for the first six dichotomous items
+# overlaid in a single panel
 plot(x, item.loc = 1:6, score.curve = TRUE, overlap = TRUE)
 
-# plot ICCs for the last item (polytomous item)
+# Plot ICCs for the last item (polytomous),
+# with each score category in a separate panel
 plot(x, item.loc = 55, score.curve = FALSE, layout.col = 2)
 
-# plot item score curve for the last item (polytomous item)
+# Plot the item score curve for the last item (polytomous)
 plot(x, item.loc = 55, score.curve = TRUE)
 
-# plot item score curves for the last three polytomous items
-# with multiple panels
+# Plot item score curves for the last three polytomous items
+# using multiple panels
 plot(x, item.loc = 53:55, score.curve = TRUE, overlap = FALSE)
 
-# plot item score curves for the last three polytomous items
-# in one panel
+# Plot item score curves for the last three polytomous items
+# overlaid in a single panel
 plot(x, item.loc = 53:55, score.curve = TRUE, overlap = TRUE)
 
 }
 \seealso{
-\code{\link{traceline}}
+\code{\link[=traceline]{traceline()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

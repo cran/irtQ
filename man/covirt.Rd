@@ -2,7 +2,7 @@
 % Please edit documentation in R/covirt.R
 \name{covirt}
 \alias{covirt}
-\title{Asymptotic variance-covariance matrices of item parameter estimates}
+\title{Asymptotic Variance-Covariance Matrices of Item Parameter Estimates}
 \usage{
 covirt(
   x,
@@ -15,75 +15,110 @@ covirt(
 )
 }
 \arguments{
-\item{x}{A data frame containing the item metadata (e.g., item parameters, number of categories, models ...).
-See \code{\link{irtfit}}, \code{\link{info}}, or \code{\link{simdat}} for more details about the item metadata.
-This data frame can be easily obtained using the function \code{\link{shape_df}}.}
+\item{x}{A data frame containing item metadata (e.g., item parameters, number
+of categories, IRT model types, etc.). See \code{\link[=est_irt]{est_irt()}} or
+\code{\link[=simdat]{simdat()}} for more details about the item metadata. This data frame
+can be easily created using the \code{\link[=shape_df]{shape_df()}} function.}
 
-\item{D}{A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-Default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{nstd}{An integer value or a vector of integer values indicating a sample size. When a vector is specified, length of the vector must be
-the same as the number of test items in the argument \code{x}. Default is 1,000. See below for details.}
+\item{nstd}{An integer or a vector of integers indicating the sample size(s).
+If a vector is provided, its length must match the number of items in the
+\code{x} argument. Default is 1,000. See \strong{Details}.}
 
-\item{pcm.loc}{A vector of integer values indicating the locations of partial credit model (PCM) items. For the PCM items,
-the variance-covariance matrices are computed only for the item category difficulty parameters. Default is NULL. See below for details.}
+\item{pcm.loc}{A vector of integers indicating the positions of items
+calibrated using the partial credit model (PCM). For PCM items, the
+variance-covariance matrices are computed only for the item category
+difficulty parameters. Default is \code{NULL}. See the \strong{Details} for more
+information.}
 
-\item{norm.prior}{A numeric vector of two components specifying a mean and standard deviation of the normal prior distribution.
-These two parameters are used to obtain the gaussian quadrature points and the corresponding weights from the normal distribution.
-Default is c(0,1).}
+\item{norm.prior}{A numeric vector of length two specifying the mean and
+standard deviation of the normal prior distribution. These values are used
+to generate the Gaussian quadrature points and weights when \code{weights = NULL}.
+Default is \code{c(0, 1)}.}
 
-\item{nquad}{An integer value specifying the number of gaussian quadrature points from the normal prior distribution. Default is 41.}
+\item{nquad}{An integer indicating the number of Gaussian quadrature points
+to be generated from the normal prior distribution. The specified value is
+used when \code{weights} is not \code{NULL}. Default is 41.}
 
-\item{weights}{A two-column matrix or data frame containing the theta values (in the first column) and the weights (in the second column)
-for the prior distribution. The weights and theta values can be easily obtained using the function \code{\link{gen.weight}}.
-If NULL, default values are used for the prior distribution (see the arguments of \code{norm.prior} and \code{nquad}). Default is NULL.}
+\item{weights}{An optional two-column data frame or matrix where the first
+column is the quadrature points (nodes) and the second column is the
+corresponding weights. This is typically used in quadrature-based IRT
+analysis.}
 }
 \value{
-A list of two internal objects. The first internal object contains a list of the variance-covariance matrices of item parameter estimates.
-The second internal object contains a list of the standard errors of item parameter estimates.
+A named list with the following two components:
+\itemize{
+\item \code{cov}: A named list of variance-covariance matrices for item parameter estimates.
+Each element corresponds to a single item and contains a square matrix whose
+dimensions match the number of estimated parameters for that item. For
+dichotomous items, this typically includes slopes and intercepts. For
+polytomous items, it includes category difficulty parameters (for PCM) or
+both slope and difficulty (or threshold) parameters (for GRM and GPCM).
+\item \code{se}: A named list of vectors containing the asymptotic standard errors (ASEs)
+of the item parameter estimates, computed as the square roots of the diagonal
+elements of each corresponding variance-covariance matrix in \code{cov}.
+}
+
+The names of the list elements in both \code{cov} and \code{se} correspond to the item
+identifiers (e.g., item names or labels) as given in the first column of the
+input \code{x}.
 }
 \description{
-This function calculates the analytical asymptotic variance-covariance matrices (e.g., Li & Lissitz, 2004; Thissen & Wainer, 1982)
-of item parameter estimates for dichotomous and polytomous IRT Models without examinee's responses to test items,
-given a set of item parameter estimates and sample size. The square roots of variance terms in the matrices can be used as the asymptotic
-standard errors of maximum likelihood item parameter estimates.
+This function computes the analytical asymptotic variance-covariance matrices
+of item parameter estimates for dichotomous and polytomous IRT models,
+without requiring examinee response data. Given a set of item parameter
+estimates and the corresponding sample sizes, the function derives the
+matrices using analytical formulas (e.g., Li & Lissitz, 2004; Thissen &
+Wainer, 1982). The square roots of the diagonal elements (variances) provide
+the asymptotic standard errors of the maximum likelihood estimates.
 }
 \details{
-The standard errors obtained from the analytical approach are likely to represent lower bounds for the actual standard errors (Thissen & Wainer, 1982).
-Therefore, they may be useful for assessing the degree of precision of a set of item parameter estimates when the corresponding standard errors of
-the estimates are not presented in literature or research reports.
+The standard errors obtained from this analytical approach are
+generally considered lower bounds of the true standard errors (Thissen &
+Wainer, 1982). Thus, they may serve as useful approximations for evaluating
+the precision of item parameter estimates when empirical standard errors are
+not reported in the literature or research reports.
 
-Sometimes item parameters need to be estimated using different sample size. If the item parameters in the argument \code{x} were
-calibrated with different number of examinees, a vector of different sample sizes should be specified in the argument \code{nstd}. Suppose
-that you want to compute the variance-covariance matrices of five IRT 3PLM items and the five items were calibrated with 500, 600, 1,000, 2,000,
-and 700 examinees, respectively. Then, \code{nstd = c(500, 600, 1000, 2000, 700)} must be specified.
+If the item parameters provided in the \code{x} argument were calibrated using
+different sample sizes, a corresponding vector of sample sizes must be
+specified via the \code{nstd} argument. For example, suppose you wish to compute
+the variance-covariance matrices of five 3PLM items that were calibrated
+using 500, 600, 1,000, 2,000, and 700 examinees, respectively. In this case,
+set \code{nstd = c(500, 600, 1000, 2000, 700)}.
 
-Because you can specify only "GPCM" for both the partial credit model (PCM) or the generalized partial credit model (GPCM) in the item metadata,
-you must indicate which items are the PCM items through the argument \code{pcm.loc}. This is because the item category difficulty parameters are estimated
-from the PCM, meaning that the variance-covariance of item parameter estimates must be computed for the item category difficulty parameters. Suppose
-that you want to compute the variance-covariance matrices of five polytomous items and the last two items were calibrated with the PCM. Then,
-\code{pcm.loc = c(4, 5)} must be specified.
+Since the item metadata allows only \code{"GPCM"} to denote both the partial
+credit model (PCM) and the generalized partial credit model (GPCM), PCM items
+must be explicitly identified using the \code{pcm.loc} argument. This is necessary
+because the category difficulty parameters of PCM items require special
+handling when computing variance-covariance matrices. For instance, if you
+wish to compute the matrices for five polytomous items and the last two were
+calibrated using PCM, then specify \code{pcm.loc = c(4, 5)}.
 }
 \examples{
-## the use of a "-prm.txt" file obtained sfrom a flexMIRT
+# Example using a "-prm.txt" file exported from flexMIRT
 flex_prm <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# select the first two dichotomous items and last polytomous item
+# Select the first two dichotomous items and the last polytomous item
 x <- bring.flexmirt(file = flex_prm, "par")$Group1$full_df[c(1:2, 55), ]
 
-# compute the var-covariance matrices with sample size of 2,000
+# Compute the variance-covariance matrices assuming a sample size of 2,000
 covirt(x, D = 1, nstd = 2000, norm.prior = c(0, 1), nquad = 41)
 
 }
 \references{
-Li, Y. & Lissitz, R. (2004). Applications of the analytically derived asymptotic standard errors of item response theory
-item parameter estimates. \emph{Journal of educational measurement, 41}(2), 85-117.
+Li, Y. & Lissitz, R. (2004). Applications of the analytically
+derived asymptotic standard errors of item response theory item parameter
+estimates. \emph{Journal of educational measurement, 41}(2), 85-117.
 
-Thissen, D. & Wainer, H. (1982). Weighted likelihood estimation of ability in item response theory.
-\emph{Psychometrika, 54}(3), 427-450.
+Thissen, D. & Wainer, H. (1982). Weighted likelihood estimation of ability
+in item response theory. \emph{Psychometrika, 54}(3), 427-450.
 }
 \seealso{
-\code{\link{irtfit}}, \code{\link{info}}, \code{\link{simdat}}, \code{\link{shape_df}}, \code{\link{gen.weight}}
+\code{\link[=est_irt]{est_irt()}}, \code{\link[=simdat]{simdat()}}, \code{\link[=shape_df]{shape_df()}},
+\code{\link[=gen.weight]{gen.weight()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

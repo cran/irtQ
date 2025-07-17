@@ -2,7 +2,7 @@
 % Please edit documentation in R/llike_score.R
 \name{llike_score}
 \alias{llike_score}
-\title{Loglikelihood of Ability Parameters}
+\title{Log-Likelihood of Ability Parameters}
 \usage{
 llike_score(
   x,
@@ -17,72 +17,88 @@ llike_score(
 )
 }
 \arguments{
-\item{x}{A data frame containing the item metadata (e.g., item parameters, number
-of score categories, models). This can be created easily using the \code{\link{shape_df}}
-function. See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}},
-or \code{\link{simdat}} for more details about the item metadata.}
+\item{x}{A data frame containing item metadata (e.g., item parameters, number
+of categories, IRT model types, etc.). See \code{\link[=est_irt]{est_irt()}} or
+\code{\link[=simdat]{simdat()}} for more details about the item metadata. This data frame
+can be easily created using the \code{\link[=shape_df]{shape_df()}} function.}
 
-\item{data}{A matrix representing examinees' response data for the items in \code{x}.
-Each row and column corresponds to an examinee and an item, respectively.}
+\item{data}{A matrix of examinees' item responses corresponding to the items
+specified in the \code{x} argument. Rows represent examinees and columns
+represent items.}
 
-\item{theta}{A numeric vector of ability parameters for which the loglikelihood
-values will be computed.}
+\item{theta}{A numeric vector of ability values at which to evaluate the
+log-likelihood function.}
 
-\item{D}{A scaling factor in IRT models that adjusts the logistic function to
-approximate the normal ogive function (set to 1.7). The default is 1.}
+\item{D}{A scaling constant used in IRT models to make the logistic function
+closely approximate the normal ogive function. A value of 1.7 is commonly
+used for this purpose. Default is 1.}
 
-\item{method}{A character string specifying the scoring method. Options include
-"ML" for maximum likelihood estimation,  "MLF" for maximum likelihood estimation
-with fences, and "MAP" for maximum a posteriori estimation. The default method is "MLE".}
+\item{method}{A character string specifying the estimation method. Available
+options include:
+\itemize{
+\item \code{"ML"}: Maximum Likelihood Estimation
+\item \code{"MLF"}: Maximum Likelihood Estimation with Fences
+\item \code{"MAP"}: Maximum A Posteriori Estimation
+Default is \code{"ML"}.
+}}
 
-\item{norm.prior}{A numeric vector of two elements indicating the mean and standard
-deviation of the normal prior distribution. These parameters are used to obtain
-the Gaussian quadrature points and corresponding weights from the normal distribution.
-Default is c(0,1). This parameter is ignored if \code{method} is "ML" or "MLF".}
+\item{norm.prior}{A numeric vector of length two specifying the mean and
+standard deviation of the normal prior distribution (used only when \code{method = "MAP"}). Default is \code{c(0, 1)}. Ignored for \code{"ML"} and \code{"MLF"}.}
 
-\item{fence.a}{A numeric value defining the item slope parameter (a-parameter) for
-the two imaginary items in the MLF method. Default is 3.0.}
+\item{fence.a}{A numeric value specifying the item slope parameter (i.e.,
+\emph{a}-parameter) for the two imaginary items used in MLF. See \strong{Details} below.
+Default is 3.0.}
 
-\item{fence.b}{A numeric vector of two elements specifying the lower and upper fences
-of item difficulty parameters (b-parameters) for the two imaginary items in the MLF method.
-If \code{fence.b = NULL}, the \code{range} values are used to set the fences.
-The default is NULL.}
+\item{fence.b}{A numeric vector of length two specifying the lower and upper
+bounds of the item difficulty parameters (i.e., \emph{b}-parameters) for the two
+imaginary items in MLF. If \code{fence.b = NULL}, the values specified in the
+\code{range} argument are used instead. Default is NULL.}
 
-\item{missing}{A value used to denote missing values in the response data set. Default is NA.}
+\item{missing}{A value indicating missing responses in the data set. Default
+is \code{NA}.}
 }
 \value{
-A data frame of loglikelihood values. Each row indicates the ability parameter
-for which the loglikelihood was computed, and each column represents a response pattern.
+A data frame of log-likelihood values.
+\itemize{
+\item Each \strong{row} corresponds to an ability value (\code{theta}).
+\item Each \strong{column} corresponds to an examinee’s response pattern.
+}
 }
 \description{
-This function computes the loglikelihood of ability parameters
-given the item parameters and response data.
+This function computes the log-likelihood values for a set of ability
+parameters, given item parameters and response data
 }
 \details{
-The function computes the loglikelihood value of the ability parameter given
-the item parameters and response data for each item. As an example, to assess the loglikelihoods
-of abilities for two examinees who have taken the same test items specified in \code{x}, supply
-their item response data matrix with two rows in \code{data} and a vector of ability values
-for which loglikelihood needs to be computed in \code{theta}.
+This function evaluates the log-likelihood of a given ability
+(\code{theta}) for one or more examinees, based on item parameters (\code{x}) and item
+response data (\code{data}).
+
+If \code{method = "MLF"} is selected, the function appends two virtual "fence"
+items to the item pool with fixed parameters. These artificial items help
+avoid unstable likelihood functions near the boundaries of the ability scale.
+
+For example, to compute the log-likelihood curves of two examinees' responses
+to the same test items, supply a 2-row matrix to \code{data} and a vector of
+ability values to \code{theta}.
 }
 \examples{
 ## Import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# Read item parameters and transform them into item metadata
-x <- bring.flexmirt(file=flex_sam, "par")$Group1$full_df
+# Read item parameters and convert them to item metadata
+x <- bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
-# Generate examinees' abilities from N(0, 1)
+# Generate ability values from N(0, 1)
 set.seed(10)
-score <- rnorm(5, mean=0, sd=1)
+score <- rnorm(5, mean = 0, sd = 1)
 
-# Simulate the response data
-data <- simdat(x=x, theta=score, D=1)
+# Simulate response data
+data <- simdat(x = x, theta = score, D = 1)
 
-# Specify the ability values for which the loglikelihood values will be computed
+# Specify ability values for log-likelihood evaluation
 theta <- seq(-3, 3, 0.5)
 
-# Compute the loglikelihood values (using the MLE method)
-llike_score(x=x, data=data, theta=theta, D=1, method="ML")
+# Compute log-likelihood values (using MLE)
+llike_score(x = x, data = data, theta = theta, D = 1, method = "ML")
 
 }

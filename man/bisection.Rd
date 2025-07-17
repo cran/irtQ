@@ -2,62 +2,66 @@
 % Please edit documentation in R/bisection.R
 \name{bisection}
 \alias{bisection}
-\title{The bisection method to find a root}
+\title{The Bisection Method to Find a Root}
 \usage{
 bisection(.fun, ..., lb, ub, tol = 1e-04, max.it = 100)
 }
 \arguments{
-\item{.fun}{A function for which the root is searched.}
+\item{.fun}{A function for which the root is to be found.}
 
 \item{...}{Additional arguments to be passed to \code{.fun}.}
 
-\item{lb}{A lower bound of the interval to be searched.}
+\item{lb}{A numeric value specifying the lower bound of the search interval.}
 
-\item{ub}{An upper bound of the interval to be searched.}
+\item{ub}{A numeric value specifying the upper bound of the search interval.}
 
-\item{tol}{The tolerance of error. Default is 1e-4.}
+\item{tol}{A numeric value specifying the tolerance for convergence. Default is 1e-4.}
 
-\item{max.it}{The maximum number of iterations. Default is 100.}
+\item{max.it}{An integer specifying the maximum number of iterations. Default is 100.}
 }
 \value{
-A list with three internal objects. The first object is the root found, the second object is
-the number of iterations used, and the third object is the approximate accuracy of the root
-(i.e., absolute difference between the final two values with opposite signs).
+A list with the following components:
+\itemize{
+\item \code{root}: The estimated root of the function.
+\item \code{iter}: The number of iterations performed.
+\item \code{accuracy}: The final absolute difference between the last two interval
+points with opposite signs.
+}
 }
 \description{
-This function is a modified version of the \code{bisetion} function
-in the \pkg{cmna} R package  (Howard, 2017) to find a root of the function \code{.funs}
-with respect to its first argument. Unlike the \code{bisetion} of the \pkg{cmna},
-this \code{bisetion} function accepts additional arguments of the function \code{.fun}.
+This function is a modified version of the \code{bisection} function
+in the \pkg{cmna} R package (Howard, 2017), designed to find a root of the function
+\code{.fun} with respect to its first argument. Unlike the original \code{bisection()} in
+\pkg{cmna}, this version allows additional arguments to be passed to \code{.fun}.
 }
 \details{
-The bisection method is a well-known root finding numerical algorithm that works for any continuous
-function when the lower (\code{lb}) and upper (\code{ub}) bounds with opposite signs are provided.
-This method repeatedly bisects the defined interval by two values with opposite signs until the absolute
-difference of two values becomes less than the error tolerance (\code{tol}) or the maximum
-number of iterations (\code{max.it}) is reached.
+The bisection method is a well-known root-finding numerical algorithm
+that applies to any continuous function, provided that the function values at the lower (\code{lb})
+and upper (\code{ub}) bounds have opposite signs. The method repeatedly bisects the interval until
+the absolute difference between successive estimates is smaller than the error tolerance
+(\code{tol}) or the maximum number of iterations (\code{max.it}) is reached.
 }
 \examples{
-## example: find a theta corresponding to the probability of
-## correct answer using the item response function of 2PLM
+## Example: Find the theta value corresponding to a given probability
+## of a correct response using the item response function of a 2PLM
 ## (a = 1, b = 0.2)
 
-# set a function of theta
+# Define a function of theta
 find.th <- function(theta, p) {
   p - drm(theta = theta, a = 1, b = 0.2, D = 1)
 }
 
-# find the theta corresponding to p = 0.2
+# Find the theta value corresponding to p = 0.2
 bisection(.fun = find.th, p = 0.2, lb = -10, ub = 10)$root
 
-# find the theta corresponding to p = 0.8
+# Find the theta value corresponding to p = 0.8
 bisection(.fun = find.th, p = 0.8, lb = -10, ub = 10)$root
 
 }
 \references{
-Howard, J. P. (2017). \emph{Computational methods for numerical analysis with R}. New York:
-Chapman and Hall/CRC.
+Howard, J. P. (2017). \emph{Computational methods for numerical
+analysis with R}. New York: Chapman and Hall/CRC.
 }
 \seealso{
-\code{\link{est_score}}
+\code{\link[=est_score]{est_score()}}
 }

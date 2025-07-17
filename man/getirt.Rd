@@ -5,7 +5,7 @@
 \alias{getirt.est_irt}
 \alias{getirt.est_mg}
 \alias{getirt.est_item}
-\title{Extract various elements from 'est_irt', 'est_mg', and 'est_item' objects}
+\title{Extract Components from 'est_irt', 'est_mg', or 'est_item' Objects}
 \usage{
 getirt(x, ...)
 
@@ -16,171 +16,202 @@ getirt(x, ...)
 \method{getirt}{est_item}(x, what, ...)
 }
 \arguments{
-\item{x}{An object of class \code{\link{est_irt}}, \code{\link{est_mg}}, or \code{\link{est_item}}.}
+\item{x}{An object of class \code{est_irt}, \code{est_mg}, or \code{est_item} as returned by
+\code{\link[=est_irt]{est_irt()}}, \code{\link[=est_mg]{est_mg()}}, or \code{\link[=est_item]{est_item()}}, respectively.}
 
-\item{...}{Further arguments passed to or from other methods.}
+\item{...}{Additional arguments passed to or from other methods.}
 
-\item{what}{A character string indicating what to extract.}
+\item{what}{A character string specifying the name of the internal component
+to extract.}
 }
 \value{
-The internal objects extracted from an object of class \code{\link{est_irt}},
-\code{\link{est_mg}}, or \code{\link{est_item}}.
+The internal component extracted from an object of class \code{est_irt}, \code{est_mg}, or \code{est_item},
+depending on the input to the \code{x} argument.
 }
 \description{
-This method extracts various internal objects from an object of class \code{\link{est_irt}},
-\code{\link{est_mg}}, or \code{\link{est_item}}
-.
+Extracts internal components from an object of class \code{est_irt}
+(from \code{\link[=est_irt]{est_irt()}}), \code{est_mg} (from \code{\link[=est_mg]{est_mg()}}), or \code{est_item}
+(from \code{\link[=est_item]{est_item()}}).
 }
 \details{
-Objects which can be extracted from the object of class \code{\link{est_irt}} include:
+The following components can be extracted from an object of class \code{est_irt}
+created by \code{\link[=est_irt]{est_irt()}}:
 
 \describe{
-\item{estimates}{A data frame containing both the item parameter estimates and the corresponding standard errors of estimates.}
-\item{par.est}{A data frame containing the item parameter estimates.}
-\item{se.est}{A data frame containing the standard errors of the item parameter estimates. Note that the standard errors are
-estimated using the cross-production approximation method (Meilijson, 1989).}
-\item{pos.par}{A data frame containing the position number of each item parameter being estimated. The position information is useful
-when interpreting the variance-covariance matrix of item parameter estimates.}
-\item{covariance}{A matrix of variance-covariance matrix of item parameter estimates.}
-\item{loglikelihood}{A sum of the log-likelihood values of the observed data set (marginal log-likelihood) across all items in the data set.}
-\item{aic}{A model fit statistic of Akaike information criterion based on the loglikelihood.}
-\item{bic}{A model fit statistic of Bayesian information criterion based on the loglikelihood.}
-\item{group.par}{A data frame containing the mean, variance, and standard deviation of latent variable prior distribution.}
-\item{weights}{A two-column data frame containing the quadrature points (in the first column) and the corresponding weights
-(in the second column) of the (updated) latent variable prior distribution.}
-\item{posterior.dist}{A matrix of normalized posterior densities for all the response patterns at each of the quadrature points.
-The row and column indicate each individual's response pattern and the quadrature point, respectively.}
-\item{data}{A data frame of the examinees' response data set.}
-\item{scale.D}{A scaling factor in IRT models.}
-\item{ncase}{A total number of response patterns.}
-\item{nitem}{A total number of items included in the response data.}
-\item{Etol}{A convergence criteria for E steps of the EM algorithm.}
-\item{MaxE}{The maximum number of E steps in the EM algorithm.}
-\item{aprior}{A list containing the information of the prior distribution for item slope parameters.}
-\item{bprior}{A list containing the information of the prior distribution for item difficulty (or threshold) parameters.}
-\item{gprior}{A list containing the information of the prior distribution for item guessing parameters.}
-\item{npar.est}{A total number of the estimated parameters.}
+\item{estimates}{A data frame containing both the item parameter estimates
+and their corresponding standard errors.}
+\item{par.est}{A data frame containing only the item parameter estimates.}
+\item{se.est}{A data frame containing the standard errors of the item parameter
+estimates, calculated using the cross-product approximation method (Meilijson, 1989).}
+\item{pos.par}{A data frame indicating the position index of each estimated
+item parameter. This is useful when interpreting the variance-covariance matrix.}
+\item{covariance}{A variance-covariance matrix of the item parameter estimates.}
+\item{loglikelihood}{The total marginal log-likelihood value summed across all items.}
+\item{aic}{Akaike Information Criterion (AIC) based on the marginal log-likelihood.}
+\item{bic}{Bayesian Information Criterion (BIC) based on the marginal log-likelihood.}
+\item{group.par}{A data frame containing the mean, variance, and standard
+deviation of the latent variable's prior distribution.}
+\item{weights}{A two-column data frame containing quadrature points
+(first column) and corresponding weights (second column) of the (updated)
+latent trait prior.}
+\item{posterior.dist}{A matrix of normalized posterior densities for all
+response patterns at each quadrature point. Rows represent examinees, and
+columns represent quadrature points.}
+\item{data}{A data frame of the examinee response dataset used in estimation.}
+\item{scale.D}{The scaling constant (usually 1 or 1.7) used in the IRT model.}
+\item{ncase}{The number of unique response patterns.}
+\item{nitem}{The number of items included in the dataset.}
+\item{Etol}{The convergence criterion used for the E-step in the EM algorithm.}
+\item{MaxE}{The maximum number of E-steps allowed during EM estimation.}
+\item{aprior}{A list describing the prior distribution for item slope parameters.}
+\item{bprior}{A list describing the prior distribution for item difficulty
+(or threshold) parameters.}
+\item{gprior}{A list describing the prior distribution for item guessing parameters.}
+\item{npar.est}{The total number of parameters estimated.}
 \item{niter}{The number of EM cycles completed.}
-\item{maxpar.diff}{A maximum item parameter change when the EM cycles were completed.}
-\item{EMtime}{Time (in seconds) spent for the EM cycles.}
-\item{SEtime}{Time (in seconds) spent for computing the standard errors of the item parameter estimates.}
-\item{TotalTime}{Time (in seconds) spent for total compuatation.}
-\item{test.1}{Status of the first-order test to report if the gradients has vanished sufficiently for the solution to be stable.}
-\item{test.2}{Status of the second-order test to report if the information matrix is positive definite, which is a prerequisite
-for the solution to be a possible maximum.}
-\item{var.note}{A note to report if the variance-covariance matrix of item parameter estimates is obtainable from the information matrix.}
-\item{fipc}{A logical value to indicate if FIPC was used.}
-\item{fipc.method}{A method used for the FIPC.}
-\item{fix.loc}{A vector of integer values specifying the locations of the fixed items when the FIPC was implemented.}
+\item{maxpar.diff}{The maximum change in parameter estimates at convergence.}
+\item{EMtime}{Computation time (in seconds) for the EM algorithm.}
+\item{SEtime}{Computation time (in seconds) for estimating standard errors.}
+\item{TotalTime}{Total computation time (in seconds) for model estimation.}
+\item{test.1}{Result of the first-order test indicating whether the gradients
+were sufficiently close to zero.}
+\item{test.2}{Result of the second-order test indicating whether the
+information matrix was positive definite (a condition for maximum likelihood).}
+\item{var.note}{A note indicating whether the variance-covariance matrix was
+successfully derived from the information matrix.}
+\item{fipc}{Logical value indicating whether Fixed Item Parameter Calibration
+(FIPC) was applied.}
+\item{fipc.method}{The specific method used for FIPC.}
+\item{fix.loc}{An integer vector indicating the positions of fixed items used
+during FIPC.}
 }
 
-Objects which can be extracted from the object of class \code{\link{est_mg}} include:
+Components that can be extracted from an object of class \code{est_mg} created by
+\code{\link[=est_mg]{est_mg()}} include:
 
 \describe{
-\item{estimates}{A list containing two internal objects (i.e., overall and group) of the item parameter estimates and the corresponding standard errors
-of estimates. The first internal object (overall) is a data frame of the item parameter and standard error estimates for the combined data set across
-all groups. Accordingly, the data frame includes unique items across all groups. The second internal object (group) is a list of group specific
-data frames containing item parameter and standard error estimates}
-\item{par.est}{A list containing two internal objects (i.e., overall and group) of the item parameter estimates. The format of the list is the same with
-the internal object of 'estimates'}
-\item{se.est}{A list containing two internal objects (i.e., overall and group) of the standard errors of item parameter estimates. The format of the
-list is the same with the internal object of 'estimates'. Note that the standard errors are estimated using the cross-production approximation
-method (Meilijson, 1989).}
-\item{pos.par}{A data frame containing the position number of each item parameter being estimated. This item position data frame was created based on
-the combined data sets across all groups (see the first internal object of 'estimates'). The position information is useful when interpreting
-the variance-covariance matrix of item parameter estimates.}
-\item{covariance}{A matrix of variance-covariance matrix of item parameter estimates. This matrix was created based on the combined data sets
-across all groups (see the first internal object of 'estimates')}
-\item{loglikelihood}{A list containing two internal objects (i.e., overall and group) of the log-likelihood values of observed data set
-(marginal log-likelihood). The format of the list is the same with the internal object of 'estimates'. Specifically, the first internal
-object (overall) contains a sum of the log-likelihood values of the observed data set across all unique items of all groups. The second
-internal object (group) shows the group specific log-likelihood values.}
-\item{aic}{A model fit statistic of Akaike information criterion based on the loglikelihood of all unique items..}
-\item{bic}{A model fit statistic of Bayesian information criterion based on the loglikelihood of all unique items.}
-\item{group.par}{A list containing the summary statistics (i.e., a mean, variance, and standard deviation) of latent
-variable prior distributions across all groups.}
-\item{weights}{a list of the two-column data frames containing the quadrature points (in the first column) and the corresponding weights
-(in the second column) of the (updated) latent variable prior distributions for all groups.}
-\item{posterior.dist}{A matrix of normalized posterior densities for all the response patterns at each of the quadrature points.
-The row and column indicate each individual's response pattern and the quadrature point, respectively.}
-\item{data}{A list containing two internal objects (i.e., overall and group) of the examinees' response data sets. The format of the list
-is the same with the internal object of 'estimates'.}
-\item{scale.D}{A scaling factor in IRT models.}
-\item{ncase}{A list containing two internal objects (i.e., overall and group) with the total number of response patterns. The format of the list
-is the same with the internal object of 'estimates'.}
-\item{nitem}{A list containing two internal objects (i.e., overall and group) with the total number of items included in the response data set.
-The format of the list is the same with the internal object of 'estimates'.}
-\item{Etol}{A convergence criteria for E steps of the EM algorithm.}
-\item{MaxE}{The maximum number of E steps in the EM algorithm.}
-\item{aprior}{A list containing the information of the prior distribution for item slope parameters.}
-\item{gprior}{A list containing the information of the prior distribution for item guessing parameters.}
-\item{npar.est}{A total number of the estimated parameters across all unique items.}
-\item{niter}{The number of EM cycles completed.}
-\item{maxpar.diff}{A maximum item parameter change when the EM cycles were completed.}
-\item{EMtime}{Time (in seconds) spent for the EM cycles.}
-\item{SEtime}{Time (in seconds) spent for computing the standard errors of the item parameter estimates.}
-\item{TotalTime}{Time (in seconds) spent for total compuatation.}
-\item{test.1}{Status of the first-order test to report if the gradients has vanished sufficiently for the solution to be stable.}
-\item{test.2}{Status of the second-order test to report if the information matrix is positive definite, which is a prerequisite
-for the solution to be a possible maximum.}
-\item{var.note}{A note to report if the variance-covariance matrix of item parameter estimates is obtainable from the information matrix.}
-\item{fipc}{A logical value to indicate if FIPC was used.}
-\item{fipc.method}{A method used for the FIPC.}
-\item{fix.loc}{A list containing two internal objects (i.e., overall and group) with the locations of the fixed items when the FIPC was implemented.
-The format of the list is the same with the internal object of 'estimates'.}
+\item{estimates}{A list with two components: \code{overall} and \code{group}.
+\itemize{
+\item \code{overall}: A data frame containing item parameter estimates and their
+standard errors, based on the combined data set across all groups.
+\item \code{group}: A list of group-specific data frames containing item parameter
+estimates and standard errors for each group.}
 }
 
-Objects which can be extracted from the object of class \code{\link{est_item}} include:
+\item{par.est}{Same structure as \code{estimates}, but containing only the item
+parameter estimates (without standard errors).}
+\item{se.est}{Same structure as \code{estimates}, but containing only the standard
+errors of the item parameter estimates. The standard errors are computed
+using the cross-product approximation method (Meilijson, 1989).}
+\item{pos.par}{A data frame indicating the position index of each estimated
+parameter. This index is based on the combined item set across all groups
+and is useful when interpreting the variance-covariance matrix.}
+\item{covariance}{A variance-covariance matrix for the item parameter
+estimates based on the combined data from all groups.}
+\item{loglikelihood}{A list with \code{overall} and \code{group} components:
+\itemize{
+\item \code{overall}: The marginal log-likelihood summed over all unique items across all groups.
+\item \code{group}: Group-specific marginal log-likelihood values.}
+}
+
+\item{aic}{Akaike Information Criterion (AIC) computed from the overall log-likelihood.}
+\item{bic}{Bayesian Information Criterion (BIC) computed from the overall log-likelihood.}
+\item{group.par}{A list of group-specific summary statistics (mean, variance,
+and standard deviation) of the latent trait prior distribution.}
+\item{weights}{A list of two-column data frames (one per group) containing
+the quadrature points (first column) and the corresponding weights (second column)
+for the updated prior distributions.}
+\item{posterior.dist}{A matrix of normalized posterior densities for all
+response patterns at each quadrature point. Rows correspond to individuals,
+and columns to quadrature points.}
+\item{data}{A list with \code{overall} and \code{group} components, each containing
+examinee response data.}
+\item{scale.D}{The scaling constant used in the IRT model (typically 1 or 1.7).}
+\item{ncase}{A list with \code{overall} and \code{group} components indicating the
+number of response patterns in each.}
+\item{nitem}{A list with \code{overall} and \code{group} components indicating the
+number of items in the respective response sets.}
+\item{Etol}{Convergence criterion used for the E-step in the EM algorithm.}
+\item{MaxE}{Maximum number of E-steps allowed in the EM algorithm.}
+\item{aprior}{A list describing the prior distribution for item slope parameters.}
+\item{gprior}{A list describing the prior distribution for item guessing parameters.}
+\item{npar.est}{Total number of parameters estimated across all unique items.}
+\item{niter}{Number of EM cycles completed.}
+\item{maxpar.diff}{Maximum change in item parameter estimates at convergence.}
+\item{EMtime}{Computation time (in seconds) for EM estimation.}
+\item{SEtime}{Computation time (in seconds) for estimating standard errors.}
+\item{TotalTime}{Total computation time (in seconds) for model estimation.}
+\item{test.1}{First-order condition test result indicating whether gradients
+converged sufficiently.}
+\item{test.2}{Second-order condition test result indicating whether the
+information matrix is positive definite.}
+\item{var.note}{A note indicating whether the variance-covariance matrix
+was successfully derived from the information matrix.}
+\item{fipc}{Logical value indicating whether Fixed Item Parameter Calibration
+(FIPC) was used.}
+\item{fipc.method}{The method used for FIPC.}
+\item{fix.loc}{A list with \code{overall} and \code{group} components specifying the
+locations of fixed items when FIPC was applied.}
+}
+
+Components that can be extracted from an object of class \code{est_item} created by
+\code{\link[=est_item]{est_item()}} include:
 
 \describe{
-\item{estimates}{A data frame containing both the item parameter estimates and the corresponding standard errors of estimates.}
-\item{par.est}{A data frame containing the item parameter estimates.}
-\item{se.est}{A data frame containing the standard errors of the item parameter estimates. Note that the standard errors are estimated using
-observed information functions.}
-\item{pos.par}{A data frame containing the position number of each item parameter being estimated. The position information is useful
-when interpreting the variance-covariance matrix of item parameter estimates.}
-\item{covariance}{A matrix of variance-covariance matrix of item parameter estimates.}
-\item{loglikelihood}{A sum of the log-likelihood values of the complete data set across all estimated items.}
-\item{data}{A data frame of the examinees' response data set.}
-\item{score}{A vector of the examinees' ability values used as the fixed effects.}
-\item{scale.D}{A scaling factor in IRT models.}
-\item{convergence}{A string indicating the convergence status of the item parameter estimation.}
-\item{nitem}{A total number of items included in the response data.}
-\item{deleted.item}{The items which have no item response data. Those items are excluded from the item parameter estimation.}
-\item{npar.est}{A total number of the estimated parameters.}
-\item{n.response}{An integer vector indicating the number of item responses for each item used to estimate the item parameters.}
-\item{TotalTime}{Time (in seconds) spent for total compuatation.}
+\item{estimates}{A data frame containing both the item parameter estimates
+and their corresponding standard errors.}
+\item{par.est}{A data frame containing only the item parameter estimates.}
+\item{se.est}{A data frame containing the standard errors of the item parameter
+estimates, computed using observed information functions.}
+\item{pos.par}{A data frame indicating the position index of each estimated
+item parameter. This is useful when interpreting the variance-covariance matrix.}
+\item{covariance}{A variance-covariance matrix of the item parameter estimates.}
+\item{loglikelihood}{The sum of log-likelihood values across all items in
+the complete data set.}
+\item{data}{A data frame of examinee response data.}
+\item{score}{A numeric vector of examinees' ability values used as fixed
+effects during estimation.}
+\item{scale.D}{The scaling constant (typically 1 or 1.7) used in the IRT model.}
+\item{convergence}{A character string indicating the convergence status of
+the item parameter estimation.}
+\item{nitem}{The total number of items included in the response data.}
+\item{deleted.item}{Items that contained no response data and were excluded
+from estimation.}
+\item{npar.est}{The total number of estimated item parameters.}
+\item{n.response}{An integer vector indicating the number of responses used
+to estimate parameters for each item.}
+\item{TotalTime}{Total computation time (in seconds) for the estimation process.}
 }
 
-See \code{\link{est_irt}}, \code{\link{est_mg}}, and \code{\link{est_item}} for more details.
+See \code{\link[=est_irt]{est_irt()}}, \code{\link[=est_mg]{est_mg()}}, and \code{\link[=est_item]{est_item()}} for more details.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{getirt(est_irt)}: An object created by the function \code{\link{est_irt}}.
+\item \code{getirt(est_irt)}: An object created by the function \code{\link[=est_irt]{est_irt()}}.
 
-\item \code{getirt(est_mg)}: An object created by the function \code{\link{est_mg}}.
+\item \code{getirt(est_mg)}: An object created by the function \code{\link[=est_mg]{est_mg()}}.
 
-\item \code{getirt(est_item)}: An object created by the function \code{\link{est_item}}.
+\item \code{getirt(est_item)}: An object created by the function \code{\link[=est_item]{est_item()}}.
 
 }}
 \examples{
 \donttest{
-# fit the 2PL model to LSAT6 data
+# Fit a 2PL model to the LSAT6 data
 mod.2pl <- est_irt(data = LSAT6, D = 1, model = "2PLM", cats = 2)
 
-# extract the item parameter estimates
+# Extract item parameter estimates
 (est.par <- getirt(mod.2pl, what = "par.est"))
 
-# extract the standard error estimates
+# Extract standard error estimates
 (est.se <- getirt(mod.2pl, what = "se.est"))
 
-# extract the variance-covariance matrix of item parameter estimates
+# Extract the variance-covariance matrix of item parameter estimates
 (cov.mat <- getirt(mod.2pl, what = "covariance"))
 }
 
 }
 \seealso{
-\code{\link{est_irt}}, \code{\link{est_item}}
+\code{\link[=est_irt]{est_irt()}}, \code{\link[=est_mg]{est_mg()}}, \code{\link[=est_item]{est_item()}}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

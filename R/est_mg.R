@@ -1,307 +1,424 @@
 #' Multiple-group item calibration using MMLE-EM algorithm
 #'
-#' @description This function conducts a multiple-group item calibration (Bock & Zimowski, 1997) using the marginal maximum likelihood estimation via
-#' the expectation-maximization (MMLE-EM) algorithm (Bock & Aitkin, 1981). This function also implements the multiple-group fixed item parameter
-#' calibration (MG-FIPC; e.g., Kim & Kolen, 2016). The MG-FIPC is an extension of the single-group FIPC method (Kim, 2006) to multiple-group data.
-#' For dichotomous items, IRT one-, two-, and three-parameter logistic models are available. For polytomous items, the graded response
-#' model (GRM) and the (generalized) partial credit model (GPCM) are available.
+#' This function performs multiple-group item calibration (Bock & Zimowski, 1997)
+#' using marginal maximum likelihood estimation via the expectation-maximization
+#' (MMLE-EM) algorithm (Bock & Aitkin, 1981). It also supports multiple-group
+#' fixed item parameter calibration (MG-FIPC; e.g., Kim & Kolen, 2016), which
+#' extends the single-group FIPC method (Kim, 2006) to multiple-group settings.
+#' For dichotomous items, the function supports one-, two-, and three-parameter
+#' logistic IRT models. For polytomous items, the graded response model (GRM)
+#' and the (generalized) partial credit model (GPCM) are available.
 #'
-#' @param x A list containing item metadata across all groups to be analyzed. For example, if five group data are analyzed, the list should include
-#' five internal objects of the item metadata for the five groups. The internal objects of the list should be ordered in accordance with the order of the group names
-#' specified in the \code{group.name} argument. An item metadata of each group test from contains the meta information about items (i.e., number
-#' of score categories and IRT model) to be calibrated. See \code{\link{est_irt}}, \code{\link{irtfit}}, \code{\link{info}}
-#' or \code{\link{simdat}} for more details about the item metadata. When \code{use.startval = TRUE}, the item parameters specified in
-#' the item metadata are used as the starting values for the item parameter estimation. If \code{x = NULL}, the \code{model} and \code{cats} arguments
-#' must be specified. Note that when \code{fipc = TRUE} to implement the MG-FIPC method, a list of item metadata must be provided into \code{x}. In other words,
-#' \code{x} cannot be NULL in that case. Default is NULL.
-#' @param data A list containing item response matrices across all groups to be analyzed. For example, if five group data are analyzed, the list should include
-#' five internal objects of the response data matrices for the five groups. The internal objects of the list should be ordered in accordance with the order of the group names
-#' specified in the \code{group.name} argument. An item response matrix for each group includes examinees' response data corresponding to
-#' the items in the item metadata of that group. In a response data matrix, a row and column indicate the examinees and items, respectively.
-#' @param group.name A vector of character strings indicating group names. For example, if five group data are analyzed, \code{group.names = c("G1", "G2", "G3", "G4", "G5")}.
-#' Any group names can be used.
-#' @param D D A scaling factor in IRT models to make the logistic function as close as possible to the normal ogive function (if set to 1.7).
-#' Default is 1.
-#' @param model A list containing character vectors of the IRT models used to calibrate items across all groups' data. For example,
-#' if five group data are analyzed, the list should include five internal objects of the character vectors for the five groups.
-#' The internal objects of the list should be ordered in accordance with the order of the group names specified in the \code{group.name} argument.
-#' Available IRT models are "1PLM", "2PLM", "3PLM", and "DRM" for dichotomous items, and "GRM" and "GPCM" for polytomous items. "GRM" and "GPCM"
-#' represent the graded response model and (generalized) partial credit model, respectively. Note that "DRM" is considered as "3PLM" in this function. If a single
-#' character of the IRT model is provided in the internal objects of the list, that model will be recycled across all items in the corresponding groups.
-#' The provided information in the \code{model} argument is used only when \code{x = NULL} and \code{fipc = FALSE}. Default is NULL.
-#' @param cats A list containing numeric vectors specifying the number of score categories of items across all groups' data to be analyzed. For example,
-#' if five group data are analyzed, the list should include five internal objects of the numeric vectors for the five groups. The internal objects of the list
-#' should be ordered in accordance with the order of the group names specified in the \code{group.name} argument. If a single numeric value is specified in the internal
-#' objects of the list, that value will be recycled across all items in the corresponding groups. If \code{cats = NULL} and all specified models in
-#' the \code{model} argument are the dichotomous models (i.e., 1PLM, 2PLM, 3PLM, or DRM), the function assumes that all items have two score categories
-#' across all groups. The provided information in the \code{cats} argument is used only when \code{x = NULL} and \code{fipc = FALSE}. Default is NULL.
-#' @param item.id A list containing character vectors of item IDs across all groups' data to be analyzed. For example,
-#' if five group data are analyzed, the list should include five internal objects of the character vectors of item IDs for the five groups.
-#' The internal objects of the list should be ordered in accordance with the order of the group names specified in the \code{group.name} argument.
-#' When \code{fipc = TRUE} and the Item IDs are given by the \code{item.id} argument, the Item IDs in the \code{x} argument are overridden.
-#' Default is NULL.
-#' @param free.group A numeric or character vector indicating groups in which scales (i.e., a mean and standard deviation) of the latent ability
-#' distributions are freely estimated. The scales of other groups not specified in this argument are fixed based on the information provided in
-#' the \code{group.mean} and \code{group.var} arguments, or the \code{weights} argument. For example, suppose that five group data are analyzed
-#' and the corresponding group names are "G1", "G2", "G3", "G4", and "G5", respectively. If the scales of the 2nd through 5th groups are freely estimated,
-#' then \code{free.group = c(2, 3, 4, 5)} or \code{free.group = c("G3", "G4", "G4","G5")}. Also, the first group (i.e., "G1") will have
-#' the fixed scale (e.g., a mean of 0 and variance of 1 when \code{group.mean = 0}, \code{group.var = 1}, and \code{weights = NULL}).
-#' @param fix.a.1pl A logical value. If TRUE, the slope parameters of the 1PLM items are fixed to a specific value specified in the argument
-#' \code{a.val.1pl}. Otherwise, the slope parameters of all 1PLM items are constrained to be equal and estimated. Default is FALSE.
-#' @param fix.a.gpcm A logical value. If TRUE, the GPCM items are calibrated with the partial credit model and the slope parameters of
-#' the GPCM items are fixed to a specific value specified in the argument \code{a.val.gpcm}. Otherwise, the slope parameter of each GPCM item
-#' is estimated. Default is FALSE.
-#' @param fix.g A logical value. If TRUE, the guessing parameters of the 3PLM items are fixed to a specific value specified in the argument
-#' \code{g.val}. Otherwise, the guessing parameter of each 3PLM item is estimated. Default is FALSE.
-#' @param a.val.1pl A numeric value. This value is used to fixed the slope parameters of the 1PLM items.
-#' @param a.val.gpcm A numeric value. This value is used to fixed the slope parameters of the GPCM items.
-#' @param g.val A numeric value. This value is used to fixed the guessing parameters of the 3PLM items.
-#' @param use.aprior A logical value. If TRUE, a prior distribution for the slope parameters is used for the parameter calibration
-#' across all items. Default is FALSE.
-#' @param use.bprior A logical value. If TRUE, a prior distribution for the difficulty (or threshold) parameters is used for the parameter calibration
-#' across all items. Default is FALSE.
-#' @param use.gprior A logical value. If TRUE, a prior distribution for the guessing parameters is used for the parameter calibration
-#' across all 3PLM items. Default is TRUE.
-#' @param aprior A list containing the information of the prior distribution for item slope parameters. Three probability distributions
-#' of Beta, Log-normal, and Normal distributions are available. In the list, a character string of the distribution name must be specified
-#' in the first internal argument and a vector of two numeric values for the two parameters of the distribution must be specified in the
-#' second internal argument. Specifically, when Beta distribution is used, "beta" should be specified in the first argument. When Log-normal
-#' distribution is used, "lnorm" should be specified in the first argument. When Normal distribution is used, "norm" should be specified
-#' in the first argument. In terms of the two parameters of the three distributions, see \code{dbeta()}, \code{dlnorm()},
-#' and \code{dnorm()} in the \pkg{stats} package for more details.
-#' @param bprior A list containing the information of the prior distribution for item difficulty (or threshold) parameters. Three probability distributions
-#' of Beta, Log-normal, and Normal distributions are available. In the list, a character string of the distribution name must be specified
-#' in the first internal argument and a vector of two numeric values for the two parameters of the distribution must be specified in the
-#' second internal argument. Specifically, when Beta distribution is used, "beta" should be specified in the first argument. When Log-normal
-#' distribution is used, "lnorm" should be specified in the first argument. When Normal distribution is used, "norm" should be specified
-#' in the first argument. In terms of the two parameters of the three distributions, see \code{dbeta()}, \code{dlnorm()},
-#' and \code{dnorm()} in the \pkg{stats} package for more details.
-#' @param gprior A list containing the information of the prior distribution for item guessing parameters. Three probability distributions
-#' of Beta, Log-normal, and Normal distributions are available. In the list, a character string of the distribution name must be specified
-#' in the first internal argument and a vector of two numeric values for the two parameters of the distribution must be specified in the
-#' second internal argument. Specifically, when Beta distribution is used, "beta" should be specified in the first argument. When Log-normal
-#' distribution is used, "lnorm" should be specified in the first argument. When Normal distribution is used, "norm" should be specified
-#' in the first argument. In terms of the two parameters of the three distributions, see \code{dbeta()}, \code{dlnorm()},
-#' and \code{dnorm()} in the \pkg{stats} package for more details.
-#' @param missing A value indicating missing values in the response data set. Default is NA.
-#' @param Quadrature A numeric vector of two components specifying the number of quadrature points (in the first component) and
-#' the symmetric minimum and maximum values of these points (in the second component). For example, a vector of c(49, 6) indicates 49 rectangular
-#' quadrature points over -6 and 6. The quadrature points are used in the E step of the EM algorithm. Default is c(49, 6).
-#' @param weights A two-column matrix or data frame containing the quadrature points (in the first column) and the corresponding weights
-#' (in the second column) of the latent variable prior distribution. If not NULL, the scale of the latent ability distributions of the groups that
-#' are not freely estimated (i.e., the groups not specified in the \code{free.group} argument) are fixed to the scale of the provided quadrature
-#' points and weights. The weights and quadrature points can be easily obtained using the function \code{\link{gen.weight}}. If NULL, a normal prior
-#' density is used based on the information provided in the arguments of \code{Quadrature}, \code{group.mean}, and \code{group.var}). Default is NULL.
-#' @param group.mean A numeric value to set the mean of latent variable prior distribution when \code{weights = NULL}. Default is 0.
-#' The means of the distributions of the groups that are not specified in the \code{free.group} are fixed to the value provided in this argument
-#' to remove the indeterminancy of item parameter scales.
-#' @param group.var A positive numeric value to set the variance of latent variable prior distribution when \code{weights = NULL}. Default is 1.
-#' The variances of the distributions of the groups that are not specified in the \code{free.group} are fixed to the value provided in this argument
-#' to remove the indeterminancy of item parameter scales.
-#' @param EmpHist A logical value. If TRUE, the empirical histograms of the latent variable prior distributions across all groups are simultaneously
-#' estimated with the item parameters using Woods's (2007) approach. The items are calibrated against the estimated empirical prior distributions.
-#' @param use.startval A logical value. If TRUE, the item parameters provided in the item metadata (i.e., the argument \code{x}) are used as
-#' the starting values for the item parameter estimation. Otherwise, internal starting values of this function are used. Default is FALSE.
-#' @param Etol A positive numeric value. This value sets the convergence criterion for E steps of the EM algorithm. Default is 1e-3.
-#' @param MaxE A positive integer value. This value determines the maximum number of the E steps in the EM algorithm. Default is 500.
-#' @param control A list of control parameters to be passed to the optimization function of \code{nlminb()} in the \pkg{stats} package. The control parameters
-#' set the conditions of M steps of the EM algorithm. For example, the maximum number of iterations in each of the iterative M steps can
-#' be set by \code{control = list(iter.max=200)}. Default maximum number of iterations in each M step is 200. See \code{nlminb()} in the \pkg{stats} package
-#' for other control parameters.
-#' @param fipc A logical value. If TRUE, the MG-FIPC is implemented for item parameter estimation. When \code{fipc = TRUE}, the information of which items
-#' are fixed needs to be provided via either of \code{fix.loc} or \code{fix.id}. See below for details.
-#' @param fipc.method A character string specifying the FIPC method. Available methods include "OEM" for "No Prior Weights Updating and One EM Cycle
-#' (NWU-OEM; Wainer & Mislevy, 1990)" and "MEM" for "Multiple Prior Weights Updating and Multiple EM Cycles (MWU-MEM; Kim, 2006)."
-#' When \code{fipc.method = "OEM"}, the maximum number of the E steps of the EM algorithm is set to 1 no matter what number is specified
-#' in the argument \code{MaxE}.
-#' @param fix.loc A list of positive integer vectors. Each internal integer vector indicates the locations of the items to be fixed in the item metadata
-#' (i.e., \code{x}) for each group when the MG-FIPC is implemented (i.e., \code{fipc = TRUE}). The internal objects of the list should be ordered in accordance
-#' with the order of group names specified in the \code{group.name} argument. For example, suppose that three group data are analyzed. For the first group data,
-#' the 1st, 3rd, and 5th items are fixed, for the second group data, the 2nd, 3rd, 4th, and 7th items are fixed, and for the third group data, the 1st, 2nd,
-#' and 6th items are fixed. Then \code{fix.loc = list(c(1, 3, 5), c(2, 3, 4, 7), c(1, 2, 6))}. Note that when the \code{fix.id} argument is not NULL,
-#' the information provided into the \code{fix.loc} argument is ignored. See below for details.
-#' @param fix.id A vector of character strings specifying IDs of the items to be fixed when the MG-FIPC is implemented (i.e., \code{fipc = TRUE}).
-#' For example, suppose that three group data are analyzed. For the first group data, three items in which IDs are G1I1, C1I1, are C1I2 are fixed.
-#' For the second group data, four items in which IDs are C1I1, C1I2, C2I1, and C2I2 are fixed. For the third group data, three items in which IDs are
-#' C2I1, C2I2, and G3I1 are fixed. Then there are six unique items to be fixed across the three groups (i.e., G1I1, C1I1, C1I2, C2I1, C2I2, and G3I1)
-#' because C1I1 and C1I2 are common items between the first and the second groups, and C2I1 and C2I2 are common items between the second and the third
-#' groups. Thus, \code{fix.id = c("G1I1", "C1I1", "C1I2", "C2I1", "C2I2", "G3I1")} should be specified. Note that when the \code{fix.id} argument is not NULL,
-#' the information provided into the \code{fix.loc} argument is ignored. See below for details.
-#' @param se A logical value. If FALSE, the standard errors of the item parameter estimates are not computed. Default is TRUE.
-#' @param verbose A logical value. If FALSE, all progress messages including the process information on the EM algorithm are suppressed.
-#' Default is TRUE.
+#' @inheritParams est_irt
+#' @param x A list containing item metadata for all groups to be analyzed.
+#'   For example, if five groups are analyzed, the list should contain five
+#'   elements, each representing the item metadata for one group. The order of
+#'   the elements in the list must match the order of group names specified in
+#'   the `group.name` argument.
 #'
-#' @details
-#' The multiple-group (MG) item calibration (Bock & Zimowski, 1996) provides a unified approach to the testing situations or
-#' problems involving multiple groups such as nonequivalent groups equating, vertical scaling, and identification of differential
-#' item functioning (DIF). In such contexts, typically there exist test takers from different groups responding to the same test
-#' form or to the common items shared between different test forms.
+#'   Each group's item metadata includes essential information for each item
+#'   (e.g., number of score categories, IRT model type, etc.) required for
+#'   calibration. See [irtQ::est_irt()] or [irtQ::simdat()] for more
+#'   details about the item metadata.
 #'
-#' The goal of the MG item calibration is to estimate the item parameters and the latent ability distributions of the multiple groups
-#' simultaneously (Bock & Zimowski, 1996). In the \pkg{irtQ} package, the \code{\link{est_mg}} function supports the MG item calibration
-#' using the marginal maximum likelihood estimation via the expectation-maximization (MMLE-EM) algorithm (Bock & Aitkin, 1981). In addition,
-#' The function also supports the MG fixed item parameter calibration (MG-FIPC; e.g., Kim & Kolen, 2016) if the parameters of certain items
-#' need to be fixed across multiple test forms,
+#'   When `use.startval = TRUE`, the item parameters specified in the metadata
+#'   will be used as starting values for parameter estimation. If `x = NULL`,
+#'   both `model` and `cats` arguments must be specified. Note that when
+#'   `fipc = TRUE` to implement MG-FIPC, the `x` argument must be specified
+#'   and cannot be NULL. Default is `NULL`.
+#' @param data A list containing item response matrices for all groups to be
+#'   analyzed. For example, if five groups are analyzed, the list should include
+#'   five elements, each representing the response data matrix for one group.
+#'   The elements in the list must be ordered to match the group names specified
+#'   in the `group.name` argument. Each matrix contains examinees' item responses
+#'   corresponding to the item metadata for that group. In each matrix, rows
+#'   represent examinees and columns represent items.
+#' @param group.name A character vector indicating the names of the groups.
+#'   For example, if five groups are analyzed, use
+#'   `group.name = c("G1", "G2", "G3", "G4", "G5")`. Group names can be any
+#'   valid character strings.
+#' @param model A list containing character vectors specifying the IRT models
+#'   used to calibrate items across all groups. For example, if five groups are
+#'   analyzed, the list should contain five elements, each being a character
+#'   vector of IRT model names for one group. The elements in the list must be
+#'   ordered to match the group names specified in the `group.name` argument.
 #'
-#' In MG IRT analyses, it is commonly seen that the test forms of multiple groups share some common (or anchor) items between the groups.
-#' By default the common items that have the same item IDs between different groups are automatically constrained so that they can have the same
-#' item parameter estimates across the groups in the \code{\link{est_mg}} function.
+#'   Available IRT models include:
+#'   - `"1PLM"`, `"2PLM"`, `"3PLM"`, `"DRM"` for dichotomous items
+#'   - `"GRM"`, `"GPCM"` for polytomous items
 #'
-#' Most of the features of the \code{\link{est_mg}} function are similar with those of the \code{\link{est_irt}} function. The main difference is
-#' that several arguments in the \code{\link{est_mg}} functions take an object of a list format which contains several internal objects
-#' corresponding to the groups to be analyzed. Those arguments include \code{x}, \code{data}, \code{model}, \code{cats}, \code{item.id},
-#' and \code{fix.loc}.
+#'   Here, `"GRM"` denotes the graded response model and `"GPCM"` the
+#'   (generalized) partial credit model. Note that `"DRM"` serves as a general
+#'   label covering all three dichotomous IRT models.If a single model name is
+#'   provided in any element of the list, it will be recycled across all items
+#'   within that group.
 #'
-#' Also, the \code{\link{est_mg}} has two new arguments, the \code{group.name} and \code{free.group}. The \code{group.name} is required to
-#' assign a unique group name to each group. The order of internal objects in the lists provided in the \code{x}, \code{data}, \code{model}, \code{cats},
-#' \code{item.id}, and \code{fix.loc} arguments must match that of the group names supplied to the \code{group.name} argument.
+#'   This argument is used only when `x = NULL` and `fipc = FALSE`. Default
+#'   is `NULL`.
+#' @param cats A list containing numeric vectors specifying the number of score
+#'   categories for items in each group. For example, if five groups are
+#'   analyzed, the list should contain five numeric vectors corresponding to
+#'   the five groups. The elements in the list must be ordered consistently with
+#'   the group names specified in the `group.name` argument.
 #'
-#' The \code{free.group} argument is necessary to indicate the freed groups in which scales (i.e., a mean and standard deviation) of the latent ability
-#' distributions are estimated. When no item parameters are fixed (i.e., \code{fipc = FALSE}), at least one group should have a fixed scale
-#' (e.g., a mean of 0 and variance of 1) of the latent ability distribution among the multiple groups that shares common items in order to
-#' solve the scale indeterminancy in IRT estimation. By providing which are the freed groups into the \code{free.group} argument, the scales
-#' of the groups specified in the \code{free.group} argument are freely estimated while the scales of all other groups not specified
-#' in the argument are fixed based on the information provided in the \code{group.mean} and \code{group.var} arguments or
-#' the \code{weights} argument.
+#'   If a single numeric value is specified in any element of the list, it will
+#'   be recycled across all items in the corresponding group. If `cats = NULL`
+#'   and all models specified in the `model` argument are dichotomous
+#'   (i.e., "1PLM", "2PLM", "3PLM", or "DRM"), the function assumes that all
+#'   items have two score categories across all groups.
 #'
-#' The situations where the implementation of MG-FIPC is necessary arise when the new latent ability scales from MG test data are linked
-#' to the established scale (e.g., the scale of an item bank). In a single run of MG-FIPC method, all the parameters of freed items across multiple test
-#' forms and the density of the latent ability distributions for multiple groups can be estimated on the scale of the fixed items (Kim & Kolen, 2016).
-#' Suppose that three different test forms, Form 1, Form 2, and Form 3, are administered to three nonequivalent groups, Group1, Group2, and Group3.
-#' Form 1 and Form 2 share 12 common items, C1I1 to C1I12, and Form 2 and Form 3 share 10 common items, C2I1 to C2I10, while there is no common item
-#' between Form 1 and Form 3. Also, suppose that all unique items of Form 1 came from an item bank, which were already calibrated on the scale of
-#' the item bank. In this case, the goal of the MG-FIPC is to estimate the parameters of all the items across the three test forms, except the unique
-#' items in Form 1, and the latent ability distributions of the three groups on the same scale of the item bank. To accomplish this task, the unique items in
-#' Form 1 need to be fixed during the MG-FIPC to link the current MG test data and the item bank.
+#'   This argument is used only when `x = NULL` and `fipc = FALSE`. Default
+#'   is `NULL`.
+#' @param item.id A list containing character vectors of item IDs for each group
+#'   to be analyzed. For example, if five groups are analyzed, the list should
+#'   contain five character vectors corresponding to the five groups. The elements
+#'   in the list must be ordered consistently with the group names specified in
+#'   the `group.name` argument.
 #'
-#' The \code{\link{est_mg}} function can implement the MG-FIPC by setting \code{fipc = TRUE}. Then, the information of which items are fixed needs
-#' to be supplied via either of \code{fix.loc} or \code{fix.id}. When utilizing the \code{fix.loc} argument, a list of the locations of the items that are
-#' fixed in each group test form should be prepared. For example, suppose that three group data are analyzed. For the first group test form,
-#' the 1st, 3rd, and 5th items are fixed, for the second group test form, the 2nd, 3rd, 4th, and 7th items are fixed, and for the third group test form,
-#' the 1st, 2nd, and 6th items are fixed. Then \code{fix.loc = list(c(1, 3, 5), c(2, 3, 4, 7), c(1, 2, 6))}. Instead of using the \code{fix.loc}, the \code{fix.id}
-#' argument can be used by providing a vector of the IDs of the items to be fixed. Again suppose that the three group data are analyzed. For the first group
-#' test form, the three items in which IDs are G1I1, C1I1, are C1I2 are fixed. For the second group test form, the four items in which IDs are C1I1, C1I2, C2I1,
-#' and C2I2 are fixed. For the third group test form, the three items in which IDs are C2I1, C2I2, and G3I1 are fixed. Then there are six unique items to
-#' be fixed across the three groups (i.e., G1I1, C1I1, C1I2, C2I1, C2I2, and G3I1) because C1I1 and C1I2 are common items between the first and the second groups,
-#' and C2I1 and C2I2 are common items between the second and the third groups. Thus, \code{fix.id = c("G1I1", "C1I1", "C1I2", "C2I1", "C2I2", "G3I1")} should be
-#' set. Note that when the information of item IDs supplied in the \code{fix.id} argument overrides the information provided into the \code{fix.loc} argument.
+#'   When `fipc = TRUE` and item IDs are provided via the `item.id` argument,
+#'   the item IDs in the `x` argument will be overridden. Default is `NULL`.
+#' @param free.group A numeric or character vector indicating the groups for which
+#'   the scales (i.e., mean and standard deviation) of the latent ability distributions
+#'   are freely estimated. The scales of the remaining groups (those not specified in this
+#'   argument) are fixed using the values provided in the `group.mean` and `group.var`
+#'   arguments, or from the `weights` argument.
 #'
-#' @return This function returns an object of class \code{\link{est_mg}}. Within this object, several internal objects are contained such as:
-#' \item{estimates}{A list containing two internal objects (i.e., overall and group) of the item parameter estimates and the corresponding standard errors
-#' of estimates. The first internal object (overall) is a data frame of the item parameter and standard error estimates for the combined data set across
-#' all groups. Accordingly, the data frame includes unique items across all groups. The second internal object (group) is a list of group specific
-#' data frames containing item parameter and standard error estimates}
-#' \item{par.est}{A list containing two internal objects (i.e., overall and group) of the item parameter estimates. The format of the list is the same with
-#' the internal object of 'estimates'}
-#' \item{se.est}{A list containing two internal objects (i.e., overall and group) of the standard errors of item parameter estimates. The format of the
-#' list is the same with the internal object of 'estimates'. Note that the standard errors are estimated using the cross-production approximation
-#' method (Meilijson, 1989).}
-#' \item{pos.par}{A data frame containing the position number of each item parameter being estimated. This item position data frame was created based on
-#' the combined data sets across all groups (see the first internal object of 'estimates'). The position information is useful when interpreting
-#' the variance-covariance matrix of item parameter estimates.}
-#' \item{covariance}{A matrix of variance-covariance matrix of item parameter estimates. This matrix was created based on the combined data sets
-#' across all groups (see the first internal object of 'estimates')}
-#' \item{loglikelihood}{A list containing two internal objects (i.e., overall and group) of the log-likelihood values of observed data set
-#' (marginal log-likelihood). The format of the list is the same with the internal object of 'estimates'. Specifically, the first internal
-#' object (overall) contains a sum of the log-likelihood values of the observed data set across all unique items of all groups. The second
-#' internal object (group) shows the group specific log-likelihood values.}
-#' \item{aic}{A model fit statistic of Akaike information criterion based on the loglikelihood of all unique items..}
-#' \item{bic}{A model fit statistic of Bayesian information criterion based on the loglikelihood of all unique items.}
-#' \item{group.par}{A list containing the summary statistics (i.e., a mean, variance, and standard deviation) of latent
-#' variable prior distributions across all groups.}
-#' \item{weights}{a list of the two-column data frames containing the quadrature points (in the first column) and the corresponding weights
-#' (in the second column) of the (updated) latent variable prior distributions for all groups.}
-#' \item{posterior.dist}{A matrix of normalized posterior densities for all the response patterns at each of the quadrature points.
-#' The row and column indicate each individual's response pattern and the quadrature point, respectively.}
-#' \item{data}{A list containing two internal objects (i.e., overall and group) of the examinees' response data sets. The format of the list
-#' is the same with the internal object of 'estimates'.}
-#' \item{scale.D}{A scaling factor in IRT models.}
-#' \item{ncase}{A list containing two internal objects (i.e., overall and group) with the total number of response patterns. The format of the list
-#' is the same with the internal object of 'estimates'.}
-#' \item{nitem}{A list containing two internal objects (i.e., overall and group) with the total number of items included in the response data set.
-#' The format of the list is the same with the internal object of 'estimates'.}
-#' \item{Etol}{A convergence criteria for E steps of the EM algorithm.}
-#' \item{MaxE}{The maximum number of E steps in the EM algorithm.}
-#' \item{aprior}{A list containing the information of the prior distribution for item slope parameters.}
-#' \item{gprior}{A list containing the information of the prior distribution for item guessing parameters.}
-#' \item{npar.est}{A total number of the estimated parameters across all unique items.}
-#' \item{niter}{The number of EM cycles completed.}
-#' \item{maxpar.diff}{A maximum item parameter change when the EM cycles were completed.}
-#' \item{EMtime}{Time (in seconds) spent for the EM cycles.}
-#' \item{SEtime}{Time (in seconds) spent for computing the standard errors of the item parameter estimates.}
-#' \item{TotalTime}{Time (in seconds) spent for total compuatation.}
-#' \item{test.1}{Status of the first-order test to report if the gradients has vanished sufficiently for the solution to be stable.}
-#' \item{test.2}{Status of the second-order test to report if the information matrix is positive definite, which is a prerequisite
-#' for the solution to be a possible maximum.}
-#' \item{var.note}{A note to report if the variance-covariance matrix of item parameter estimates is obtainable from the information matrix.}
-#' \item{fipc}{A logical value to indicate if FIPC was used.}
-#' \item{fipc.method}{A method used for the FIPC.}
-#' \item{fix.loc}{A list containing two internal objects (i.e., overall and group) with the locations of the fixed items when the FIPC was implemented.
-#' The format of the list is the same with the internal object of 'estimates'.}
+#'   For example, suppose that five groups are analyzed with group names "G1", "G2",
+#'   "G3", "G4", and "G5". To freely estimate the scales for groups 2 through 5, set
+#'   `free.group = c(2, 3, 4, 5)` or `free.group = c("G2", "G3", "G4", "G5")`.
+#'   In this case, the first group ("G1") will have a fixed scale
+#'   (e.g., a mean of 0 and variance of 1 when `group.mean = 0`, `group.var = 1`,
+#'   and `weights = NULL`).
+#' @param weights A two-column matrix or data frame containing the quadrature
+#'   points (in the first column) and the corresponding weights (in the second
+#'   column) for the latent ability prior distribution. If not `NULL`, the
+#'   latent ability distributions for the groups not specified in the `free.group`
+#'   argument are fixed to match the scale defined by the provided quadrature points
+#'   and weights. The weights and points can be conveniently generated using
+#'   the function [irtQ::gen.weight()].
 #'
-#' The internal objects can be easily extracted using the function \code{\link{getirt}}.
+#'   If `NULL`, a normal prior density is used instead, based on the
+#'   information provided in the `Quadrature`, `group.mean`, and `group.var`
+#'   arguments. Default is `NULL`.
+#' @param group.mean A numeric value specifying the mean of the latent variable
+#'   prior distribution when `weights = NULL`. Default is 0. For groups not
+#'   specified in the `free.group` argument, their distribution means are fixed
+#'   to this value in order to resolve the indeterminacy of the item parameter
+#'   scale.
+#' @param group.var A positive numeric value specifying the variance of the
+#'   latent variable prior distribution when `weights = NULL`. Default is 1.
+#'   For groups not specified in the `free.group` argument, their distribution
+#'   variances are fixed to this value in order to resolve the indeterminacy of
+#'   the item parameter scale.
+#' @param EmpHist Logical. If `TRUE`, the empirical histograms of the latent
+#'   ability prior distributions across all groups are estimated simultaneously
+#'   with the item parameters using the approach proposed by Woods (2007).
+#'   Item calibration is then performed relative to the estimated empirical priors.
+#' @param Etol A positive numeric value specifying the convergence criterion for
+#'   the E-step of the EM algorithm. Default is `1e-4`.
+#' @param fipc Logical. If `TRUE`, multiple-group fixed item parameter
+#'   calibration (MG-FIPC) is applied during item parameter estimation.
+#'   When `fipc = TRUE`, the information on which items are fixed
+#'   must be provided via either `fix.loc` or `fix.id`. See below for details.
+#' @param fix.loc A list of positive integer vectors. Each internal vector specifies
+#'   the positions of the items to be fixed in the item metadata (i.e., `x`)
+#'   for each group when MG-FIPC is implemented (i.e., `fipc = TRUE`).
+#'   The internal objects in the list must follow the same order as the group names
+#'   provided in the `group.name` argument.
+#'
+#'   For example, suppose three groups are analyzed. In the first group,
+#'   the 1st, 3rd, and 5th items are fixed; in the second group, the 2nd, 3rd,
+#'   4th, and 7th items are fixed; and in the third group, the 1st, 2nd, and
+#'   6th items are fixed. Then
+#'   `fix.loc = list(c(1, 3, 5), c(2, 3, 4, 7), c(1, 2, 6))`.
+#'   Note that if the `fix.id` argument is not NULL, the information in `fix.loc`
+#'   will be ignored. See below for details.
+#' @param fix.id A vector of character strings specifying the IDs of items to be
+#'   fixed when MG-FIPC is implemented (i.e., `fipc = TRUE`).
+#'
+#'   For example, suppose that three groups are analyzed. In the first group,
+#'   three items with IDs G1I1, C1I1, and C1I2 are fixed. In the second group,
+#'   four items with IDs C1I1, C1I2, C2I1, and C2I2 are fixed. In the third
+#'   group, three items with IDs C2I1, C2I2, and G3I1 are fixed.
+#'
+#'   In this case, there are six unique items fixed across the groups—namely,
+#'   G1I1, C1I1, C1I2, C2I1, C2I2, and G3I1, because C1I1 and C1I2 appear in
+#'   both the first and second groups, while C2I1 and C2I2 appear in both the
+#'   second and third groups. Thus, you should specify
+#'   `fix.id = c("G1I1", "C1I1", "C1I2", "C2I1", "C2I2", "G3I1")`.
+#'   Note that if the `fix.id` argument is not NULL, the information provided in
+#'   `fix.loc` is ignored. See below for details.
+#'
+#' @details Multiple-group (MG) item calibration (Bock & Zimowski, 1996)
+#' provides a unified framework for handling testing scenarios involving
+#' multiple groups, such as nonequivalent groups equating, vertical scaling,
+#' and the identification of differential item functioning (DIF). In such
+#' applications, examinees from different groups typically respond to either
+#' the same test form or to different forms that share common (anchor) items.
+#'
+#' The goal of MG item calibration is to estimate both item parameters and
+#' latent ability distributions for all groups simultaneously (Bock & Zimowski, 1996).
+#' The \pkg{irtQ} package implements MG calibration via the [irtQ::est_mg()] function,
+#' which uses marginal maximum likelihood estimation through the
+#' expectation-maximization (MMLE-EM) algorithm (Bock & Aitkin, 1981).
+#' In addition, the function supports multiple-group fixed item parameter
+#' calibration (MG-FIPC; e.g., Kim & Kolen, 2016), which allows the parameters
+#' of specific items to be fixed across groups.
+#'
+#' In MG IRT analyses, it is common for multiple groups' test forms to share
+#' some common (anchor) items. By default, the [irtQ::est_mg()] function
+#' automatically constrains items with identical item IDs across groups
+#' to share the same parameter estimates.
+#'
+#' Most of the features of the [irtQ::est_mg()] function are similar to those of the
+#' [irtQ::est_irt()] function. The main difference is that several arguments in
+#' [irtQ::est_mg()] accept list objects containing elements for each group to be
+#' analyzed. These arguments include `x`, `data`, `model`, `cats`,
+#' `item.id`, `fix.loc` and `fix.id`.
+#'
+#' Additionally, [irtQ::est_mg()] introduces two new arguments: `group.name`
+#' and `free.group`. The `group.name` argument is required to assign a unique
+#' identifier to each group. The order of the list elements provided in
+#' `x`, `data`, `model`, `cats`, `item.id`, `fix.loc` and `fix.id`
+#' must match the order of group names specified in the `group.name` argument.
+#'
+#' The `free.group` argument is required to indicate which groups have their
+#' latent ability distribution scales (i.e., mean and standard deviation)
+#' freely estimated. When no item parameters are fixed (i.e., `fipc = FALSE`),
+#' at least one group must have a fixed latent ability scale (e.g., mean = 0 and
+#' variance = 1) among the multiple groups sharing common items, in order to
+#' resolve the scale indeterminacy inherent in IRT estimation. By specifying
+#' the groups in the `free.group` argument, the scales for those groups will be
+#' freely estimated, while the scales for all other groups not included in
+#' `free.group` will be fixed using the values provided in the `group.mean` and
+#' `group.var` arguments or from the `weights` argument.
+#'
+#' Situations requiring the implementation of MG-FIPC typically arise when
+#' new latent ability scales from multiple-group (MG) test data need to be
+#' linked to an established scale (e.g., that of an existing item bank).
+#' In a single run of the MG-FIPC procedure, the parameters of non-fixed
+#' (freed) items across multiple test forms, as well as the latent ability
+#' distributions for multiple groups, can be estimated on the same scale
+#' as the fixed items (Kim & Kolen, 2016).
+#'
+#' For example, suppose that three different test forms—Form 1, Form 2, and
+#' Form 3—are administered to three nonequivalent groups: Group1, Group2,
+#' and Group3. Form 1 and Form 2 share 12 common items (C1I1 to C1I12),
+#' while Form 2 and Form 3 share 10 common items (C2I1 to C2I10). There are
+#' no common items between Form 1 and Form 3. Also, assume that all unique
+#' items in Form 1 are from an existing item bank and have already been
+#' calibrated on the item bank's scale.
+#'
+#' In this case, the goal of MG-FIPC is to estimate the parameters of all
+#' items across the three test forms—except the unique items in Form 1—
+#' and the latent ability distributions of the three groups, all on the
+#' same scale as the item bank. To achieve this, the unique items in Form 1
+#' must be fixed during MG-FIPC to link the current MG test data to the
+#' item bank scale.
+#'
+#' The [irtQ::est_mg()] function can implement MG-FIPC by setting
+#' `fipc = TRUE`. In this case, the information on which items to fix must be
+#' provided through either the `fix.loc` or `fix.id` argument. When using
+#' `fix.loc`, you must supply a list of item positions (locations)
+#' to be fixed in each group’s test form. For example, suppose that the test
+#' data from the three groups above are analyzed. In the first group,
+#' the 1st, 3rd, and 5th items are fixed; in the second group, the 2nd, 3rd,
+#' 4th, and 7th items are fixed; and in the third group, the 1st, 2nd, and
+#' 6th items are fixed. In this case, you would specify:
+#' `fix.loc = list(c(1, 3, 5), c(2, 3, 4, 7), c(1, 2, 6))`.
+#'
+#' Alternatively, you can use `fix.id` to specify a character vector of item IDs
+#' to be fixed across groups. In the first group, the items with IDs G1I1, C1I1,
+#' and C1I2 are fixed; in the second group, the items with IDs C1I1, C1I2,
+#' C2I1, and C2I2 are fixed; and in the third group, the items with IDs C2I1,
+#' C2I2, and G3I1 are fixed. In this case, there are six unique items to be
+#' fixed across all groups: G1I1, C1I1, C1I2, C2I1, C2I2, and G3I1. You would
+#' then specify:
+#' `fix.id = c("G1I1", "C1I1", "C1I2", "C2I1", "C2I2", "G3I1")`.
+#'
+#' Note that when both `fix.loc` and `fix.id` are provided, the information
+#' in `fix.id` takes precedence and overrides `fix.loc`.
+#'
+#' @return This function returns an object of class `est_irt`. The returned
+#'   object contains the following components:
+#'
+#' \item{estimates}{A list containing two internal elements: `overall` and `group`.
+#'   The `overall` element is a data frame with item parameter estimates and their
+#'   standard errors, computed from the combined data across all groups. This data
+#'   frame includes only the unique items across all groups. The `group` element is
+#'   a list of group-specific data frames, each containing item parameter estimates
+#'   and standard errors for that particular group.}
+#'
+#' \item{par.est}{A list with the same structure as `estimates`, containing only
+#'   the item parameter estimates (excluding standard errors), formatted according to
+#'   the item metadata structure.}
+#'
+#' \item{se.est}{A list with the same structure as `estimates`, but containing only
+#'   the standard errors of the item parameter estimates. Note that the standard
+#'   errors are calculated using the cross-product approximation method
+#'   (Meilijson, 1989).}
+#'
+#' \item{pos.par}{A data frame indicating the position index of each estimated
+#'   item parameter. This index is based on the combined data set across all groups
+#'   (i.e., the first internal object of `estimates`). The position information is
+#'   useful for interpreting the variance-covariance matrix of item parameter
+#'   estimates.}
+#'
+#' \item{covariance}{A variance-covariance matrix of the item parameter
+#'   estimates, based on the combined data set across all groups
+#'   (i.e., the first internal object of `estimates`).}
+#'
+#' \item{loglikelihood}{A list containing two internal objects (i.e., overall
+#'   and group) of marginal log-likelihood values based on the observed data.
+#'   The structure of the list matches that of `estimates`. Specifically,
+#'   the `overall` component contains the total log-likelihood summed across
+#'   all unique items from all groups, while the `group` component provides
+#'   group-specific log-likelihood values.}
+#'
+#' \item{aic}{A model fit statistic based on the Akaike Information Criterion (AIC),
+#'   calculated from the log-likelihood of all unique items.}
+#'
+#' \item{bic}{A model fit statistic based on the Bayesian Information Criterion (BIC),
+#'   calculated from the log-likelihood of all unique items.}
+#'
+#' \item{group.par}{A list containing summary statistics (i.e., mean, variance,
+#'   and standard deviation) of the latent variable prior distributions across
+#'   all groups.}
+#'
+#' \item{weights}{A list of two-column data frames, where the first column
+#'   contains quadrature points and the second column contains the corresponding
+#'   weights of the (updated) latent variable prior distributions for each group.}
+#'
+#' \item{posterior.dist}{A matrix of normalized posterior densities for all
+#'   response patterns at each quadrature point. Rows and columns represent
+#'   response patterns and quadrature points, respectively.}
+#'
+#' \item{data}{A list containing two internal objects (i.e., overall and group)
+#'   representing the examinees' response data sets. The structure of this
+#'   list matches that of the `estimates` component.}
+#'
+#' \item{scale.D}{The scaling factor used in the IRT model.}
+#'
+#' \item{ncase}{A list containing two internal objects (i.e., overall and group)
+#'   representing the total number of response patterns. The structure of this
+#'   list matches that of the `estimates` component.}
+#'
+#' \item{nitem}{A list containing two internal objects (i.e., overall and group)
+#'   representing the total number of items included in the response data.
+#'   The structure of this list matches that of the `estimates` component.}
+#'
+#' \item{Etol}{The convergence criterion for the E-step of the EM algorithm.}
+#'
+#' \item{MaxE}{The maximum number of E-steps allowed in the EM algorithm.}
+#'
+#' \item{aprior}{A list describing the prior distribution used for discrimination
+#'    parameters.}
+#'
+#' \item{bprior}{A list describing the prior distribution used for difficulty
+#'    parameters.}
+#'
+#' \item{gprior}{A list describing the prior distribution used for guessing
+#'    parameters.}
+#'
+#' \item{npar.est}{The total number of parameters estimated across all unique items.}
+#'
+#' \item{niter}{The number of completed EM cycles.}
+#'
+#' \item{maxpar.diff}{The maximum absolute change in parameter estimates at
+#'   convergence.}
+#'
+#' \item{EMtime}{Time (in seconds) spent on EM cycles.}
+#'
+#' \item{SEtime}{Time (in seconds) spent computing standard errors.}
+#'
+#' \item{TotalTime}{Total computation time (in seconds).}
+#'
+#' \item{test.1}{First-order test result indicating whether the gradient
+#'   sufficiently vanished for solution stability.}
+#'
+#' \item{test.2}{Second-order test result indicating whether the information matrix
+#'   is positive definite, a necessary condition for identifying a local maximum.}
+#'
+#' \item{var.note}{A note indicating whether the variance-covariance matrix
+#'   was successfully obtained from the information matrix.}
+#'
+#' \item{fipc}{Logical. Indicates whether FIPC was used.}
+#'
+#' \item{fipc.method}{The method used for FIPC.}
+#'
+#' \item{fix.loc}{A list containing two internal objects (i.e., overall and group)
+#'   indicating the locations of fixed items when FIPC is applied. The structure
+#'   of the list matches that of the 'estimates' component.}
+#'
+#'   Note that you can easily extract components from the output using the
+#'   [irtQ::getirt()] function.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @seealso \code{\link{est_irt}}, \code{\link{shape_df}}, \code{\link{getirt}}
+#' @seealso [irtQ::est_irt()], [irtQ::shape_df()], [irtQ::shape_df_fipc()],
+#' [irtQ::getirt()]
 #'
-#' @references
-#' Bock, R. D., & Aitkin, M. (1981). Marginal maximum likelihood estimation of item parameters: Application of an EM algorithm.
-#' \emph{Psychometrika, 46}, 443-459.
+#' @references Bock, R. D., & Aitkin, M. (1981). Marginal maximum likelihood
+#' estimation of item parameters: Application of an EM algorithm.
+#' *Psychometrika, 46*, 443-459.
 #'
-#' Bock, R. D., & Zimowski, M. F. (1997). Multiple group IRT. In W. J. van der Linden & R. K. Hambleton (Eds.), \emph{Handbook
-#' of modern item response theory} (pp. 433-448). New York: Springer.
+#' Bock, R. D., & Zimowski, M. F. (1997). Multiple group IRT. In W. J.
+#' van der Linden & R. K. Hambleton (Eds.), *Handbook of modern item response theory*
+#' (pp. 433-448). New York: Springer.
 #'
-#' Kim, S. (2006). A comparative study of IRT fixed parameter calibration methods.
-#' \emph{Journal of Educational Measurement, 43}(4), 355-381.
+#' Kim, S. (2006). A comparative study of IRT fixed parameter calibration
+#' methods. *Journal of Educational Measurement, 43*(4), 355-381.
 #'
-#' Kim, S., & Kolen, M. J. (2016). Multiple group IRT fixed-parameter estimation for maintaining an extablished ability scale.
-#' \emph{Center for Advanced Studies in Measurement and Assessment Report, 49.}
+#' Kim, S., & Kolen, M. J. (2016). Multiple group IRT fixed-parameter estimation
+#' for maintaining an established ability scale. *Center for Advanced
+#' Studies in Measurement and Assessment Report, 49.*
 #'
-#' Meilijson, I. (1989). A fast improvement to the EM algorithm on its own terms.
-#' \emph{Journal of the Royal Statistical Society: Series B (Methodological), 51}, 127-138.
+#' Meilijson, I. (1989). A fast improvement to the EM algorithm on its own
+#' terms. *Journal of the Royal Statistical Society: Series B
+#' (Methodological), 51*, 127-138.
 #'
-#' Woods, C. M. (2007). Empirical histograms in item response theory with ordinal data. \emph{Educational and Psychological Measurement, 67}(1), 73-87.
+#' Woods, C. M. (2007). Empirical histograms in item response theory with
+#' ordinal data. *Educational and Psychological Measurement, 67*(1), 73-87.
 #'
 #' @examples
 #' \donttest{
 #' ## ------------------------------------------------------------------------------
-#' # 1. MG-calibration using simMG data
-#' #  - Details :
-#' #    (a) constrain the common items between the groups to have
-#' #        the same item parameters (i.e., items C1I1 - C1I12 between
-#' #        Groups 1 and 2, and items C2I1 - C2I10 between Groups 2 and 3)
-#' #    (b) freely estimate the means and variances of ability
-#' #        distributions except the reference group in which mean
-#' #        and variance are fixed to 0 and 1, respectively.
+#' # 1. MG calibration using the simMG data
+#' #  - Details:
+#' #    (a) Constrain common items between groups to have
+#' #        identical item parameters (i.e., items C1I1–C1I12 between
+#' #        Groups 1 and 2, and items C2I1–C2I10 between Groups 2 and 3).
+#' #    (b) Freely estimate the means and variances of the ability
+#' #        distributions for all groups except the reference group,
+#' #        where the mean and variance are fixed to 0 and 1, respectively.
 #' ## ------------------------------------------------------------------------------
-#' # 1-(1). freely estimates the means and variances of groups 2 and 3
-#' # import the true item metadata of the three groups
+#' # 1-(1). Freely estimate the means and variances of Groups 2 and 3
+#' # Import the true item metadata for the three groups
 #' x <- simMG$item.prm
 #'
-#' # extract model, score category, and item ID information from
-#' # the item metadata for the three groups
+#' # Extract model, score category, and item ID information
+#' # from the item metadata for the three groups
 #' model <- list(x$Group1$model, x$Group2$model, x$Group3$model)
 #' cats <- list(x$Group1$cats, x$Group2$cats, x$Group3$cats)
 #' item.id <- list(x$Group1$id, x$Group2$id, x$Group3$id)
 #'
-#' # import the simulated response data sets of the three groups
+#' # Import the simulated response data sets for the three groups
 #' data <- simMG$res.dat
 #'
-#' # import the group names of the three groups
+#' # Import the group names for the three groups
 #' group.name <- simMG$group.name
 #'
-#' # set the groups 2 and 3 as the free groups in which scale
+#' # Specify Groups 2 and 3 as the free groups where the scale
 #' # of the ability distributions will be freely estimated.
-#' # then, the group 1 will be a reference group in which the scale
-#' # of the ability distribution will be fixed to the values specified
-#' # in the 'group.mean' and 'group.var' arguments
+#' # Group 1 will serve as the reference group, where the scale
+#' # of the ability distribution is fixed to the values specified
+#' # via the 'group.mean' and 'group.var' arguments
 #' free.group <- c(2, 3) # or use 'free.group <- group.name[2:3]'
 #'
-#' # estimate the IRT parameters:
-#' # as long as the common items between any groups have the same item IDs,
-#' # their item parameters will be constrained to be the same between
-#' # the groups unless the FIPC is not implemented
+#' # Estimate IRT parameters:
+#' # As long as common items across groups share the same item IDs,
+#' # their item parameters will be constrained to be equal across groups
+#' # unless FIPC is implemented.
 #' fit.1 <-
 #'   est_mg(
 #'     data = data, group.name = group.name, model = model,
@@ -310,28 +427,27 @@
 #'     group.mean = 0, group.var = 1, EmpHist = TRUE, Etol = 0.001, MaxE = 500
 #'   )
 #'
-#' # summary of the estimation
+#' # Summary of the estimation
 #' summary(fit.1)
 #'
-#' # extract the item parameter estimates
+#' # Extract the item parameter estimates
 #' getirt(fit.1, what = "par.est")
 #'
-#' # extract the standard error estimates
+#' # Extract the standard error estimates
 #' getirt(fit.1, what = "se.est")
 #'
-#' # extract the group parameter estimates (i.e., scale parameters)
+#' # Extract the group-level parameter estimates (i.e., scale parameters)
 #' getirt(fit.1, what = "group.par")
 #'
-#' # extract the posterior latent ability distributions of the groups
+#' # Extract the posterior latent ability distributions for each group
 #' getirt(fit.1, what = "weights")
 #'
-#' # 1-(2). or the same parameter estimation can be implemented by
-#' # inserting a list of item metadata for the groups into the 'x'
-#' # argument. if the item metadata contains the item parameters
-#' # which you want to use as starting values for the estimation,
-#' # you can set 'use.startval = TRUE'.
-#' # also set the groups in which scales of ability distributions
-#' # will be freely estimated using the group names
+#' # 1-(2). Alternatively, the same parameter estimation can be performed by
+#' # inserting a list of item metadata for the groups into the 'x' argument.
+#' # If the item metadata contains item parameters to be used as starting values,
+#' # set 'use.startval = TRUE'.
+#' # Also, specify the groups in which the ability distribution scales
+#' # will be freely estimated using their group names.
 #' free.group <- group.name[2:3]
 #' fit.2 <-
 #'   est_mg(
@@ -342,46 +458,41 @@
 #'     Etol = 0.001, MaxE = 500
 #'   )
 #'
-#' # summary of the estimation
+#' # Summary of the estimation
 #' summary(fit.2)
 #'
 #' ## ------------------------------------------------------------------------------
-#' # 2. MG-calibration with the FIPC using simMG data
-#' #  - Details :
-#' #    (a) fix the parameters of the common items between the groups
-#' #        (i.e., items C1I1 - C1I12 between Groups 1 and 2, and
-#' #        items C2I1 - C2I10 between Groups 2 and 3)
-#' #    (b) freely estimate the means and variances of ability
-#' #        distributions of all three groups
+#' # 2. MG calibration with FIPC using simMG data
+#' #  - Details:
+#' #    (a) Fix the parameters of the common items between the groups
+#' #        (i.e., items C1I1–C1I12 between Groups 1 and 2, and
+#' #        items C2I1–C2I10 between Groups 2 and 3)
+#' #    (b) Freely estimate the means and variances of the ability
+#' #        distributions for all three groups
 #' ## ------------------------------------------------------------------------------
-#' # 2-(1). freely estimates the means and variances of all three groups
-#' # set all three groups as the free groups in which scale
-#' # of the ability distributions will be freely estimated.
+#' # 2-(1). Freely estimate the means and variances for all three groups
+#' # Set all three groups as free groups in which the scales
+#' # of the ability distributions are to be freely estimated
 #' free.group <- 1:3 # or use 'free.group <- group.name'
 #'
-#' # specify the locations of items to be fixed in each group data
-#' # note that for the first group, the common items C1I1 - C1I12 are located
-#' # in the 1st - 10th and 11th to 12th rows of the first group's item metadata
-#' # for the second group, the common items C1I1 - C1I12 are located
-#' # in the 1st - 12th rows of the second group's item metadata
-#' # also, for the second group, the common items C2I1 - C2I10 are located
-#' # in the 41st - 50th rows of the second group's item metadata
-#' # for the third group, the common items C2I1 - C2I10 are located
-#' # in the 1st - 10th rows of the third group's item metadata
+#' # Specify the locations of items to be fixed in each group's metadata
+#' # For Group 1: C1I1–C1I12 are located in rows 1–10 and 49–50
+#' # For Group 2: C1I1–C1I12 are in rows 1–12, and
+#' #              C2I1–C2I10 are in rows 41–50
+#' # For Group 3: C2I1–C2I10 are in rows 1–10
 #' fix.loc <- list(
 #'   c(1:10, 49:50),
 #'   c(1:12, 41:50),
 #'   c(1:10)
 #' )
 #'
-#' # estimate the IRT parameters using FIPC:
-#' # when the FIPC is implemented, a list of the item metadata for all
-#' # groups must be provided into the 'x' argument.
-#' # for the fixed items, their item parameters must be specified
-#' # in the item metadata
-#' # for other non-fixed items, any parameter values can be provided
-#' # in the item metadata
-#' # also, set fipc = TRUE and fipc.method = "MEM"
+#' # Estimate IRT parameters using MG-FIPC:
+#' # When FIPC is implemented, item metadata for all groups
+#' # must be provided via the 'x' argument.
+#' # For fixed items, their item parameters must be specified
+#' # in the metadata. For non-fixed items, any placeholder values
+#' # can be used in the metadata.
+#' # Also set fipc = TRUE and fipc.method = "MEM"
 #' fit.3 <-
 #'   est_mg(
 #'     x = x, data = data, group.name = group.name, D = 1,
@@ -391,25 +502,24 @@
 #'     fipc.method = "MEM", fix.loc = fix.loc
 #'   )
 #'
-#' # summary of the estimation
+#' # Summary of the estimation
 #' summary(fit.3)
 #'
-#' # extract the item parameter estimates
+#' # Extract the item parameter estimates
 #' getirt(fit.3, what = "par.est")
 #'
-#' # extract the standard error estimates
+#' # Extract the standard error estimates
 #' getirt(fit.3, what = "se.est")
 #'
-#' # extract the group parameter estimates (i.e., scale parameters)
+#' # Extract the group parameter estimates (i.e., scale parameters)
 #' getirt(fit.3, what = "group.par")
 #'
-#' # extract the posterior latent ability distributions of the groups
+#' # Extract the posterior latent ability distributions of the groups
 #' getirt(fit.3, what = "weights")
 #'
-#' # 2-(2). or the FIPC can be implemented by providing which items
-#' # will be fixed in a different way using the 'fix.id' argument.
-#' # a vector of the fixed item IDs needs to be provided into the
-#' # 'fix.id' argument as such.
+#' # 2-(2). Alternatively, MG-FIPC can be implemented by specifying the
+#' # IDs of the items to be fixed using the 'fix.id' argument.
+#' # Provide a character vector of fixed item IDs to 'fix.id'
 #' fix.id <- c(paste0("C1I", 1:12), paste0("C2I", 1:10))
 #' fit.4 <-
 #'   est_mg(
@@ -420,27 +530,26 @@
 #'     fipc.method = "MEM", fix.id = fix.id
 #'   )
 #'
-#' # summary of the estimation
+#' # Summary of the estimation
 #' summary(fit.4)
 #'
 #' ## ------------------------------------------------------------------------------
-#' # 3. MG-calibration with the FIPC using simMG data
-#' #    (estimate the group parameters only)
-#' #  - Details :
-#' #    (a) fix all item parameters across all three groups
-#' #    (b) freely estimate the means and variances of ability
-#' #        distributions of all three groups
+#' # 3. MG calibration with FIPC using simMG data
+#' #    (Estimate group parameters only)
+#' #  - Details:
+#' #    (a) Fix all item parameters across all three groups
+#' #    (b) Freely estimate the means and variances of the ability
+#' #        distributions for all three groups
 #' ## ------------------------------------------------------------------------------
-#' # 3-(1). freely estimates the means and variances of all three groups
-#' # set all three groups as the free groups in which scale
-#' # of the ability distributions will be freely estimated.
+#' # 3-(1). Freely estimate the means and variances for all three groups
+#' # Set all three groups as free groups in which the scales
+#' # of the ability distributions will be freely estimated
 #' free.group <- 1:3 # or use 'free.group <- group.name'
 #'
-#' # specify the locations of all item parameters to be fixed
-#' # in each item metadata
+#' # Specify the locations of all fixed items in each group's metadata
 #' fix.loc <- list(1:50, 1:50, 1:38)
 #'
-#' # estimate the group parameters only using FIPC:
+#' # Estimate group parameters only using MG-FIPC
 #' fit.5 <-
 #'   est_mg(
 #'     x = x, data = data, group.name = group.name, D = 1,
@@ -450,35 +559,36 @@
 #'     fipc.method = "MEM", fix.loc = fix.loc
 #'   )
 #'
-#' # summary of the estimation
+#' # Summary of the estimation
 #' summary(fit.5)
 #'
-#' # extract the group parameter estimates (i.e., scale parameters)
+#' # Extract the group parameter estimates (i.e., scale parameters)
 #' getirt(fit.5, what = "group.par")
 #'
 #' ## ------------------------------------------------------------------------------
-#' # 4. MG-calibration with the FIPC using simMG data
-#' #    (fix the unique items of the group 1 only)
-#' #  - Details :
-#' #    (a) fix item parameters of unique items in the group 1 only
-#' #    (b) constrain the common items between the groups to have
-#' #        the same item parameters (i.e., items C1I1 - C1I12 between
-#' #        Groups 1 and 2, and items C2I1 - C2I10 between Groups 2 and 3)
-#' #    (c) freely estimate the means and variances of ability
-#' #        distributions of all three groups
+#' # 4. MG calibration with FIPC using simMG data
+#' #    (Fix only the unique items of Group 1)
+#' #  - Details:
+#' #    (a) Fix item parameters of the unique items in Group 1 only
+#' #    (b) Constrain the common items across groups to have
+#' #        the same item parameters (i.e., C1I1–C1I12 between
+#' #        Groups 1 and 2, and C2I1–C2I10 between Groups 2 and 3)
+#' #    (c) Freely estimate the means and variances of the ability
+#' #        distributions for all three groups
 #' ## ------------------------------------------------------------------------------
-#' # 4-(1). freely estimates the means and variances of all three groups
-#' # set all three groups as the free groups in which scale
-#' # of the ability distributions will be freely estimated.
+#' # 4-(1). Freely estimate the means and variances for all three groups
+#' # Set all three groups as free groups in which the scales
+#' # of the ability distributions will be freely estimated
 #' free.group <- group.name # or use 'free.group <- 1:3'
 #'
-#' # specify the item IDs of the unique items in the group 1 to be fixed
-#' # in each item metadata using the 'fix.id' argument or
-#' # you can use the 'fix.loc' argument by setting
-#' # 'fix.loc = list(11:48, NULL, NULL)'
+#' # Specify the item IDs of the unique items in Group 1 to be fixed using
+#' # the `fix.id` argument.
 #' fix.id <- paste0("G1I", 1:38)
 #'
-#' # estimate the IRT parameters using FIPC:
+#' # Alternatively, use the 'fix.loc' argument as
+#' # 'fix.loc = list(11:48, NULL, NULL)'
+#'
+#' # Estimate IRT parameters using MG-FIPC
 #' fit.6 <-
 #'   est_mg(
 #'     x = x, data = data, group.name = group.name, D = 1,
@@ -488,23 +598,53 @@
 #'     fipc.method = "MEM", fix.loc = NULL, fix.id = fix.id
 #'   )
 #'
-#' # summary of the estimation
+#' # Summary of the estimation
 #' summary(fit.6)
 #'
-#' # extract the group parameter estimates (i.e., scale parameters)
+#' # Extract the group parameter estimates (i.e., scale parameters)
 #' getirt(fit.6, what = "group.par")
+#'
 #' }
 #'
 #'
 #' @export
-est_mg <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats = NULL, item.id = NULL,
-                   free.group = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1,
-                   a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
-                   aprior = list(dist = "lnorm", params = c(0.0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                   gprior = list(dist = "beta", params = c(5, 16)), missing = NA, Quadrature = c(49, 6.0), weights = NULL,
-                   group.mean = 0, group.var = 1, EmpHist = FALSE, use.startval = FALSE, Etol = 1e-03, MaxE = 500,
-                   control = list(eval.max = 200, iter.max = 200), fipc = FALSE, fipc.method = "MEM",
-                   fix.loc = NULL, fix.id = NULL, se = TRUE, verbose = TRUE) {
+est_mg <- function(x = NULL,
+                   data,
+                   group.name = NULL,
+                   D = 1,
+                   model = NULL,
+                   cats = NULL,
+                   item.id = NULL,
+                   free.group = NULL,
+                   fix.a.1pl = FALSE,
+                   fix.a.gpcm = FALSE,
+                   fix.g = FALSE,
+                   a.val.1pl = 1,
+                   a.val.gpcm = 1,
+                   g.val = .2,
+                   use.aprior = FALSE,
+                   use.bprior = FALSE,
+                   use.gprior = TRUE,
+                   aprior = list(dist = "lnorm", params = c(0.0, 0.5)),
+                   bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                   gprior = list(dist = "beta", params = c(5, 16)),
+                   missing = NA,
+                   Quadrature = c(49, 6.0),
+                   weights = NULL,
+                   group.mean = 0,
+                   group.var = 1,
+                   EmpHist = FALSE,
+                   use.startval = FALSE,
+                   Etol = 1e-03,
+                   MaxE = 500,
+                   control = list(eval.max = 200, iter.max = 200),
+                   fipc = FALSE,
+                   fipc.method = "MEM",
+                   fix.loc = NULL,
+                   fix.id = NULL,
+                   se = TRUE,
+                   verbose = TRUE) {
+
   # match.call
   cl <- match.call()
 
@@ -540,13 +680,39 @@ est_mg <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats 
 
 # multiple group calibration via EM
 #' @import dplyr
-est_mg_em <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats = NULL, item.id = NULL,
-                      free.group = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1,
-                      a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
-                      aprior = list(dist = "lnorm", params = c(0.0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                      gprior = list(dist = "beta", params = c(5, 16)), missing = NA, Quadrature = c(49, 6.0), weights = NULL,
-                      group.mean = 0, group.var = 1, EmpHist = FALSE, use.startval = FALSE, Etol = 1e-03, MaxE = 500,
-                      control = list(eval.max = 200, iter.max = 200), se = TRUE, verbose = TRUE) {
+est_mg_em <- function(x = NULL,
+                      data,
+                      group.name = NULL,
+                      D = 1,
+                      model = NULL,
+                      cats = NULL,
+                      item.id = NULL,
+                      free.group = NULL,
+                      fix.a.1pl = FALSE,
+                      fix.a.gpcm = FALSE,
+                      fix.g = FALSE,
+                      a.val.1pl = 1,
+                      a.val.gpcm = 1,
+                      g.val = .2,
+                      use.aprior = FALSE,
+                      use.bprior = FALSE,
+                      use.gprior = TRUE,
+                      aprior = list(dist = "lnorm", params = c(0.0, 0.5)),
+                      bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                      gprior = list(dist = "beta", params = c(5, 16)),
+                      missing = NA,
+                      Quadrature = c(49, 6.0),
+                      weights = NULL,
+                      group.mean = 0,
+                      group.var = 1,
+                      EmpHist = FALSE,
+                      use.startval = FALSE,
+                      Etol = 1e-03,
+                      MaxE = 500,
+                      control = list(eval.max = 200, iter.max = 200),
+                      se = TRUE,
+                      verbose = TRUE) {
+
   # check start time
   start.time <- Sys.time()
 
@@ -1270,14 +1436,43 @@ est_mg_em <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, ca
 
 # multiple group FIPC via EM
 #' @import dplyr
-est_mg_fipc <- function(x = NULL, data, group.name = NULL, D = 1, model = NULL, cats = NULL, item.id = NULL,
-                        free.group = NULL, fix.a.1pl = FALSE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1,
-                        a.val.gpcm = 1, g.val = .2, use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
-                        aprior = list(dist = "lnorm", params = c(0.0, 0.5)), bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                        gprior = list(dist = "beta", params = c(5, 16)), missing = NA, Quadrature = c(49, 6.0), weights = NULL,
-                        group.mean = 0, group.var = 1, EmpHist = FALSE, use.startval = FALSE, Etol = 1e-04, MaxE = 500,
-                        control = list(eval.max = 200, iter.max = 200), fipc = TRUE, fipc.method = "MEM", fix.loc = NULL,
-                        fix.id = NULL, se = TRUE, verbose = TRUE) {
+est_mg_fipc <- function(x = NULL,
+                        data,
+                        group.name = NULL,
+                        D = 1,
+                        model = NULL,
+                        cats = NULL,
+                        item.id = NULL,
+                        free.group = NULL,
+                        fix.a.1pl = FALSE,
+                        fix.a.gpcm = FALSE,
+                        fix.g = FALSE,
+                        a.val.1pl = 1,
+                        a.val.gpcm = 1,
+                        g.val = .2,
+                        use.aprior = FALSE,
+                        use.bprior = FALSE,
+                        use.gprior = TRUE,
+                        aprior = list(dist = "lnorm", params = c(0.0, 0.5)),
+                        bprior = list(dist = "norm", params = c(0.0, 1.0)),
+                        gprior = list(dist = "beta", params = c(5, 16)),
+                        missing = NA,
+                        Quadrature = c(49, 6.0),
+                        weights = NULL,
+                        group.mean = 0,
+                        group.var = 1,
+                        EmpHist = FALSE,
+                        use.startval = FALSE,
+                        Etol = 1e-04,
+                        MaxE = 500,
+                        control = list(eval.max = 200, iter.max = 200),
+                        fipc = TRUE,
+                        fipc.method = "MEM",
+                        fix.loc = NULL,
+                        fix.id = NULL,
+                        se = TRUE,
+                        verbose = TRUE) {
+
   # check start time
   start.time <- Sys.time()
 

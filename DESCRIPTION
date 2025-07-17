@@ -1,13 +1,13 @@
 Package: irtQ
 Type: Package
 Title: Unidimensional Item Response Theory Modeling
-Version: 0.2.1
-Description: Fit unidimensional item response theory (IRT) models to a mixture 
-    of dichotomous and polytomous data, calibrate online item parameters 
-    (i.e., pretest and operational items), estimate examinees' abilities, 
-    and examine the IRT model-data fit on item-level in different ways 
-    as well as provide useful functions related to IRT analyses such as 
-    IRT model-data fit evaluation and differential item functioning analysis.
+Version: 1.0.0
+Description: Fit unidimensional item response theory (IRT) models to test
+    data, which includes both dichotomous and polytomous items, calibrate 
+    pretest item parameters, estimate examinees' abilities, and examine 
+    the IRT model-data fit on item-level in different ways as well as provide 
+    useful functions related to IRT analyses such as IRT model-data fit 
+    evaluation and differential item functioning analysis. 
     The bring.flexmirt() and write.flexmirt() functions were written by modifying 
     the read.flexmirt() function (Pritikin & Falk (2022) <doi:10.1177/0146621620929431>).
     The bring.bilog() and bring.parscale() functions were written by modifying the read.bilog() 
@@ -18,7 +18,7 @@ Description: Fit unidimensional item response theory (IRT) models to a mixture
     (González (2014) <doi:10.18637/jss.v059.i07>). In est_score() function, the code of weighted 
     likelihood estimation method was written by referring to the Pi(), Ji(), and Ii() functions
     of the catR package (Magis & Barrada (2017) <doi:10.18637/jss.v076.c01>).
-Depends: R (>= 4.1)
+Depends: R (>= 4.3)
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
@@ -35,7 +35,7 @@ Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", 
     ) 
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2024-08-25 02:50:06 UTC; kijja
+Packaged: 2025-07-17 03:43:32 UTC; kijja
 Author: Hwanggyu Lim [aut, cre],
   Craig S. Wells [ctb],
   James Howard [ctb],
@@ -45,4 +45,4 @@ Author: Hwanggyu Lim [aut, cre],
   David Magis [ctb]
 Maintainer: Hwanggyu Lim <hglim83@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-08-25 03:50:02 UTC
+Date/Publication: 2025-07-17 04:00:02 UTC

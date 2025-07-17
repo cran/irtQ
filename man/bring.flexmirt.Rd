@@ -22,117 +22,136 @@ bring.parscale(file, type = c("par", "sco"))
 bring.mirt(x)
 }
 \arguments{
-\item{file}{A file name (including a directory) containing the item or ability parameters.}
+\item{file}{A file name (including the full path) containing the item or
+ability parameter estimates.}
 
-\item{type}{A character string indicating a type of output file. Available types are "par" for a file
-containing item parameter estimates and "sco" for a file containing ability parameter estimates.}
+\item{type}{A character string indicating the type of output file. Available
+options are \code{"par"} for item parameter files and \code{"sco"} for ability
+parameter files.}
 
-\item{rePar}{A logical value. If TRUE and when the IRT dichotomous model (e.g., 3PLM) or GRM is fit to data,
-the item intercept and logit of item guessing parameters are reparameterized into the item difficulty
-and item guessing parameters, respectively. Default is TRUE.}
+\item{rePar}{Logical. If \code{TRUE}, and when a dichotomous IRT model
+(e.g., 3PLM) or the graded response model (GRM) is fit, the item intercept and
+the logit of the guessing parameter are reparameterized into the item
+difficulty and guessing parameters, respectively. Default is \code{TRUE}.}
 
-\item{rePar.gpc}{A logical value. If TRUE and when (G)PCM is fit to data, the nominal model
-parameters in the flexMIRT parameter output file are reparameterized into the (G)PCM slope/difficulty parameters.
-Default is TRUE.}
+\item{rePar.gpc}{Logical. If \code{TRUE}, and when the generalized partial
+credit model (GPCM) is fit, the nominal model parameters in the flexMIRT
+output are reparameterized into GPCM slope and difficulty parameters.
+Default is \code{TRUE}.}
 
-\item{n.factor}{A numeric value indicating the number of estimated factors. This argument should be specified
-when \code{type = "sco"}. Default is 1.}
+\item{n.factor}{A numeric value indicating the number of latent traits (factors)
+estimated. This argument must be specified when \code{type = "sco"}. Default is 1.}
 
-\item{x}{An output object obtained from the function \code{\link[mirt]{mirt}}.}
+\item{x}{An object returned by the function \code{\link[mirt:mirt]{mirt::mirt()}}.}
 }
 \value{
-These functions return a list including several objects. Only for the output of flexMIRT, the results of
-multiple group analysis can be returned. In that case, each element of the list contains the estimation results for
-each group.
+These functions return a list containing several components. For
+flexMIRT output files, results from multiple-group analyses can be handled;
+in such cases, each list element corresponds to the estimation results for
+a separate group.
 }
 \description{
-These functions import item and/or ability parameters from BILOG-MG 3, PARSCALE 4, flexMIRT, and
-mirt (R package).
+These functions import item and/or ability parameters from
+BILOG-MG 3, PARSCALE 4, flexMIRT, and the \pkg{mirt} R package.
 }
 \details{
-The \code{\link{bring.flexmirt}} was written by modifying the function \code{read.flexmirt}
-(Pritikin & Falk, 2020). The functions \code{\link{bring.bilog}} and \code{\link{bring.parscale}}
-were written by modifying the functions \code{read.bilog} and \code{read.parscale}
+The \code{\link[=bring.flexmirt]{bring.flexmirt()}} function was developed by modifying
+the \code{read.flexmirt()} function (Pritikin & Falk, 2020). Similarly,
+\code{\link[=bring.bilog]{bring.bilog()}} and \code{\link[=bring.parscale]{bring.parscale()}} were based on modified
+versions of the \code{read.bilog()} and \code{read.parscale()} functions
 (Weeks, 2010), respectively.
 
-The file extensions for item parameter and ability files, respectively, are: ".par" and ".sco"
-for BILOG-MG and PARSCALE, and "-prm.txt" and "-sco.txt" for flexMIRT. For mirt, the name of the output
-object is specified by the user.
+The supported file extensions for item and ability parameter files are:
+".par" and ".sco" for BILOG-MG and PARSCALE, and "-prm.txt" and "-sco.txt"
+for flexMIRT. For \pkg{mirt}, the user provides the object name directly.
 
-Although \code{\link{bring.flexmirt}} is able to extract multidimensional item and ability parameter estimates,
-this package only deals with unidimensional IRT methods.
+Although \code{\link[=bring.flexmirt]{bring.flexmirt()}} can extract multidimensional item and
+ability parameter estimates, the \pkg{irtQ} package is designed exclusively
+for unidimensional IRT applications.
 
-For polytomous item parameters, \code{\link{bring.flexmirt}} and \code{\link{bring.mirt}} are able to import
-the item parameters of the graded response model and the (generalized) partial credit model.
+For polytomous items, both \code{\link[=bring.flexmirt]{bring.flexmirt()}} and
+\code{\link[=bring.mirt]{bring.mirt()}} can import item parameters for the graded response
+model (GRM) and the generalized partial credit model (GPCM).
 }
 \note{
-Regarding the item parameter files for any IRT software, only the internal object "full_df" in the returned list is
-necessary for the IRT linking. The object "full_df" is a data frame containing the item metadata
-in a test form (e.g., item parameters, number of categories, models). See \code{\link{info}}
-or \code{\link{simdat}} for more details about the item metadata.
+For item parameter files from any IRT software, only the internal object
+\code{"full_df"} in the returned list is required for various functions in
+the \pkg{irtQ} package. This object is a data frame containing item metadata
+(e.g., item parameters, number of categories, IRT model types).
+See \code{\link[=info]{info()}} or \code{\link[=simdat]{simdat()}} for more details on item metadata.
 
-Also, when item parameters are estimated using the partial credit or the generalized partial credit model,
-item step parameters are returned in the object "full_df". Item step parameters are the overall item difficulty (or location)
-parameter subtracted by the difficulty (or threshold) parameter for each category. See \code{\link{irtfit}} for more details
-about the parameterization of the (generalized) partial credit model.
+In addition, when item parameters are estimated using the partial credit
+model (PCM) or the generalized partial credit model (GPCM), item step
+parameters are included in the \code{"full_df"} object. These step parameters
+are calculated by subtracting the category threshold parameters from the
+overall item difficulty (or location) parameter.
+See the \strong{IRT Models} section in \link{irtQ-package} for further
+details on the parameterization of the GPCM.
 }
 \section{Sample Output Files of IRT software}{
 
 
-To illustrate how to import the item parameter estimate files of PARSCALE 4 and flexMIRT
-using \code{\link{bring.parscale}} and \code{\link{bring.flexmirt}}, two item parameter
-estimate output files are included in this package.
+To illustrate how to import item parameter estimate files from PARSCALE 4
+and flexMIRT using \code{\link[=bring.parscale]{bring.parscale()}} and \code{\link[=bring.flexmirt]{bring.flexmirt()}},
+two example output files are included in this package.
 
-Among the two output files, one of them is from PARSCALE 4 with a file extension of ".PAR"
-(i.e., "parscale_sample.PAR") and another one is from flexMIRT
-with a file extension of "-prm.txt" (i.e., "flexmirt_sample-prm.txt").
+One file is from PARSCALE 4 with a ".PAR" extension (i.e., "parscale_sample.PAR"),
+and the other is from flexMIRT with a "-prm.txt" extension
+(i.e., "flexmirt_sample-prm.txt").
 
-For the two item parameter estimate output files, both are mixed-format tests with 55 items
-consisting of fifty dichotomous items following the IRT 3PL model and five polytomous items with five
-categories following the graded response model. The examples below show how to import those output files.
+Both files contain item parameter estimates from a mixed-format test with 55 items:
+fifty dichotomous items following the 3PL model and five polytomous items
+with five response categories modeled using the graded response model (GRM).
+The examples below demonstrate how to import these output files.
 }
 
 \examples{
-## example 1
-# import the "-prm.txt" output file from flexMIRT
+## Example 1
+# Import the "-prm.txt" output file from flexMIRT
 flex_sam <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# read item parameters and transform them to item meta data
+# Read item parameters and convert them to item metadata
 bring.flexmirt(file = flex_sam, "par")$Group1$full_df
 
-## example 2
-## import the ".par" output file from PARSCALE
+## Example 2
+# Import the ".PAR" output file from PARSCALE
 pscale_sam <- system.file("extdata", "parscale_sample.PAR", package = "irtQ")
 
-# read item parameters and transform them to item meta data
+# Read item parameters and convert them to item metadata
 bring.parscale(file = pscale_sam, "par")$full_df
 
 }
 \references{
-Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional item analysis and test scoring [Computer software].
-Chapel Hill, NC: Vector Psychometric Group.
+Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional
+item analysis and test scoring (Computer software). Chapel Hill, NC: Vector
+Psychometric Group.
 
-Chalmers, R. P. (2012). mirt: A multidimensional item response theory package for the R environment.
+Chalmers, R. P. (2012). mirt: A multidimensional item response theory package
+for the R environment.
 \emph{Journal of Statistical Software, 48}(6), 1-29.
 
-Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests Using IRT-Based Methods.
+Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests Using
+IRT-Based Methods.
 \emph{Journal of Statistical Software, 35}(12), 1-33. URL http://www.jstatsoft.org/v35/i12/.
 
-Pritikin, J. (2018). \emph{rpf: Response Probability Functions}. R package version 0.59.
-https://CRAN.R-project.org/package=rpf.
+Pritikin, J. (2018). \emph{rpf: Response Probability Functions}. R package version
+0.59. https://CRAN.R-project.org/package=rpf.
 
-Pritikin, J. N., & Falk, C. F. (2020). OpenMx: A modular research environment for item response theory
-method development. \emph{Applied Psychological Measurement, 44}(7-8), 561-562.
+Pritikin, J. N., & Falk, C. F. (2020). OpenMx: A modular research environment
+for item response theory method development. \emph{Applied Psychological
+Measurement, 44}(7-8), 561-562.
 
-Muraki, E. & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test scoring for rating
-scale data [Computer Program]. Chicago, IL: Scientific Software International. URL http://www.ssicentral.com
-
-Zimowski, M. F., Muraki, E., Mislevy, R. J., & Bock, R. D. (2003). BILOG-MG 3: Multiple-group
-IRT analysis and test maintenance for binary items [Computer Program]. Chicago, IL: Scientific
+Muraki, E. & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
+scoring for rating scale data (Computer Software). Chicago, IL: Scientific
 Software International. URL http://www.ssicentral.com
+
+Zimowski, M. F., Muraki, E., Mislevy, R. J., & Bock, R. D. (2003). BILOG-MG
+3: Multiple-group IRT analysis and test maintenance for binary items
+(Computer Software). Chicago, IL: Scientific Software International. URL
+http://www.ssicentral.com
 }
 \seealso{
-\code{\link{irtfit}}
+\link{irtQ-package}
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}
