@@ -1,13 +1,24 @@
 # This function returns a contingency table of the expected frequencies
 # to be used to compute S-X2 fit statistic
 expFreq <- function(t.score, cats, prob.cats, lkhd_noitem, lkhd, wts, score.freq) {
-  tmp1 <- array(0, c(t.score + 1, cats))
-  tmp2 <- array(0, c(t.score + 1, cats))
+  # number of possible scores for the test without this item
+  t_noitem <- t.score - cats + 2L
 
-  for (j in 1:cats) {
-    tmp1[j:(t.score + 1 - cats + j), j] <- Rfast::colsums(prob.cats[, j] * lkhd_noitem * wts[, 2])
-    tmp2[, j] <- tmp1[, j] / colSums(lkhd * wts[, 2])
-  }
+  # compute joint[k, j] = sum_theta w_theta * P(cat=j-1|theta) * P(rest_score=k-1|theta)
+  # one BLAS DGEMM replaces K separate Rfast::colsums() calls
+  joint <- crossprod(lkhd_noitem, prob.cats * wts[, 2])  # (t_noitem x cats)
+
+  # fill the (t.score+1) x cats staircase matrix in one vectorised assignment:
+  # category j occupies rows j:(j + t_noitem - 1) of column j
+  row_idx <- rep(seq_len(t_noitem), cats) + rep(seq_len(cats) - 1L, each = t_noitem)
+  col_idx <- rep(seq_len(cats), each = t_noitem)
+  tmp1 <- array(0, c(t.score + 1, cats))
+  tmp1[cbind(row_idx, col_idx)] <- joint
+
+  # divide each row by the marginal score distribution (one BLAS DGEMV);
+  # R recycles denom column-wise so each row i is divided by denom[i]
+  denom <- as.vector(crossprod(lkhd, wts[, 2]))  # length t.score+1
+  tmp2  <- tmp1 / denom
 
   colnames(tmp2) <- paste0("score.", 0:(cats - 1))
   rownames(tmp2) <- paste0("score.", 0:t.score)
@@ -30,15 +41,13 @@ expFreq <- function(t.score, cats, prob.cats, lkhd_noitem, lkhd, wts, score.freq
 
 # This function returns a contingency table of the observed frequencies
 # to be used to compute S-X2 fit statistic
-#' @import dplyr
 obsFreq <- function(rawscore, response, t.score, cats) {
-  tmp <- data.frame(score = rawscore, response = response)
-  tmp$score <- factor(tmp$score, levels = 0:(t.score))
-  tmp$response <- factor(tmp$response, levels = 0:(cats - 1))
-
-  tmp2 <-
-    table(tmp) %>%
-    as.data.frame.matrix()
+  # Encode (rawscore, response) as a row-major linear index into the
+  # (t.score+1) x cats matrix, then rebuild with a single tabulate() call;
+  # avoids factor allocation and table() overhead called J times
+  lin_idx <- rawscore * cats + response + 1L
+  tmp2 <- matrix(tabulate(lin_idx, nbins = (t.score + 1L) * cats),
+                 nrow = t.score + 1L, ncol = cats, byrow = TRUE)
 
   colnames(tmp2) <- paste0("score.", 0:(cats - 1))
   rownames(tmp2) <- paste0("score.", 0:t.score)

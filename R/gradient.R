@@ -154,7 +154,14 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
                           gprior = list(dist = "beta", params = c(5, 17)),
                           use.aprior = FALSE,
                           use.bprior = FALSE,
-                          use.gprior = TRUE) {
+                          use.gprior = TRUE,
+                          p_cache = NULL) {
+  # `p_cache`: optional drm() probability matrix for the active branch.
+  # When supplied by make_drm_optim_fns(), the same P(theta) is reused
+  # across loglike_drm / grad_item_drm / hess_item_drm at the same
+  # (item_par, theta) — saving 2 of the 3 drm() calls per nlminb point.
+  # When NULL (e.g. callers outside the optim factory), each branch
+  # falls back to drm() exactly as before.
   # count the number of item parameters to be estimated
   n.par <- length(item_par)
 
@@ -165,7 +172,9 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
     b <- item_par[-1]
 
     # compute the probabilities of correct and incorrect
-    p <- drm(theta = theta, a = a, b = b, g = 0, D = D)
+    # (reuse the cached P matrix when available; bit-exact equivalent
+    # to recomputing drm() with the same (a, b, g) parameters)
+    p <- if (is.null(p_cache)) drm(theta = theta, a = a, b = b, g = 0, D = D) else p_cache
 
     # compute the component values
     r_p <- r_i - (f_i * p)
@@ -213,7 +222,8 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
     b <- item_par
 
     # compute the probabilities of correct and incorrect
-    p <- drm(theta = theta, a = a, b = b, g = 0, D = D)
+    # (reuse the cached P matrix when supplied by the optim factory)
+    p <- if (is.null(p_cache)) drm(theta = theta, a = a, b = b, g = 0, D = D) else p_cache
 
     # compute the component values
     r_p <- r_i - (f_i * p)
@@ -248,7 +258,8 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
 
     # compute the probabilities of correct and incorrect
     # p <- drm(theta=theta, a=a, b=b, g=0, D=D) + 1e-8
-    p <- drm(theta = theta, a = a, b = b, g = 0, D = D)
+    # (reuse the cached P matrix when supplied by the optim factory)
+    p <- if (is.null(p_cache)) drm(theta = theta, a = a, b = b, g = 0, D = D) else p_cache
 
     # compute the component values
     Da <- D * a
@@ -298,7 +309,8 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
     g <- item_par[3]
 
     # compute the probabilities of correct and incorrect
-    p <- drm(theta = theta, a = a, b = b, g = g, D = D)
+    # (reuse the cached P matrix when supplied by the optim factory)
+    p <- if (is.null(p_cache)) drm(theta = theta, a = a, b = b, g = g, D = D) else p_cache
 
     # compute the component values
     g_1 <- 1 - g
@@ -366,7 +378,8 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
     g <- g.val
 
     # compute the probabilities of correct and incorrect
-    p <- drm(theta = theta, a = a, b = b, g = g, D = D)
+    # (reuse the cached P matrix when supplied by the optim factory)
+    p <- if (is.null(p_cache)) drm(theta = theta, a = a, b = b, g = g, D = D) else p_cache
 
     # compute the component values
     g_1 <- 1 - g
@@ -425,7 +438,14 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
                           aprior = list(dist = "lnorm", params = c(1, 0.5)),
                           bprior = list(dist = "norm", params = c(0.0, 1.0)),
                           use.aprior = FALSE,
-                          use.bprior = FALSE) {
+                          use.bprior = FALSE,
+                          prob_cache = NULL) {
+  # `prob_cache`, when non-NULL, is produced by make_prm_optim_fns() and
+  # carries the pre-computed probability objects for the current item_par:
+  #   GRM  → $allPst (boundary probs from drm()), $P (clipped category probs)
+  #   GPCM → $theta_d, $numer, $denom, $P
+  # Using the cache skips the most expensive matrix operations (drm() for GRM;
+  # exp(cumsum) + rowsums for GPCM) that loglike_prm already paid for.
   #   # count the number of item parameters to be estimated
   n.par <- length(item_par)
 
@@ -440,14 +460,19 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
     # check the number of step parameters
     m <- length(d)
 
-    # calculate all the probabilities greater than equal to each threshold
-    allPst <- drm(theta = theta, a = rep(a, m), b = d, g = 0, D = D)
-    allQst <- 1 - allPst[, , drop = FALSE]
-
-    # calculate category probabilities
-    P <- (cbind(1, allPst) - cbind(allPst, 0))
-    P[P > 9999999999e-10] <- 9999999999e-10
-    P[P < 1e-10] <- 1e-10
+    # calculate all the probabilities greater than equal to each threshold;
+    # reuse cached allPst when supplied — bit-exact equivalent to drm()
+    if (is.null(prob_cache)) {
+      allPst <- drm(theta = theta, a = rep(a, m), b = d, g = 0, D = D)
+      allQst <- 1 - allPst[, , drop = FALSE]
+      P <- (cbind(1, allPst) - cbind(allPst, 0))
+      P[P > 9999999999e-10] <- 9999999999e-10
+      P[P < 1e-10] <- 1e-10
+    } else {
+      allPst <- prob_cache$allPst
+      allQst <- 1 - allPst[, , drop = FALSE]
+      P <- prob_cache$P  # already clipped by the factory
+    }
 
     # compute the component values to get gradients
     Da <- D * a
@@ -507,20 +532,30 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
       # check the number of step parameters
       m <- length(d) - 1
 
-      # calculate category probabilities
+      # calculate category probabilities (theta_d, numer, denom, P);
+      # reuse cached values when supplied — the entire exp(cumsum) block
+      # that loglike_prm already computed is skipped on cache hit.
+      # Da is a scalar (D * a) and is not cached: negligible to recompute.
       Da <- D * a
-      theta_d <- (Rfast::Outer(x = theta, y = d, oper = "-"))
-      z <- Da * theta_d
-      cumsum_z <- t(Rfast::colCumSums(z))
-      if (any(cumsum_z > 700)) {
-        cumsum_z <- (cumsum_z / max(cumsum_z)) * 700
+      if (is.null(prob_cache)) {
+        theta_d <- (Rfast::Outer(x = theta, y = d, oper = "-"))
+        z <- Da * theta_d
+        cumsum_z <- t(Rfast::colCumSums(z))
+        if (any(cumsum_z > 700)) {
+          cumsum_z <- (cumsum_z / max(cumsum_z)) * 700
+        }
+        if (any(cumsum_z < -700)) {
+          cumsum_z <- -(cumsum_z / min(cumsum_z)) * 700
+        }
+        numer <- exp(cumsum_z) # numerator
+        denom <- Rfast::rowsums(numer)
+        P <- (numer / denom)
+      } else {
+        theta_d <- prob_cache$theta_d
+        numer <- prob_cache$numer
+        denom <- prob_cache$denom
+        P <- prob_cache$P
       }
-      if (any(cumsum_z < -700)) {
-        cumsum_z <- -(cumsum_z / min(cumsum_z)) * 700
-      }
-      numer <- exp(cumsum_z) # numerator
-      denom <- Rfast::rowsums(numer)
-      P <- (numer / denom)
 
       # compute the component values to get a gradient vector
       dsmat <- array(0, c((m + 1), (m + 1)))
@@ -582,20 +617,27 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
       # check the number of step parameters
       m <- length(d) - 1
 
-      # calculate category probabilities
+      # calculate category probabilities (same cache strategy as GPCM)
       Da <- D * a
-      theta_d <- (Rfast::Outer(x = theta, y = d, oper = "-"))
-      z <- Da * theta_d
-      cumsum_z <- t(Rfast::colCumSums(z))
-      if (any(cumsum_z > 700)) {
-        cumsum_z <- (cumsum_z / max(cumsum_z)) * 700
+      if (is.null(prob_cache)) {
+        theta_d <- (Rfast::Outer(x = theta, y = d, oper = "-"))
+        z <- Da * theta_d
+        cumsum_z <- t(Rfast::colCumSums(z))
+        if (any(cumsum_z > 700)) {
+          cumsum_z <- (cumsum_z / max(cumsum_z)) * 700
+        }
+        if (any(cumsum_z < -700)) {
+          cumsum_z <- -(cumsum_z / min(cumsum_z)) * 700
+        }
+        numer <- exp(cumsum_z) # numerator
+        denom <- Rfast::rowsums(numer)
+        P <- (numer / denom)
+      } else {
+        theta_d <- prob_cache$theta_d
+        numer <- prob_cache$numer
+        denom <- prob_cache$denom
+        P <- prob_cache$P
       }
-      if (any(cumsum_z < -700)) {
-        cumsum_z <- -(cumsum_z / min(cumsum_z)) * 700
-      }
-      numer <- exp(cumsum_z) # numerator
-      denom <- Rfast::rowsums(numer)
-      P <- (numer / denom)
 
       # compute the component values to get a gradient vector
       dsmat <- array(0, c((m + 1), (m + 1)))

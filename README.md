@@ -10,7 +10,7 @@ The package enables:
 - Typical item parameters estimation
 - Pretest item calibration
 - Multiple-group item calibration
-- Estimation of examinees’ latent abilities,
+- Estimation of examinees’ latent abilities
 - Evaluation of model-data fit at the item level
 
 Item parameter estimation is conducted using marginal maximum likelihood
@@ -38,15 +38,14 @@ Also, model fit assessment includes item fit statistics such as:
 
 - Chi-square (X²; Bock, 1960; Yen, 1981),
 - Likelihood ratio chi-square (G²; McKinley & Mills, 1985),
-- Infit and outfit statistics (Ames et al., 2015),
-- Graphical residual diagnostics (Hambleton et al., 1991).
-- S-X² (Orlando & Thissen, 2000, 2003),
+- Infit and outfit statistics (Ames et al., 2015)
+- Graphical residual diagnostics (Hambleton et al., 1991)
+- S-X² (Orlando & Thissen, 2000, 2003)
 
 In addition, the package offers a variety of utilities for IRT analysis,
 including:
 
-- Evaluating model-data fit
-- Detecting DIF
+- Detecting DIF (e.g., RDIF, CATSIB)
 - Computing classification accuracy and consistency indices
 - Simulating response data
 - Computing the conditional distribution of observed scores using the
@@ -64,6 +63,14 @@ You can install the released version of irtQ from
 
 ``` r
 install.packages("irtQ")
+```
+
+You can also install the latest development version of `irtQ` from
+GitHub using the **devtools** package:
+
+``` r
+install.packages("devtools")
+devtools::install_github("hwangQ/irtQ")
 ```
 
 ## 1. Item Calibration for a Linear Test Form
@@ -426,7 +433,7 @@ mod_ref <- irtQ::est_irt(data = data_ref, D = 1, model = c(rep("3PLM",
 #> Estimating item parameters... 
 #>  EM iteration: 1, Loglike: -53907.8298, Max-Change: 1.476851 EM iteration: 2, Loglike: -47810.7610, Max-Change: 0.333348 EM iteration: 3, Loglike: -47780.1401, Max-Change: 0.130911 EM iteration: 4, Loglike: -47777.7493, Max-Change: 0.064179 EM iteration: 5, Loglike: -47776.9296, Max-Change: 0.038227 EM iteration: 6, Loglike: -47776.4542, Max-Change: 0.026209 EM iteration: 7, Loglike: -47776.1402, Max-Change: 0.019566 EM iteration: 8, Loglike: -47775.9185, Max-Change: 0.015306 EM iteration: 9, Loglike: -47775.7539, Max-Change: 0.012285 EM iteration: 10, Loglike: -47775.6263, Max-Change: 0.01001 EM iteration: 11, Loglike: -47775.5239, Max-Change: 0.008238 EM iteration: 12, Loglike: -47775.4394, Max-Change: 0.006834 EM iteration: 13, Loglike: -47775.3679, Max-Change: 0.005706 EM iteration: 14, Loglike: -47775.3064, Max-Change: 0.004795 EM iteration: 15, Loglike: -47775.2525, Max-Change: 0.004052 EM iteration: 16, Loglike: -47775.2048, Max-Change: 0.003444 EM iteration: 17, Loglike: -47775.1621, Max-Change: 0.002944 EM iteration: 18, Loglike: -47775.1234, Max-Change: 0.002529 EM iteration: 19, Loglike: -47775.0882, Max-Change: 0.002184 EM iteration: 20, Loglike: -47775.0558, Max-Change: 0.001895 EM iteration: 21, Loglike: -47775.0259, Max-Change: 0.001652 EM iteration: 22, Loglike: -47774.9980, Max-Change: 0.001446 EM iteration: 23, Loglike: -47774.9719, Max-Change: 0.001271 EM iteration: 24, Loglike: -47774.9473, Max-Change: 0.001121 EM iteration: 25, Loglike: -47774.9241, Max-Change: 0.000993 
 #> Computing item parameter var-covariance matrix... 
-#> Estimation is finished in 4.11 seconds.
+#> Estimation is finished in 5.32 seconds.
 
 # Summarize estimation results
 irtQ::summary(mod_ref)
@@ -450,12 +457,12 @@ irtQ::summary(mod_ref)
 #>  Number of free parameters: 124
 #>  Number of fixed items: 0
 #>  Number of E-step cycles completed: 25
-#>  Maximum parameter change: 0.0009933509
+#>  Maximum parameter change: 0.0009933655
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 1.69
-#>  Standard error computation: 2.26
-#>  Total computation: 4.11
+#>  EM algorithm: 4.93
+#>  Standard error computation: 0.17
+#>  Total computation: 5.32
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -559,46 +566,46 @@ irtQ::summary(mod_ref)
 est_ref <- mod_ref$par.est
 print(est_ref)
 #>         id cats model     par.1       par.2       par.3      par.4      par.5
-#> 1   Ref_I1    2  3PLM 0.6919958  1.14484428  0.18976505         NA         NA
-#> 2   Ref_I2    2  3PLM 1.7724464 -1.02099195  0.19616040         NA         NA
-#> 3   Ref_I3    2  3PLM 1.5150979  0.70966858  0.23867405         NA         NA
-#> 4   Ref_I4    2  3PLM 1.0524674 -0.43526125  0.17728801         NA         NA
-#> 5   Ref_I5    2  3PLM 0.9167739  0.26820574  0.26351619         NA         NA
-#> 6   Ref_I6    2  3PLM 1.8666135  0.72927995  0.08652424         NA         NA
-#> 7   Ref_I7    2  3PLM 1.0562014  1.19815134  0.18056280         NA         NA
-#> 8   Ref_I8    2  3PLM 0.9748064  0.94777750  0.15848887         NA         NA
-#> 9   Ref_I9    2  3PLM 1.3025729  0.73175294  0.28029921         NA         NA
-#> 10 Ref_I10    2  3PLM 1.8639742  0.18640841  0.16366458         NA         NA
-#> 11 Ref_I11    2  3PLM 0.9939469 -0.26792395  0.15892795         NA         NA
-#> 12 Ref_I12    2  3PLM 1.0372451  1.16353762  0.11695581         NA         NA
-#> 13 Ref_I13    2  3PLM 1.2190361  1.33299401  0.15362908         NA         NA
-#> 14 Ref_I14    2  3PLM 1.5357357  0.23646413  0.23961506         NA         NA
-#> 15 Ref_I15    2  3PLM 1.4824882  0.01278570  0.16718702         NA         NA
-#> 16 Ref_I16    2  3PLM 2.3536532  0.01021882  0.06936723         NA         NA
-#> 17 Ref_I17    2  3PLM 1.4812117 -0.02787403  0.21368590         NA         NA
-#> 18 Ref_I18    2  3PLM 1.7011523  1.23768162  0.26906304         NA         NA
-#> 19 Ref_I19    2  3PLM 2.1548401 -1.01143131  0.14829320         NA         NA
-#> 20 Ref_I20    2  3PLM 1.7590704 -1.27947224  0.30164289         NA         NA
-#> 21 Ref_I21    2  3PLM 1.7311825 -0.93888505  0.26145478         NA         NA
-#> 22 Ref_I22    2  3PLM 0.8950656 -0.23309091  0.24895260         NA         NA
+#> 1   Ref_I1    2  3PLM 0.6919957  1.14484402  0.18976499         NA         NA
+#> 2   Ref_I2    2  3PLM 1.7724464 -1.02099189  0.19616040         NA         NA
+#> 3   Ref_I3    2  3PLM 1.5150979  0.70966856  0.23867404         NA         NA
+#> 4   Ref_I4    2  3PLM 1.0524673 -0.43526130  0.17728798         NA         NA
+#> 5   Ref_I5    2  3PLM 0.9167739  0.26820573  0.26351619         NA         NA
+#> 6   Ref_I6    2  3PLM 1.8666135  0.72927989  0.08652424         NA         NA
+#> 7   Ref_I7    2  3PLM 1.0562015  1.19815132  0.18056280         NA         NA
+#> 8   Ref_I8    2  3PLM 0.9748064  0.94777748  0.15848887         NA         NA
+#> 9   Ref_I9    2  3PLM 1.3025729  0.73175285  0.28029919         NA         NA
+#> 10 Ref_I10    2  3PLM 1.8639741  0.18640838  0.16366457         NA         NA
+#> 11 Ref_I11    2  3PLM 0.9939469 -0.26792404  0.15892792         NA         NA
+#> 12 Ref_I12    2  3PLM 1.0372451  1.16353752  0.11695580         NA         NA
+#> 13 Ref_I13    2  3PLM 1.2190362  1.33299399  0.15362908         NA         NA
+#> 14 Ref_I14    2  3PLM 1.5357356  0.23646403  0.23961503         NA         NA
+#> 15 Ref_I15    2  3PLM 1.4824881  0.01278565  0.16718700         NA         NA
+#> 16 Ref_I16    2  3PLM 2.3536532  0.01021881  0.06936722         NA         NA
+#> 17 Ref_I17    2  3PLM 1.4812118 -0.02787402  0.21368590         NA         NA
+#> 18 Ref_I18    2  3PLM 1.7011526  1.23768149  0.26906305         NA         NA
+#> 19 Ref_I19    2  3PLM 2.1548402 -1.01143124  0.14829321         NA         NA
+#> 20 Ref_I20    2  3PLM 1.7590705 -1.27947219  0.30164290         NA         NA
+#> 21 Ref_I21    2  3PLM 1.7311826 -0.93888503  0.26145478         NA         NA
+#> 22 Ref_I22    2  3PLM 0.8950656 -0.23309090  0.24895260         NA         NA
 #> 23 Ref_I23    2  3PLM 0.9604247 -0.27453531  0.13157552         NA         NA
-#> 24 Ref_I24    2  3PLM 1.0475076  1.53775315  0.22975399         NA         NA
-#> 25 Ref_I25    2  3PLM 0.7093919 -1.60381825  0.21525701         NA         NA
-#> 26 Ref_I26    2  3PLM 0.8782582 -1.97974496  0.22367120         NA         NA
-#> 27 Ref_I27    2  3PLM 1.4142228  0.12900790  0.16073408         NA         NA
-#> 28 Ref_I28    2  3PLM 2.7271258  0.11722864  0.24875028         NA         NA
-#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227009  0.22190754         NA         NA
-#> 30 Ref_I30    2  3PLM 1.6924003  0.89383805  0.35473129         NA         NA
-#> 31 Ref_I31    2  3PLM 1.0382177  0.83917004  0.14081449         NA         NA
-#> 32 Ref_I32    2  3PLM 1.6949111 -0.69941724  0.30436382         NA         NA
-#> 33 Ref_I33    2  3PLM 1.2377865 -1.38353603  0.16635813         NA         NA
-#> 34 Ref_I34    2  3PLM 1.3780871  0.37216895  0.20560614         NA         NA
+#> 24 Ref_I24    2  3PLM 1.0475077  1.53775301  0.22975399         NA         NA
+#> 25 Ref_I25    2  3PLM 0.7093919 -1.60381822  0.21525701         NA         NA
+#> 26 Ref_I26    2  3PLM 0.8782582 -1.97974491  0.22367121         NA         NA
+#> 27 Ref_I27    2  3PLM 1.4142228  0.12900789  0.16073407         NA         NA
+#> 28 Ref_I28    2  3PLM 2.7271259  0.11722864  0.24875028         NA         NA
+#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227008  0.22190753         NA         NA
+#> 30 Ref_I30    2  3PLM 1.6924004  0.89383796  0.35473129         NA         NA
+#> 31 Ref_I31    2  3PLM 1.0382178  0.83916998  0.14081448         NA         NA
+#> 32 Ref_I32    2  3PLM 1.6949111 -0.69941722  0.30436382         NA         NA
+#> 33 Ref_I33    2  3PLM 1.2377865 -1.38353599  0.16635813         NA         NA
+#> 34 Ref_I34    2  3PLM 1.3780871  0.37216894  0.20560614         NA         NA
 #> 35 Ref_I35    2  3PLM 1.6786172  0.01343367  0.28045264         NA         NA
-#> 36 Ref_I36    2  3PLM 1.0208415  1.35077179  0.16012086         NA         NA
-#> 37 Ref_I37    2  3PLM 1.9186508 -0.21446011  0.17043569         NA         NA
-#> 38 Ref_I38    2  3PLM 0.7239630 -0.42947089  0.21019599         NA         NA
-#> 39 Ref_I39    5   GRM 1.9602129 -1.83262075 -1.16744771 -0.6208679 -0.1692025
-#> 40 Ref_I40    5   GRM 1.3329010 -0.72583247 -0.06982295  0.5783163  1.1047434
+#> 36 Ref_I36    2  3PLM 1.0208415  1.35077167  0.16012085         NA         NA
+#> 37 Ref_I37    2  3PLM 1.9186509 -0.21446010  0.17043569         NA         NA
+#> 38 Ref_I38    2  3PLM 0.7239630 -0.42947088  0.21019599         NA         NA
+#> 39 Ref_I39    5   GRM 1.9602130 -1.83262071 -1.16744768 -0.6208679 -0.1692025
+#> 40 Ref_I40    5   GRM 1.3329010 -0.72583244 -0.06982294  0.5783162  1.1047434
 
 ##------------------------------------------------------------------------------
 ## 2. Pretest item calibration using Fixed Item
@@ -660,9 +667,9 @@ mod_fipc <- irtQ::est_irt(x = meta_fipc, data = data_new,
   fipc.method = "MEM", fix.loc = c(1:40))
 #> Parsing input... 
 #> Estimating item parameters... 
-#>  EM iteration: 1, Loglike: -41799.5018, Max-Change: 2.177366 EM iteration: 2, Loglike: -60177.8990, Max-Change: 0.660102 EM iteration: 3, Loglike: -60143.0624, Max-Change: 0.226251 EM iteration: 4, Loglike: -60141.1866, Max-Change: 0.082366 EM iteration: 5, Loglike: -60140.7281, Max-Change: 0.031397 EM iteration: 6, Loglike: -60140.4860, Max-Change: 0.012555 EM iteration: 7, Loglike: -60140.3168, Max-Change: 0.005361 EM iteration: 8, Loglike: -60140.1888, Max-Change: 0.002513 EM iteration: 9, Loglike: -60140.0888, Max-Change: 0.001326 EM iteration: 10, Loglike: -60140.0086, Max-Change: 0.000788 
+#>  EM iteration: 1, Loglike: -41799.5018, Max-Change: 2.177366 EM iteration: 2, Loglike: -60177.8990, Max-Change: 0.660102 EM iteration: 3, Loglike: -60143.0624, Max-Change: 0.22625 EM iteration: 4, Loglike: -60141.1866, Max-Change: 0.082367 EM iteration: 5, Loglike: -60140.7281, Max-Change: 0.031397 EM iteration: 6, Loglike: -60140.4860, Max-Change: 0.012555 EM iteration: 7, Loglike: -60140.3168, Max-Change: 0.005361 EM iteration: 8, Loglike: -60140.1888, Max-Change: 0.002513 EM iteration: 9, Loglike: -60140.0888, Max-Change: 0.001326 EM iteration: 10, Loglike: -60140.0086, Max-Change: 0.000788 
 #> Computing item parameter var-covariance matrix... 
-#> Estimation is finished in 1.4 seconds.
+#> Estimation is finished in 1.39 seconds.
 
 # Summarize estimation results
 irtQ::summary(mod_fipc)
@@ -685,12 +692,12 @@ irtQ::summary(mod_fipc)
 #>  Number of free parameters: 53
 #>  Number of fixed items: 40
 #>  Number of E-step cycles completed: 10
-#>  Maximum parameter change: 0.0007875898
+#>  Maximum parameter change: 0.0007875969
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 0.53
-#>  Standard error computation: 0.58
-#>  Total computation: 1.4
+#>  EM algorithm: 0.98
+#>  Standard error computation: 0.05
+#>  Total computation: 1.39
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -824,61 +831,61 @@ irtQ::summary(mod_fipc)
 est_new_fipc <- mod_fipc$par.est
 print(est_new_fipc)
 #>         id cats model     par.1       par.2       par.3      par.4      par.5
-#> 1   Ref_I1    2  3PLM 0.6919958  1.14484428  0.18976505         NA         NA
-#> 2   Ref_I2    2  3PLM 1.7724464 -1.02099195  0.19616040         NA         NA
-#> 3   Ref_I3    2  3PLM 1.5150979  0.70966858  0.23867405         NA         NA
-#> 4   Ref_I4    2  3PLM 1.0524674 -0.43526125  0.17728801         NA         NA
-#> 5   Ref_I5    2  3PLM 0.9167739  0.26820574  0.26351619         NA         NA
-#> 6   Ref_I6    2  3PLM 1.8666135  0.72927995  0.08652424         NA         NA
-#> 7   Ref_I7    2  3PLM 1.0562014  1.19815134  0.18056280         NA         NA
-#> 8   Ref_I8    2  3PLM 0.9748064  0.94777750  0.15848887         NA         NA
-#> 9   Ref_I9    2  3PLM 1.3025729  0.73175294  0.28029921         NA         NA
-#> 10 Ref_I10    2  3PLM 1.8639742  0.18640841  0.16366458         NA         NA
-#> 11 Ref_I11    2  3PLM 0.9939469 -0.26792395  0.15892795         NA         NA
-#> 12 Ref_I12    2  3PLM 1.0372451  1.16353762  0.11695581         NA         NA
-#> 13 Ref_I13    2  3PLM 1.2190361  1.33299401  0.15362908         NA         NA
-#> 14 Ref_I14    2  3PLM 1.5357357  0.23646413  0.23961506         NA         NA
-#> 15 Ref_I15    2  3PLM 1.4824882  0.01278570  0.16718702         NA         NA
-#> 16 Ref_I16    2  3PLM 2.3536532  0.01021882  0.06936723         NA         NA
-#> 17 Ref_I17    2  3PLM 1.4812117 -0.02787403  0.21368590         NA         NA
-#> 18 Ref_I18    2  3PLM 1.7011523  1.23768162  0.26906304         NA         NA
-#> 19 Ref_I19    2  3PLM 2.1548401 -1.01143131  0.14829320         NA         NA
-#> 20 Ref_I20    2  3PLM 1.7590704 -1.27947224  0.30164289         NA         NA
-#> 21 Ref_I21    2  3PLM 1.7311825 -0.93888505  0.26145478         NA         NA
-#> 22 Ref_I22    2  3PLM 0.8950656 -0.23309091  0.24895260         NA         NA
+#> 1   Ref_I1    2  3PLM 0.6919957  1.14484402  0.18976499         NA         NA
+#> 2   Ref_I2    2  3PLM 1.7724464 -1.02099189  0.19616040         NA         NA
+#> 3   Ref_I3    2  3PLM 1.5150979  0.70966856  0.23867404         NA         NA
+#> 4   Ref_I4    2  3PLM 1.0524673 -0.43526130  0.17728798         NA         NA
+#> 5   Ref_I5    2  3PLM 0.9167739  0.26820573  0.26351619         NA         NA
+#> 6   Ref_I6    2  3PLM 1.8666135  0.72927989  0.08652424         NA         NA
+#> 7   Ref_I7    2  3PLM 1.0562015  1.19815132  0.18056280         NA         NA
+#> 8   Ref_I8    2  3PLM 0.9748064  0.94777748  0.15848887         NA         NA
+#> 9   Ref_I9    2  3PLM 1.3025729  0.73175285  0.28029919         NA         NA
+#> 10 Ref_I10    2  3PLM 1.8639741  0.18640838  0.16366457         NA         NA
+#> 11 Ref_I11    2  3PLM 0.9939469 -0.26792404  0.15892792         NA         NA
+#> 12 Ref_I12    2  3PLM 1.0372451  1.16353752  0.11695580         NA         NA
+#> 13 Ref_I13    2  3PLM 1.2190362  1.33299399  0.15362908         NA         NA
+#> 14 Ref_I14    2  3PLM 1.5357356  0.23646403  0.23961503         NA         NA
+#> 15 Ref_I15    2  3PLM 1.4824881  0.01278565  0.16718700         NA         NA
+#> 16 Ref_I16    2  3PLM 2.3536532  0.01021881  0.06936722         NA         NA
+#> 17 Ref_I17    2  3PLM 1.4812118 -0.02787402  0.21368590         NA         NA
+#> 18 Ref_I18    2  3PLM 1.7011526  1.23768149  0.26906305         NA         NA
+#> 19 Ref_I19    2  3PLM 2.1548402 -1.01143124  0.14829321         NA         NA
+#> 20 Ref_I20    2  3PLM 1.7590705 -1.27947219  0.30164290         NA         NA
+#> 21 Ref_I21    2  3PLM 1.7311826 -0.93888503  0.26145478         NA         NA
+#> 22 Ref_I22    2  3PLM 0.8950656 -0.23309090  0.24895260         NA         NA
 #> 23 Ref_I23    2  3PLM 0.9604247 -0.27453531  0.13157552         NA         NA
-#> 24 Ref_I24    2  3PLM 1.0475076  1.53775315  0.22975399         NA         NA
-#> 25 Ref_I25    2  3PLM 0.7093919 -1.60381825  0.21525701         NA         NA
-#> 26 Ref_I26    2  3PLM 0.8782582 -1.97974496  0.22367120         NA         NA
-#> 27 Ref_I27    2  3PLM 1.4142228  0.12900790  0.16073408         NA         NA
-#> 28 Ref_I28    2  3PLM 2.7271258  0.11722864  0.24875028         NA         NA
-#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227009  0.22190754         NA         NA
-#> 30 Ref_I30    2  3PLM 1.6924003  0.89383805  0.35473129         NA         NA
-#> 31 Ref_I31    2  3PLM 1.0382177  0.83917004  0.14081449         NA         NA
-#> 32 Ref_I32    2  3PLM 1.6949111 -0.69941724  0.30436382         NA         NA
-#> 33 Ref_I33    2  3PLM 1.2377865 -1.38353603  0.16635813         NA         NA
-#> 34 Ref_I34    2  3PLM 1.3780871  0.37216895  0.20560614         NA         NA
+#> 24 Ref_I24    2  3PLM 1.0475077  1.53775301  0.22975399         NA         NA
+#> 25 Ref_I25    2  3PLM 0.7093919 -1.60381822  0.21525701         NA         NA
+#> 26 Ref_I26    2  3PLM 0.8782582 -1.97974491  0.22367121         NA         NA
+#> 27 Ref_I27    2  3PLM 1.4142228  0.12900789  0.16073407         NA         NA
+#> 28 Ref_I28    2  3PLM 2.7271259  0.11722864  0.24875028         NA         NA
+#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227008  0.22190753         NA         NA
+#> 30 Ref_I30    2  3PLM 1.6924004  0.89383796  0.35473129         NA         NA
+#> 31 Ref_I31    2  3PLM 1.0382178  0.83916998  0.14081448         NA         NA
+#> 32 Ref_I32    2  3PLM 1.6949111 -0.69941722  0.30436382         NA         NA
+#> 33 Ref_I33    2  3PLM 1.2377865 -1.38353599  0.16635813         NA         NA
+#> 34 Ref_I34    2  3PLM 1.3780871  0.37216894  0.20560614         NA         NA
 #> 35 Ref_I35    2  3PLM 1.6786172  0.01343367  0.28045264         NA         NA
-#> 36 Ref_I36    2  3PLM 1.0208415  1.35077179  0.16012086         NA         NA
-#> 37 Ref_I37    2  3PLM 1.9186508 -0.21446011  0.17043569         NA         NA
-#> 38 Ref_I38    2  3PLM 0.7239630 -0.42947089  0.21019599         NA         NA
-#> 39 Ref_I39    5   GRM 1.9602129 -1.83262075 -1.16744771 -0.6208679 -0.1692025
-#> 40 Ref_I40    5   GRM 1.3329010 -0.72583247 -0.06982295  0.5783163  1.1047434
-#> 41  New_I1    2  3PLM 1.7544479  0.60773270  0.24514471         NA         NA
-#> 42  New_I2    2  3PLM 1.8504109 -1.20664264  0.20151192         NA         NA
-#> 43  New_I3    2  3PLM 1.6147606  0.49347601  0.13571997         NA         NA
-#> 44  New_I4    2  3PLM 1.0555607 -0.23825506  0.15300057         NA         NA
-#> 45  New_I5    2  3PLM 1.0904024  2.21167273  0.15226183         NA         NA
-#> 46  New_I6    2  3PLM 2.8516499  1.54044411  0.19668025         NA         NA
-#> 47  New_I7    2  3PLM 1.3790783  0.09572745  0.17329931         NA         NA
-#> 48  New_I8    2  3PLM 1.7223299  0.15449590  0.17624706         NA         NA
-#> 49  New_I9    2  3PLM 1.3362537  0.32062019  0.08717881         NA         NA
-#> 50 New_I10    2  3PLM 1.5311036  1.24203918  0.08670598         NA         NA
-#> 51 New_I11    2  3PLM 1.9026708 -0.98886364  0.21168998         NA         NA
-#> 52 New_I12    2  3PLM 1.3468727 -0.16146770  0.37836730         NA         NA
-#> 53 New_I13    5   GRM 1.2495401 -0.38606495  0.18902251  0.7711329  1.2171390
-#> 54 New_I14    5   GRM 1.2827773 -2.16768681 -1.45593521 -0.7442029 -0.1292640
-#> 55 New_I15    5   GRM 0.9146992 -0.76013556 -0.03738067  0.6086850  1.1283143
+#> 36 Ref_I36    2  3PLM 1.0208415  1.35077167  0.16012085         NA         NA
+#> 37 Ref_I37    2  3PLM 1.9186509 -0.21446010  0.17043569         NA         NA
+#> 38 Ref_I38    2  3PLM 0.7239630 -0.42947088  0.21019599         NA         NA
+#> 39 Ref_I39    5   GRM 1.9602130 -1.83262071 -1.16744768 -0.6208679 -0.1692025
+#> 40 Ref_I40    5   GRM 1.3329010 -0.72583244 -0.06982294  0.5783162  1.1047434
+#> 41  New_I1    2  3PLM 1.7544480  0.60773268  0.24514471         NA         NA
+#> 42  New_I2    2  3PLM 1.8504109 -1.20664265  0.20151190         NA         NA
+#> 43  New_I3    2  3PLM 1.6147606  0.49347600  0.13571997         NA         NA
+#> 44  New_I4    2  3PLM 1.0555607 -0.23825505  0.15300057         NA         NA
+#> 45  New_I5    2  3PLM 1.0904024  2.21167266  0.15226183         NA         NA
+#> 46  New_I6    2  3PLM 2.8516500  1.54044406  0.19668025         NA         NA
+#> 47  New_I7    2  3PLM 1.3790784  0.09572744  0.17329931         NA         NA
+#> 48  New_I8    2  3PLM 1.7223300  0.15449590  0.17624706         NA         NA
+#> 49  New_I9    2  3PLM 1.3362538  0.32062018  0.08717881         NA         NA
+#> 50 New_I10    2  3PLM 1.5311035  1.24203909  0.08670597         NA         NA
+#> 51 New_I11    2  3PLM 1.9026709 -0.98886362  0.21168998         NA         NA
+#> 52 New_I12    2  3PLM 1.3468728 -0.16146762  0.37836732         NA         NA
+#> 53 New_I13    5   GRM 1.2495401 -0.38606491  0.18902252  0.7711329  1.2171389
+#> 54 New_I14    5   GRM 1.2827773 -2.16768674 -1.45593517 -0.7442029 -0.1292640
+#> 55 New_I15    5   GRM 0.9146992 -0.76013553 -0.03738067  0.6086850  1.1283143
 
 # Plot estimated empirical distribution of
 # ability
@@ -930,7 +937,7 @@ theta_est <- score_ml$est.theta
 ## Score categories item.id = paste0('New_I',
 ## 1:15) # Item IDs use.gprior = TRUE # Use prior
 ## for guessing parameter gprior = list(dist =
-## 'beta', params = c(5, 16) # Prior: Beta(5,16)
+## 'beta', params = c(5, 16)) # Prior: Beta(5,16)
 ## for g
 mod_fapc <- irtQ::est_item(data = data_new[, 41:55],
   score = theta_est, D = 1, model = c(rep("3PLM",
@@ -974,7 +981,7 @@ irtQ::summary(mod_fapc)
 #> 15  New_I15  2000
 #> 
 #> Processing time (in seconds) 
-#>  Total computation: 0.84
+#>  Total computation: 1.58
 #> 
 #> Convergence of Solution 
 #>  All item parameters were successfully converged.
@@ -1022,22 +1029,22 @@ irtQ::summary(mod_fapc)
 # Extract item parameter estimates
 est_new_fapc <- mod_fapc$par.est
 print(est_new_fapc)
-#>         id cats model     par.1       par.2       par.3      par.4      par.5
-#> 1   New_I1    2  3PLM 1.4108912  0.57523565  0.22780986         NA         NA
-#> 2   New_I2    2  3PLM 1.7292652 -1.16644920  0.28099633         NA         NA
-#> 3   New_I3    2  3PLM 1.3445775  0.45898006  0.11966233         NA         NA
-#> 4   New_I4    2  3PLM 0.9392278 -0.27412241  0.16246450         NA         NA
-#> 5   New_I5    2  3PLM 0.7187061  2.58131266  0.12067577         NA         NA
-#> 6   New_I6    2  3PLM 1.7274273  1.65868618  0.17543426         NA         NA
-#> 7   New_I7    2  3PLM 1.1541765  0.04073751  0.16859783         NA         NA
-#> 8   New_I8    2  3PLM 1.4568544  0.10378102  0.16684662         NA         NA
-#> 9   New_I9    2  3PLM 1.1397905  0.29463003  0.08121185         NA         NA
-#> 10 New_I10    2  3PLM 1.1743443  1.32074112  0.07014496         NA         NA
-#> 11 New_I11    2  3PLM 1.7464944 -0.96546241  0.27579057         NA         NA
-#> 12 New_I12    2  3PLM 1.1510320 -0.22266975  0.38023720         NA         NA
-#> 13 New_I13    5   GRM 1.0422956 -0.50082514  0.15722022  0.8253882  1.3390718
-#> 14 New_I14    5   GRM 1.0561218 -2.58541064 -1.75056863 -0.9230562 -0.2103185
-#> 15 New_I15    5   GRM 0.7683113 -0.94347276 -0.10444162  0.6454302  1.2493058
+#>         id cats model     par.1      par.2       par.3      par.4      par.5
+#> 1   New_I1    2  3PLM 1.4108912  0.5752356  0.22780986         NA         NA
+#> 2   New_I2    2  3PLM 1.7292652 -1.1664492  0.28099633         NA         NA
+#> 3   New_I3    2  3PLM 1.3445775  0.4589801  0.11966233         NA         NA
+#> 4   New_I4    2  3PLM 0.9392278 -0.2741224  0.16246450         NA         NA
+#> 5   New_I5    2  3PLM 0.7187061  2.5813126  0.12067576         NA         NA
+#> 6   New_I6    2  3PLM 1.7274273  1.6586861  0.17543426         NA         NA
+#> 7   New_I7    2  3PLM 1.1541765  0.0407375  0.16859783         NA         NA
+#> 8   New_I8    2  3PLM 1.4568544  0.1037810  0.16684661         NA         NA
+#> 9   New_I9    2  3PLM 1.1397906  0.2946300  0.08121185         NA         NA
+#> 10 New_I10    2  3PLM 1.1743444  1.3207411  0.07014496         NA         NA
+#> 11 New_I11    2  3PLM 1.7464945 -0.9654624  0.27579057         NA         NA
+#> 12 New_I12    2  3PLM 1.1510321 -0.2226698  0.38023720         NA         NA
+#> 13 New_I13    5   GRM 1.0422956 -0.5008251  0.15722021  0.8253882  1.3390717
+#> 14 New_I14    5   GRM 1.0561218 -2.5854106 -1.75056858 -0.9230562 -0.2103185
+#> 15 New_I15    5   GRM 0.7683113 -0.9434727 -0.10444162  0.6454301  1.2493058
 
 ## ----------------------------------------------------------------------------
 ## 4. IRT model-data fit evaluation using

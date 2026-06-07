@@ -331,7 +331,7 @@ plot.irtfit <- function(x,
       ggplot2::geom_segment(
         data = obs_df,
         mapping = ggplot2::aes(x = .data$theta, y = .data$upper, xend = .data$theta, yend = .data$lower),
-        lineend = "square", size = 0.7
+        lineend = "square", linewidth = 0.7
       ) +
       ggplot2::labs(title = main.text, x = xlab.text, y = ylab.text) +
       ggplot2::ylim(ylim.icc[1], ylim.icc[2]) +
@@ -407,7 +407,7 @@ plot.irtfit <- function(x,
       ggplot2::geom_segment(
         data = obs_df,
         mapping = ggplot2::aes(x = .data$theta, y = .data$upper, xend = .data$theta, yend = .data$lower),
-        lineend = "square", size = 0.7
+        lineend = "square", linewidth = 0.7
       ) +
       ggplot2::labs(title = main.text[1], x = xlab.text, y = ylab.text[1]) +
       ggplot2::ylim(ylim.icc[1], ylim.icc[2]) +

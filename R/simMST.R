@@ -1,7 +1,7 @@
 #' Simulated 1-3-3 MST Panel Data
 #'
 #' A simulated multistage testing (MST) dataset based on a 1-3-3 panel
-#' structure, used in the simulation study by Lim et al. (2020).
+#' structure, used in the simulation study by Lim et al. (2021).
 #'
 #' @usage simMST
 #'
@@ -38,7 +38,7 @@
 #' adaptive and multistage testing with R: Using packages catR and mstR*.
 #' Springer.
 #'
-#' Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical
+#' Lim, H., Davey, T., & Wells, C. S. (2021). A recursion-based analytical
 #' approach to evaluate the performance of MST. *Journal of Educational
 #' Measurement, 58*(2), 154–178.
 #'

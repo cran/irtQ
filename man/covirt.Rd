@@ -113,8 +113,8 @@ Li, Y. & Lissitz, R. (2004). Applications of the analytically
 derived asymptotic standard errors of item response theory item parameter
 estimates. \emph{Journal of educational measurement, 41}(2), 85-117.
 
-Thissen, D. & Wainer, H. (1982). Weighted likelihood estimation of ability
-in item response theory. \emph{Psychometrika, 54}(3), 427-450.
+Thissen, D. & Wainer, H. (1982). Some standard errors in item response theory.
+\emph{Psychometrika, 47}, 397-412.
 }
 \seealso{
 \code{\link[=est_irt]{est_irt()}}, \code{\link[=simdat]{simdat()}}, \code{\link[=shape_df]{shape_df()}},

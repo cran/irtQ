@@ -447,29 +447,12 @@ pcd2_one <- function(x, data, D = 1, item.skip = NULL,
   }
 
   # factorize the response values
-  resp <-
-    purrr::map2(
-      .x = data.frame(data, stringsAsFactors = FALSE), .y = cats,
-      .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
-    )
-
-  # create a contingency table of score categories for each item
-  # and then, transform the table to a matrix format
-  std.id <- 1:nstd
-  freq.cat <-
-    purrr::map(
-      .x = resp,
-      .f = function(k) {
-        stats::xtabs(~ std.id + k,
-                     na.action = stats::na.pass, addNA = FALSE
-        ) %>%
-          # as.numeric() %>%
-          matrix(nrow = length(k))
-      }
-    )
-
-  # delete 'resp' object
-  rm(resp, envir = environment(), inherits = FALSE)
+  # build the per-item one-hot frequency-category list used downstream
+  # by divide_data() and the pseudo-count D^2 statistic.  See
+  # build_freqcat() (R/util.R) for the output structure; it replaces a
+  # data.frame -> factor -> xtabs -> matrix chain with direct one-hot
+  # construction (15-30x faster).
+  freq.cat <- build_freqcat(data, cats)
 
   # break down the item metadata into several elements
   elm_item <- breakdown(x)

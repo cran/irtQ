@@ -1,6 +1,97 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# irtQ 1.1.0
+
+## Major Improvements
+
+- Improved the speed and reduced memory usage of item parameter
+  estimation and standard error computation in `est_irt()`,
+  `est_item()`, and `est_mg()`.
+- Improved the computational speed of `est_score()` by up to 52% for
+  dichotomous items (N = 10,000) and up to 27% for mixed-format tests,
+  through a series of optimizations.
+- Improved the computational speed of `sx2_fit()` substantially by
+  replacing the O(J²) Lord-Wingersky recursion with a forward-backward
+  pass (up to 11× faster for mixed-format tests with J = 55 items) and
+  vectorizing internal helper functions `expFreq()`, `obsFreq()`, and
+  the PRM category-collapsing routine.
+
+## New Features
+
+- Added a unit test suite using the **testthat** 3rd edition
+  (`testthat >= 3.0.0`). Tests cover core functions including `drm()`,
+  `prm()`, `est_irt()`, `est_score()`, `est_mg()`, `rdif()`, `crdif()`,
+  and `catsib()`, with the relevant tests across dichotomous,
+  polytomous, and mixed-format item scenarios (355 tests total).
+- Added a new function, `ripd()`, which implements the Residual-based
+  Item Parameter Drift (RIPD) detection framework. The function computes
+  three RIPD statistics— $RIPD_R$, $RIPD_S$, and $RIPD_{RS}$—for each
+  item. $RIPD_R$ captures uniform item parameter drift (IPD) via
+  differences in mean raw residuals between groups, $RIPD_S$ captures
+  nonuniform IPD via differences in mean squared residuals, and
+  $RIPD_{RS}$ is a combined chi-square-based statistic sensitive to both
+  types of drift. An optional purification procedure is also supported.
+
+## New Articles
+
+- Launched the irtQ documentation website at
+  <https://hwangQ.github.io/irtQ/>, built with **pkgdown**. The site
+  includes a full function reference index and the following vignettes
+  covering the complete irtQ workflow:
+  - *Getting Started with irtQ*: an end-to-end overview of the package
+    workflow.
+  - *Item Parameter Estimation*: detailed guidance on `est_irt()`,
+    `est_item()`, and `est_mg()`.
+  - *Ability Estimation*: scoring methods available in `est_score()`.
+  - *Model-Data Fit Evaluation*: using `irtfit()` and `sx2_fit()` to
+    assess model fit.
+  - *DIF Detection*: applying `rdif()`, `grdif()`, and `catsib()` to
+    detect item bias.
+  - *Classification Accuracy and Consistency*: computing indices via
+    `cac_lee()` and `cac_rud()`.
+  - *Utility Functions*: usage of `info()`, `traceline()`, `lwrc()`,
+    `simdat()`, and related helpers.
+  - *Evaluating MST Panels with `reval_mst()`*: measurement precision
+    and bias evaluation for multistage adaptive tests.
+
+## Bug Fixes
+
+- Fixed a minor bug in `sx2_fit()` that caused incorrect cell collapsing
+  between two adjacent score categories for polytomous items when
+  computing the S-$X^2$ item fit statistic.
+- Fixed minor bugs in `est_score()` and `info()`.
+- Resolved an issue in `catsib()` where the function failed when all
+  responses were missing (NA) in either the reference or focal group.
+- Updated `cac_rud()` to include the `x` argument, allowing users to
+  pass item metadata data frames directly.
+- Revised default `control` parameters in `est_irt()`, `est_item()`, and
+  `est_mg()`, and updated the documentation accordingly.
+- Fixed a minor bug in `est_score()` function in terms of Newton-Raphson
+  method.
+- Fixed multiple stability issues in `catsib()`:
+  - The final bin exclusion step in `catsib_item()` used a hardcoded
+    threshold of 3 instead of the user-supplied `min.binsize` argument,
+    causing inconsistent bin filtering behavior.
+  - The reliability estimate `rho2` in `catsib_one()` was not clamped to
+    $[0, 1]$, so when `errvar > sigma2` (e.g., very few items or
+    purification cascade), a negative `rho2` reversed the regression
+    correction direction, inflating the Type I error rate.
+  - When `errvar >= sigma2` during purification, `rho2` collapsed to 0,
+    causing all corrected scores to converge to the group mean. With
+    group mean differences (impact), this produced empty bin data frames
+    and an invalid purification result. A minimum floor of 0.05 is now
+    enforced for `rho2` to preserve score spread.
+- Fixed a critical bug in `covirt()` where the guessing parameter
+  (`par[,3]`) was incorrectly passed as the difficulty parameter
+  (`par[,2]`) to the `integrand()` function for DRM items. This caused
+  the gradient computation to receive `c = b`, which zeroed out the
+  $\partial P/\partial a$ and $\partial P/\partial b$ gradient
+  components and produced a singular Fisher information matrix.
+  Additionally, `NA` values in `par.3` for 1PLM and 2PLM items are now
+  substituted with 0 prior to gradient evaluation to prevent `NA`
+  propagation.
+
 # irtQ 1.0.0
 
 - The documentation for the `irtQ` package has been revised to reflect
@@ -43,8 +134,8 @@
   recursion-based evaluation method introduced by Lim et al. (2020).
 
 - Added a new function, `pcd2()`, which computes the Pseudo-count
-  $`D^{2}`$ statistics (Cappaert et al., 2018; Stone, 2000) to detect
-  item parameter drift.
+  $D^{2}$ statistics (Cappaert et al., 2018; Stone, 2000) to detect item
+  parameter drift.
 
 # irtQ 0.2.0
 

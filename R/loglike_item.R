@@ -16,11 +16,22 @@ loglike_prm <- function(item_par, r_i, theta, pr.mod = c("GRM", "GPCM"), D = 1, 
                         fix.a = FALSE, a.val = 1,
                         aprior = list(dist = "lnorm", params = c(1, 0.5)),
                         bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                        use.aprior = FALSE, use.bprior = FALSE) {
+                        use.aprior = FALSE, use.bprior = FALSE,
+                        prob_cache = NULL) {
+  # `prob_cache`, when non-NULL, is a list produced by make_prm_optim_fns()
+  # carrying pre-computed probability objects for the current (item_par, theta):
+  #   GRM  → $P (clipped category probabilities)
+  #   GPCM → $P (= numer / denom)
+  # loglike_prm only needs $P, so the same cache structure works for both.
   ## -------------------------------------------------------------------------
   if (!fix.a) {
-    # compute category probabilities for all thetas
-    ps <- prm(theta, a = item_par[1], d = item_par[-1], D = D, pr.model = pr.mod)
+    # compute category probabilities for all thetas;
+    # use the cached P matrix when supplied — bit-exact equivalent to prm()
+    ps <- if (is.null(prob_cache)) {
+      prm(theta, a = item_par[1], d = item_par[-1], D = D, pr.model = pr.mod)
+    } else {
+      prob_cache$P
+    }
 
     # compute log-likelihood
     log_ps <- log(ps)
@@ -46,8 +57,13 @@ loglike_prm <- function(item_par, r_i, theta, pr.mod = c("GRM", "GPCM"), D = 1, 
       llike <- llike + sum(ln.bprior)
     }
   } else {
-    # compute category probabilities for all thetas
-    ps <- prm(theta, a = a.val, d = item_par, D = D, pr.model = pr.mod)
+    # compute category probabilities for all thetas (fix.a / PCM path)
+    # use the cached P matrix when supplied
+    ps <- if (is.null(prob_cache)) {
+      prm(theta, a = a.val, d = item_par, D = D, pr.model = pr.mod)
+    } else {
+      prob_cache$P
+    }
 
     # compute loglikelihood
     log_ps <- log(ps)
@@ -90,7 +106,12 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
                         aprior = list(dist = "lnorm", params = c(1, 0.5)),
                         bprior = list(dist = "norm", params = c(0.0, 1.0)),
                         gprior = list(dist = "beta", params = c(5, 17)),
-                        use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE) {
+                        use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
+                        p_cache = NULL) {
+  # `p_cache` (when non-NULL) is the drm() probability matrix for the
+  # branch picked below — supplied by make_drm_optim_fns() so the
+  # objective / gradient / hessian share one P(theta) per nlminb point.
+  # If NULL, each branch falls back to drm() exactly as before.
   # compute log-likelihood
   # (1) 1PLM: the slope parameters are constrained to be equal across the 1PLM items
   if (!fix.a & mod == "1PLM") {
@@ -99,7 +120,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
     b <- item_par[-1]
 
     # compute the negative log-likelihood values for all 1PLM items
-    llike <- llike_drm(a = a, b = b, g = 0, f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D)
+    llike <- llike_drm(a = a, b = b, g = 0, f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D, p_cache = p_cache)
 
     # when the slope parameter prior is used
     if (use.aprior) {
@@ -125,7 +146,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
     # sum of log-likelihood
     llike <- llike_drm(
       a = a.val, b = item_par, g = 0,
-      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D
+      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D, p_cache = p_cache
     )
 
     # when the difficulty parameter prior is used
@@ -143,7 +164,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
     # sum of log-likelihood
     llike <- llike_drm(
       a = item_par[1], b = item_par[2], g = 0,
-      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D
+      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D, p_cache = p_cache
     )
 
     # when the slope parameter prior is used
@@ -170,7 +191,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
     # sum of log-likelihood
     llike <- llike_drm(
       a = item_par[1], b = item_par[2], g = item_par[3],
-      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D
+      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D, p_cache = p_cache
     )
 
     # when the slope parameter prior is used
@@ -206,7 +227,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
     # sum of log-likelihood
     llike <- llike_drm(
       a = item_par[1], b = item_par[2], g = g.val,
-      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D
+      f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, D = D, p_cache = p_cache
     )
 
     # when the slope parameter prior is used
@@ -233,9 +254,12 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
 }
 
 # compute a sum of the log-likelihood value for each dichotomous item
-llike_drm <- function(a, b, g, f_i, r_i, s_i, theta, D = 1) {
-  # compute the probability of correct answers
-  p <- drm(theta, a = a, b = b, g = g, D = D)
+llike_drm <- function(a, b, g, f_i, r_i, s_i, theta, D = 1, p_cache = NULL) {
+  # use the cached probability matrix when supplied; otherwise compute
+  # drm() exactly as before. Caching is bit-exact: the cache simply
+  # holds the unmodified return value of drm() for the same (a, b, g)
+  # produced in this branch — no new floating-point ops are introduced.
+  p <- if (is.null(p_cache)) drm(theta, a = a, b = b, g = g, D = D) else p_cache
 
   # compute 1 - p
   q <- 1 - p

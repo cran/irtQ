@@ -73,8 +73,8 @@
 #'   derived asymptotic standard errors of item response theory item parameter
 #'   estimates. *Journal of educational measurement, 41*(2), 85-117.
 #'
-#'   Thissen, D. & Wainer, H. (1982). Weighted likelihood estimation of ability
-#'   in item response theory. *Psychometrika, 54*(3), 427-450.
+#'   Thissen, D. & Wainer, H. (1982). Some standard errors in item response theory. 
+#'   *Psychometrika, 47*, 397-412.
 #'
 #' @seealso [irtQ::est_irt()], [irtQ::simdat()], [irtQ::shape_df()],
 #'   [irtQ::gen.weight()]
@@ -169,12 +169,13 @@ integrand <- function(elm_item, theta, dens, D = 1, pcm.a = FALSE) {
 
   # For a DRM item
   if (!is.null(idx.drm)) {
-    # extract required information
+    # extract required information (par.3 is NA for 1PLM/2PLM; substitute 0)
     item_par <- c(
       elm_item$par[idx.drm, 1],
       elm_item$par[idx.drm, 2],
-      elm_item$par[idx.drm, 2]
+      elm_item$par[idx.drm, 3]
     )
+    item_par[is.na(item_par)] <- 0
     cats <- elm_item$cats[idx.drm]
     model <- elm_item$model[idx.drm]
 

@@ -44,9 +44,9 @@
 #'
 #' \tabular{ll}{
 #' Package: \tab irtQ\cr
-#' Version: \tab 1.0.0\cr
-#' Date: \tab 2025-07-16\cr
-#' Depends: \tab R (>= 4.3)\cr
+#' Version: \tab 1.1.0\cr
+#' Date: \tab 2026-06-06\cr
+#' Depends: \tab R (>= 4.4)\cr
 #' License: \tab GPL (>= 2)\cr
 #' }
 #'
@@ -122,7 +122,9 @@
 #'     is the overall location (difficulty) parameter of the item, and \eqn{\tau_v}
 #'     is the threshold for score category \eqn{v}.
 #'     In the \pkg{irtQ} package, an item with \eqn{K} unique score categories
-#'     requires \eqn{K - 1} threshold parameters, as \eqn{b_0 = 0} by convention.
+#'     requires \eqn{K - 1} threshold parameters, as \eqn{b_0 = 0} is fixed by
+#'     convention and thus \eqn{\sum_{v=0}^{0} Da(\theta - b_v) = 0} for the
+#'     lowest category.
 #'     When fitting the partial credit model, the item discrimination parameter
 #'     \eqn{a} is fixed to 1.
 #'   }
@@ -477,7 +479,7 @@
 #'
 #' }
 #'
-#' @author Hwanggyu Lim \email{hglim83@@gmail.com}
+#' @author Hwanggyu Lim \email{hglim83@gmail.com}
 #'
 #' @references Ames, A. J., & Penfield, R. D. (2015). An NCME Instructional
 #'   Module on Item-Fit Statistics for Item Response Theory Models.
@@ -486,7 +488,7 @@
 #'   Baker, F. B., & Kim, S. H. (2004). *Item response theory: Parameter
 #'   estimation techniques.* CRC Press.
 #'
-#'   Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D., J. (2001) A
+#'   Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D. J. (2001) A
 #'   comparative study of on-line pretest item calibration/scaling methods in
 #'   computerized adaptive testing. *Journal of Educational Measurement, 38*(3),
 #'   191-212.
@@ -503,7 +505,7 @@
 #' *Psychometrika, 46*, 443-459.
 #'
 #'   Bock, R. D., & Mislevy, R. J. (1982). Adaptive EAP estimation of ability in
-#'   a microcomputer environment. *Psychometrika, 35*, 179-198.
+#'   a microcomputer environment. *Psychometrika, 47*(4), 179-198.
 #'
 #'   Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional item
 #'   analysis and test scoring (Computer Software). Chapel Hill, NC: Vector
@@ -557,27 +559,26 @@
 #'   estimates.
 #' *Educational Measurement: Issues and Practice, 29*(3), 8-14.
 #'
-#'   Laplace, P. S. (1820).*Theorie analytique des probabilites* (in French).
+#'   Laplace, P. S. (1820). *Theorie analytique des probabilites* (in French).
 #'   Courcier.
 #'
 #'   Li, Y. & Lissitz, R. (2004). Applications of the analytically derived
 #'   asymptotic standard errors of item response theory item parameter
-#'   estimates.
-#' *Journal of educational measurement, 41*(2), 85-117.
+#'   estimates. *Journal of educational measurement, 41*(2), 85-117.
 #'
 #'   Lim, H., & Choe, E. M. (2023). Detecting differential item
 #'   functioning in CAT using IRT residual DIF approach.
-#'  *Journal of Educational Measurement, 60*(4), 626-650. \doi{doi:10.1111/jedm.12366}.
+#'  *Journal of Educational Measurement, 60*(4), 626-650. \doi{10.1111/jedm.12366}.
 #'
 #'   Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 #'   item functioning detection framework in item response theory. *Journal of
-#'   Educational Measurement, 59*(1), 80-104. \doi{doi:10.1111/jedm.12313}.
+#'   Educational Measurement, 59*(1), 80-104. \doi{10.1111/jedm.12313}.
 #'
 #'   Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2024). Detecting
 #'   differential item functioning among multiple groups using IRT residual DIF
 #'   framework. *Journal of Educational Measurement, 61*(4), 656-681.
 #'
-#'   Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical
+#'   Lim, H., Davey, T., & Wells, C. S. (2021). A recursion-based analytical
 #'   approach to evaluate the performance of MST.
 #' *Journal of Educational Measurement, 58*(2), 154-178.
 #'
@@ -637,10 +638,6 @@
 #'   one-parameter logistic model.
 #' *Psychometrika, 47*, 175-186.
 #'
-#'   Thissen, D. & Wainer, H. (1982). Weighted likelihood estimation of ability
-#'   in item response theory.
-#' *Psychometrika, 54*(3), 427-450.
-#'
 #'   Thissen, D., Pommerich, M., Billeaud, K., & Williams, V. S. (1995). Item
 #'   Response Theory for Scores on Tests Including Polytomous Items with Ordered
 #'   Responses. *Applied Psychological Measurement, 19*(1), 39-49.
@@ -648,6 +645,9 @@
 #'   Thissen, D. & Orlando, M. (2001). Item response theory for items scored in
 #'   two categories. In D. Thissen & H. Wainer (Eds.),
 #' *Test scoring* (pp.73-140). Mahwah, NJ: Lawrence Erlbaum.
+#'
+#'   Thissen, D. & Wainer, H. (1982). Some standard errors in item response theory. 
+#'   *Psychometrika, 47*, 397-412.
 #'
 #'   Wainer, H., & Mislevy, R. J. (1990). Item response theory, item
 #'   calibration, and proficiency estimation. In H. Wainer (Ed.),
@@ -680,5 +680,9 @@
 #'   http://www.ssicentral.com
 #'
 #' @name irtQ-package
+#' @aliases irtQ
 #' @keywords internal
-"_PACKAGE"
+NULL
+
+# Suppress R CMD CHECK note for the magrittr dot pronoun used in sx2_fit pipe chains
+utils::globalVariables(".")

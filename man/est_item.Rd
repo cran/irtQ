@@ -26,7 +26,7 @@ est_item(
   gprior = list(dist = "beta", params = c(5, 17)),
   missing = NA,
   use.startval = FALSE,
-  control = list(eval.max = 500, iter.max = 500),
+  control = list(eval.max = 500, iter.max = 200, x.tol = 1e-04),
   verbose = TRUE
 )
 }
@@ -136,10 +136,18 @@ item metadata (i.e., the \code{x} argument) are used as starting values for item
 parameter estimation. Otherwise, internally generated starting values are
 used. Default is \code{FALSE}.}
 
-\item{control}{A list of control parameters to be passed to the optimization
-function \code{\link[stats:nlminb]{stats::nlminb()}}. These parameters define settings for the item
-parameter estimation process, such as the maximum number of iterations.
-See \code{\link[stats:nlminb]{stats::nlminb()}} for additional control options.}
+\item{control}{A named list of options passed directly to \code{\link[stats:nlminb]{stats::nlminb()}}.
+These parameters define settings for the item parameter estimation process,
+such as the maximum number of iterations. By default:
+\code{control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)}, where
+\itemize{
+\item \code{eval.max} = 500 limits the number of function evaluations
+\item \code{iter.max} = 200 caps the number of internal optimizer iterations
+\item \code{x.tol} = 1e‑4 sets the absolute change threshold in parameter values
+below which \code{\link[stats:nlminb]{stats::nlminb()}} considers the solution to have converged
+Users may additionally supply other \code{nlminb()} control options
+(such as \code{abs.tol}, \code{rel.tol}, \code{trace}, etc.) as needed.
+}}
 
 \item{verbose}{Logical. If \code{FALSE}, all progress messages are suppressed.
 Default is \code{TRUE}.}

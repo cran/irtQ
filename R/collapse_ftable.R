@@ -1,3 +1,56 @@
+# "collapse_ftable_prm" function
+# Vectorised wrapper around collapse_ftable() for the PRM category-collapsing
+# step in sx2_fit().  Processes all summed-score groups for one polytomous item.
+#
+# Algorithm:
+#   1. Rfast::rowmins() detects — in one vectorised pass — which score groups
+#      require category collapsing (min expected freq < min.collapse).
+#   2. Rows not needing collapse are extracted in bulk with asplit(), avoiding
+#      per-row data.frame construction and function-call overhead.
+#   3. Only rows that actually need collapsing invoke the original
+#      collapse_ftable(), preserving bit-for-bit identical numerical output.
+#
+# exp_mat     : data.frame or matrix (nrows x K), expected frequencies
+# obs_mat     : data.frame or matrix (nrows x K), observed frequencies
+# min.collapse: minimum expected frequency per category (same as collapse_ftable)
+# Returns: list(exp_table, obs_table), each a length-nrows list of numeric vectors
+#' @importFrom Rfast rowMins
+collapse_ftable_prm <- function(exp_mat, obs_mat, min.collapse = 1) {
+  # convert to plain matrices for consistent row access and Rfast compatibility
+  exp_m <- as.matrix(exp_mat)
+  obs_m <- as.matrix(obs_mat)
+  nrows <- nrow(exp_m)
+
+  # vectorised scan: one pass to find the minimum expected freq per score group
+  # value = TRUE returns the actual minimum value (default FALSE returns the index)
+  row_min_exp <- Rfast::rowMins(exp_m, value = TRUE)
+  needs_idx   <- which(row_min_exp < min.collapse)   # groups needing collapse
+  pass_idx    <- which(row_min_exp >= min.collapse)  # groups with no collapse
+
+  exp_table <- vector("list", nrows)
+  obs_table <- vector("list", nrows)
+
+  # fast path: bulk extraction for rows not needing any category collapsing;
+  # asplit() splits the submatrix by row without per-row function-call overhead
+  if (length(pass_idx) > 0L) {
+    exp_table[pass_idx] <- lapply(asplit(exp_m[pass_idx, , drop = FALSE], 1L), unname)
+    obs_table[pass_idx] <- lapply(asplit(obs_m[pass_idx, , drop = FALSE], 1L), unname)
+  }
+
+  # collapse path: rows with at least one category below threshold;
+  # delegates to the original collapse_ftable() to guarantee identical output
+  for (j in needs_idx) {
+    x   <- data.frame(exp = exp_m[j, ], obs = obs_m[j, ])
+    tmp <- collapse_ftable(x = x, col = 1L, min.collapse = min.collapse)
+    exp_table[[j]] <- tmp$exp
+    obs_table[[j]] <- tmp$obs
+  }
+
+  list(exp_table = exp_table, obs_table = obs_table)
+}
+
+
+# "collapse_ftable" function
 # This function collapses the cells of a contingency table according to a column
 collapse_ftable <- function(x, col, min.collapse = 1) {
   tmp <- x

@@ -345,3 +345,111 @@ prep4lw2 <- function(x, theta, D) {
   # Return results
   list(prob.cats = prob.cats, cats = cats)
 }
+
+
+# "lw_extend" function
+# Extend a score distribution by convolving it with one item's probability matrix.
+# This is the core polynomial-multiplication step shared by both the forward pass,
+# the backward pass, and the final combine step in lwrc_noitem().
+#
+# p         : n.theta x (Sa+1)     current cumulative score distribution
+# prob_item : n.theta x cats_item  category probabilities for the item being added
+#             (or, in the combine step, a score distribution treated as probabilities)
+# cats_item : integer              number of categories (= ncol of prob_item)
+# n.theta   : integer              number of quadrature points
+# Returns   : n.theta x (Sa + cats_item)   updated score distribution
+#' @importFrom Rfast rowsums
+lw_extend <- function(p, prob_item, cats_item, n.theta) {
+  Sa     <- ncol(p) - 1L                  # current maximum score
+  Sc     <- Sa + cats_item - 1L           # maximum score after adding this item
+  result <- matrix(0, nrow = n.theta, ncol = Sc + 1L)
+
+  # score 0: only achievable when both the prefix and the new item score zero
+  result[, 1L] <- p[, 1L] * prob_item[, 1L]
+
+  # score Sc (perfect): only achievable when both parts are at their maximum
+  result[, Sc + 1L] <- p[, Sa + 1L] * prob_item[, cats_item]
+
+  # middle scores s = 1 ... Sc-1: sum over all valid (prefix_score, item_score) pairs
+  if (Sc > 1L) {
+    for (s in seq_len(Sc - 1L)) {
+      k_min  <- max(0L, s - Sa)           # smallest valid item category score
+      k_max  <- min(cats_item - 1L, s)    # largest valid item category score
+      k_seq  <- k_min:k_max
+      p_idx  <- s - k_seq + 1L           # column indices into p  (prefix score = s - k)
+      pb_idx <- k_seq + 1L               # column indices into prob_item (item score = k)
+      # Rfast::rowsums vectorises the weighted sum across all n.theta simultaneously
+      result[, s + 1L] <- Rfast::rowsums(
+        p[, p_idx, drop = FALSE] * prob_item[, pb_idx, drop = FALSE]
+      )
+    }
+  }
+
+  result
+}
+
+
+# "lwrc_noitem" function
+# Compute lkhd_noitem for all J items using a single forward-backward pass instead
+# of J separate lwRecurive() calls.  Reduces the dominant cost in sx2_fit() from
+# O(J^3 K^2 Q) to approximately O(J^2 K^2 Q / 6) while preserving exact results.
+#
+# Algorithm:
+#   Forward pass  : fwd[[i]] = score distribution for items 1 ... (i-1)
+#   Backward pass : bwd[[i]] = score distribution for items i ... J
+#   Combine       : lkhd_noitem[[i]] = convolve(fwd[[i]], bwd[[i+1]])
+#
+# prob.cats : length-J list, each element n.theta x cats[j]
+# cats      : integer vector of category counts (length J)
+# n.theta   : integer, number of quadrature points (nquad)
+# Returns   : length-J list; element i is n.theta x (t.score - cats[i] + 2)
+#             (same format as t(lwRecurive(prob.cats[-i], cats[-i], n.theta)))
+#' @importFrom Rfast rowsums
+lwrc_noitem <- function(prob.cats, cats, n.theta) {
+  J          <- length(cats)
+  identity_m <- matrix(1, nrow = n.theta, ncol = 1L)  # empty-set distribution: P(score=0)=1
+
+  # FORWARD PASS -----------------------------------------------------------
+  # fwd_list[[i]] holds the score distribution for items 1 ... (i-1);
+  # fwd_list[[1]] is the identity (empty prefix, score 0 with probability 1)
+  fwd_list <- vector("list", J + 1L)
+  fwd_list[[1L]] <- identity_m
+  for (i in seq_len(J)) {
+    fwd_list[[i + 1L]] <- lw_extend(fwd_list[[i]], prob.cats[[i]], cats[i], n.theta)
+  }
+
+  # BACKWARD PASS ----------------------------------------------------------
+  # bwd_list[[i]] holds the score distribution for items i ... J;
+  # bwd_list[[J+1]] is the identity (empty suffix)
+  # Because score distributions are additive (convolution is commutative),
+  # processing items in reverse order yields the same marginal distribution.
+  bwd_list <- vector("list", J + 1L)
+  bwd_list[[J + 1L]] <- identity_m
+  for (i in seq(J, 1L, by = -1L)) {
+    bwd_list[[i]] <- lw_extend(bwd_list[[i + 1L]], prob.cats[[i]], cats[i], n.theta)
+  }
+
+  # COMBINE ----------------------------------------------------------------
+  # lkhd_noitem[[i]] = convolution of the prefix (items before i) and
+  #                    the suffix (items after i).
+  # The right distribution is passed to lw_extend() as if it were a
+  # probability matrix; the polynomial-multiplication formula is identical.
+  lkhd_noitem <- vector("list", J)
+  for (i in seq_len(J)) {
+    left  <- fwd_list[[i]]        # items 1 ... (i-1)
+    right <- bwd_list[[i + 1L]]   # items (i+1) ... J
+
+    if (ncol(left) == 1L) {
+      # i = 1: no items to the left; result is just the suffix distribution
+      lkhd_noitem[[i]] <- right
+    } else if (ncol(right) == 1L) {
+      # i = J: no items to the right; result is just the prefix distribution
+      lkhd_noitem[[i]] <- left
+    } else {
+      # general case: polynomial convolution of two score distributions
+      lkhd_noitem[[i]] <- lw_extend(left, right, ncol(right), n.theta)
+    }
+  }
+
+  lkhd_noitem
+}

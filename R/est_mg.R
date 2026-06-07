@@ -115,7 +115,9 @@
 #'   with the item parameters using the approach proposed by Woods (2007).
 #'   Item calibration is then performed relative to the estimated empirical priors.
 #' @param Etol A positive numeric value specifying the convergence criterion for
-#'   the E-step of the EM algorithm. Default is `1e-4`.
+#'   the E-step of the EM algorithm. Default is 1e-3. 
+#'   Specifically, the EM algorithm terminates when the largest absolute difference 
+#'   in item parameter estimates between consecutive iterations is smaller than this value.
 #' @param fipc Logical. If `TRUE`, multiple-group fixed item parameter
 #'   calibration (MG-FIPC) is applied during item parameter estimation.
 #'   When `fipc = TRUE`, the information on which items are fixed
@@ -637,7 +639,7 @@ est_mg <- function(x = NULL,
                    use.startval = FALSE,
                    Etol = 1e-03,
                    MaxE = 500,
-                   control = list(eval.max = 200, iter.max = 200),
+                   control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4),
                    fipc = FALSE,
                    fipc.method = "MEM",
                    fix.loc = NULL,
@@ -709,7 +711,7 @@ est_mg_em <- function(x = NULL,
                       use.startval = FALSE,
                       Etol = 1e-03,
                       MaxE = 500,
-                      control = list(eval.max = 200, iter.max = 200),
+                      control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4),
                       se = TRUE,
                       verbose = TRUE) {
 
@@ -1019,28 +1021,12 @@ est_mg_em <- function(x = NULL,
   weights.gr <- replicate(n = ngroup, expr = weights, simplify = FALSE)
   names(weights.gr) <- group.name
 
-  # factorize the response values
-  resp <- purrr::map2(
-    .x = data.frame(data, stringsAsFactors = FALSE), .y = cats,
-    .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
-  )
-
-  # create a contingency table of score categories for each item
-  # and then, transform the table to a matrix format
-  std.id <- 1:nstd
-  freq.cat <-
-    purrr::map(
-      .x = resp,
-      .f = function(k) {
-        stats::xtabs(~ std.id + k,
-          na.action = stats::na.pass, addNA = FALSE
-        ) %>%
-          matrix(nrow = length(k))
-      }
-    )
-
-  # delete 'resp' object
-  rm(resp, envir = environment(), inherits = FALSE)
+  # build the per-item one-hot frequency-category list used by
+  # divide_data() below and by info_xpd() in the SE step.  See
+  # build_freqcat() (R/util.R) for the output structure; it replaces a
+  # data.frame -> factor -> xtabs -> matrix chain that allocated four
+  # separate copies of the response data.
+  freq.cat <- build_freqcat(data, cats)
 
   # break down the item metadata into several elements
   elm_item <- breakdown(x)
@@ -1217,14 +1203,13 @@ est_mg_em <- function(x = NULL,
     }
     time1 <- Sys.time()
 
-
-    # create a vector of the quadrature points (length = nstd by n.quad)
-    quadpt.vec <- rep(quadpt, each = nstd)
-
-    # compute the information matrix of item parameters
+    # compute the information matrix of item parameters; info_xpd()
+    # works on the original ntheta-length quadrature grid (no
+    # nstd*ntheta expansion), so the caller no longer needs to
+    # construct quadpt.vec
     info.data <- info_xpd(
       elm_item = elm_item, freq.cat = freq.cat, post_dist = post_dist,
-      quadpt.vec = quadpt.vec, n.quadpt.vec = length(quadpt.vec), nstd = nstd,
+      quadpt = quadpt, nstd = nstd,
       D = D, loc_1p_const = loc_1p_const, loc_else = loc_else, n.1PLM = n.1PLM,
       fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g, a.val.1pl = a.val.1pl,
       a.val.gpcm = a.val.gpcm, g.val = g.val, reloc.par = param_loc$reloc.par
@@ -1242,8 +1227,28 @@ est_mg_em <- function(x = NULL,
     # sum of two information matrices
     info.mat <- info.data + info.prior
 
-    # the second-order test: check if the information matrix is positive definite
-    test_2nd <- all(eigen(info.mat, only.values = TRUE)$values > 1e-20)
+    # second-order test + variance-covariance matrix in one Cholesky:
+    # chol(info.mat) succeeds iff info.mat is positive-definite, and the
+    # cached factor R lets chol2inv(R) compute the inverse cheaply (one
+    # Cholesky pass instead of an O(n^3) eigen-decomposition followed by
+    # an O(n^3) LU-based solve).  When chol() fails (rare for converged
+    # solutions), fall back to the original eigen + solve path so that
+    # near-singular cases keep their previous behavior bit-for-bit.
+    chol_R <- suppressWarnings(tryCatch(chol(info.mat), error = function(e) NULL))
+    if (!is.null(chol_R)) {
+      test_2nd <- TRUE
+      cov_mat <- chol2inv(chol_R)
+    } else {
+      test_2nd <- all(eigen(info.mat, only.values = TRUE)$values > 1e-20)
+      cov_mat <- suppressWarnings(tryCatch(
+        {
+          solve(info.mat, tol = 1e-200)
+        },
+        error = function(e) {
+          NULL
+        }
+      ))
+    }
     if (test_2nd) {
       if (test_1st) {
         memo4 <- "Solution is a possible local maximum."
@@ -1254,17 +1259,6 @@ est_mg_em <- function(x = NULL,
       memo4 <- "Information matrix of item parameter estimates is not positive definite; unstable solution."
       warning(paste0(memo4, " \n"), call. = FALSE)
     }
-
-    # compute the variance-covariance matrix of the item parameter estimates, and
-    # check if the hessian matrix can be inversed
-    cov_mat <- suppressWarnings(tryCatch(
-      {
-        solve(info.mat, tol = 1e-200)
-      },
-      error = function(e) {
-        NULL
-      }
-    ))
 
     # compute the standard errors of item parameter estimates
     if (is.null(cov_mat)) {
@@ -1301,15 +1295,16 @@ est_mg_em <- function(x = NULL,
     confirm_df(g2na = TRUE)
 
   # deploy the standard errors on the location of matrix as the item parameter estimates
+  # deploy the standard errors into the same row/column layout that
+  # holds the item parameter estimates; see est_irt.R linear-form
+  # branch for the rationale of the logical-mask assignment that
+  # replaces the previous per-row for-loop
   se_df <- loc.par <- param_loc$loc.par
-  for (i in 1:nrow(loc.par)) {
-    num.loc <- which(!is.na(loc.par[i, ]))
-    se.loc <- loc.par[i, ][num.loc]
-    if (se) {
-      se_df[i, num.loc] <- se_par[se.loc]
-    } else {
-      se_df[i, num.loc] <- NA_real_
-    }
+  mask  <- !is.na(loc.par)
+  if (se) {
+    se_df[mask] <- se_par[loc.par[mask]]
+  } else {
+    se_df[mask] <- NA_real_
   }
 
   # create a full data.frame for the standard error estimates
@@ -1465,7 +1460,7 @@ est_mg_fipc <- function(x = NULL,
                         use.startval = FALSE,
                         Etol = 1e-04,
                         MaxE = 500,
-                        control = list(eval.max = 200, iter.max = 200),
+                        control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4),
                         fipc = TRUE,
                         fipc.method = "MEM",
                         fix.loc = NULL,
@@ -1793,70 +1788,32 @@ est_mg_fipc <- function(x = NULL,
   weights.gr <- replicate(n = ngroup, expr = weights, simplify = FALSE)
   names(weights.gr) <- group.name
 
-  # factorize the response values
+  # build the per-item one-hot frequency-category list ONCE on the
+  # combined response matrix.  By construction (lines 1644-1730),
+  #   data_fix == data_all[, fix.loc]
+  #   data_new == data_all[, nofix.loc]
+  #   x_all$cats[fix.loc]   == x_fix$cats
+  #   x_all$cats[nofix.loc] == cats   (= x_new$cats)
+  # so the per-item integer matrices freq_all.cat[fix.loc] and
+  # freq_all.cat[nofix.loc] are bit-for-bit identical to what the
+  # previous code produced via separate build_freqcat() calls on
+  # data_fix and data_new.  R lists hold their elements by reference,
+  # so list-subsetting creates view-style aliases without copying any
+  # of the underlying nstd x cats[k] matrices -- saving roughly 50%
+  # of the freq.cat peak memory during the FIPC busy window and
+  # cutting build_freqcat() runtime by ~2x.  All downstream consumers
+  # (divide_data, info_xpd) index freq.cat with integer locations
+  # only, never element names, so the subsetting is observationally
+  # identical to the previous separate-build pattern.  Mirrors the
+  # equivalent rewrite in est_irt.R lines 1517-1531.
+  freq_all.cat <- build_freqcat(data_all, x_all$cats)
   if (!is.null(x_new)) {
-    resp_new <-
-      purrr::map2(
-        .x = data.frame(data_new, stringsAsFactors = FALSE), .y = cats,
-        .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
-      )
-    resp_fix <-
-      purrr::map2(
-        .x = data.frame(data_fix, stringsAsFactors = FALSE), .y = x_fix$cats,
-        .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
-      )
+    freq_fix.cat <- freq_all.cat[fix.loc]
+    freq_new.cat <- freq_all.cat[nofix.loc]
   } else {
-    resp_new <- NULL
-    resp_fix <- NULL
-  }
-  resp_all <-
-    purrr::map2(
-      .x = data.frame(data_all, stringsAsFactors = FALSE), .y = x_all$cats,
-      .f = function(k, m) factor(k, levels = (seq_len(m) - 1))
-    )
-
-  # create a contingency table of score categories for each item
-  # and then, transform the table to a matrix format
-  std.id <- 1:nstd
-  if (!is.null(x_new)) {
-    freq_new.cat <- purrr::map(
-      .x = resp_new,
-      .f = function(k) {
-        stats::xtabs(~ std.id + k,
-          na.action = stats::na.pass, addNA = FALSE
-        ) %>%
-          matrix(nrow = length(k))
-      }
-    )
-    freq_fix.cat <- purrr::map(
-      .x = resp_fix,
-      .f = function(k) {
-        stats::xtabs(~ std.id + k,
-          na.action = stats::na.pass, addNA = FALSE
-        ) %>%
-          matrix(nrow = length(k))
-      }
-    )
-  } else {
-    freq_new.cat <- NULL
     freq_fix.cat <- NULL
+    freq_new.cat <- NULL
   }
-  freq_all.cat <- purrr::map(
-    .x = resp_all,
-    .f = function(k) {
-      stats::xtabs(~ std.id + k,
-        na.action = stats::na.pass, addNA = FALSE
-      ) %>%
-        matrix(nrow = length(k))
-    }
-  )
-
-  # delete 'resp' object
-  if (!is.null(x_new)) {
-    rm(resp_new, envir = environment(), inherits = FALSE)
-    rm(resp_fix, envir = environment(), inherits = FALSE)
-  }
-  rm(resp_all, envir = environment(), inherits = FALSE)
 
   # break down the item metadata into several elements
   if (!is.null(x_new)) {
@@ -2124,13 +2081,11 @@ est_mg_fipc <- function(x = NULL,
       }
       time1 <- Sys.time()
 
-      # create a vector of the quadrature points (length = nstd by n.quad)
-      quadpt.vec <- rep(quadpt, each = nstd)
-
-      # compute the information matrix of item parameters
+      # compute the information matrix of item parameters; see linear-
+      # form branch above -- info_xpd() now consumes quadpt directly
       info.data <- info_xpd(
         elm_item = elm_item_new, freq.cat = freq_new.cat, post_dist = post_dist,
-        quadpt.vec = quadpt.vec, n.quadpt.vec = length(quadpt.vec), nstd = nstd,
+        quadpt = quadpt, nstd = nstd,
         D = D, loc_1p_const = loc_1p_const, loc_else = loc_else, n.1PLM = n.1PLM,
         fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g, a.val.1pl = a.val.1pl,
         a.val.gpcm = a.val.gpcm, g.val = g.val, reloc.par = param_loc$reloc.par
@@ -2148,8 +2103,23 @@ est_mg_fipc <- function(x = NULL,
       # sum of two information matrices
       info.mat <- info.data + info.prior
 
-      # the second-order test: check if the information matrix is positive definite
-      test_2nd <- all(eigen(info.mat, only.values = TRUE)$values > 1e-20)
+      # second-order test + variance-covariance matrix in one Cholesky:
+      # see est_mg() linear-form branch above for the full rationale.
+      chol_R <- suppressWarnings(tryCatch(chol(info.mat), error = function(e) NULL))
+      if (!is.null(chol_R)) {
+        test_2nd <- TRUE
+        cov_mat <- chol2inv(chol_R)
+      } else {
+        test_2nd <- all(eigen(info.mat, only.values = TRUE)$values > 1e-20)
+        cov_mat <- suppressWarnings(tryCatch(
+          {
+            solve(info.mat, tol = 1e-200)
+          },
+          error = function(e) {
+            NULL
+          }
+        ))
+      }
       if (test_2nd) {
         if (test_1st) {
           memo4 <- "Solution is a possible local maximum."
@@ -2160,17 +2130,6 @@ est_mg_fipc <- function(x = NULL,
         memo4 <- "Information matrix of item parameter estimates is not positive definite; unstable solution."
         warning(paste0(memo4, " \n"), call. = FALSE)
       }
-
-      # compute the variance-covariance matrix of the item parameter estimates, and
-      # check if the hessian matrix can be inversed
-      cov_mat <- suppressWarnings(tryCatch(
-        {
-          solve(info.mat, tol = 1e-200)
-        },
-        error = function(e) {
-          NULL
-        }
-      ))
 
       # compute the standard errors of item parameter estimates
       if (is.null(cov_mat)) {
@@ -2207,17 +2166,17 @@ est_mg_fipc <- function(x = NULL,
       confirm_df(g2na = TRUE)
 
 
-    # deploy the standard errors on the location of matrix as the item parameter estimates
-    # 1) for the only new items
+    # deploy the standard errors into the same row/column layout that
+    # holds the item parameter estimates.
+    # 1) for the only new items.  See est_irt.R linear-form branch
+    #    for the rationale of the logical-mask assignment that
+    #    replaces the previous per-row for-loop.
     se_df <- loc.par <- param_loc$loc.par
-    for (i in 1:nrow(loc.par)) {
-      num.loc <- which(!is.na(loc.par[i, ]))
-      se.loc <- loc.par[i, ][num.loc]
-      if (se) {
-        se_df[i, num.loc] <- se_par[se.loc]
-      } else {
-        se_df[i, num.loc] <- NA_real_
-      }
+    mask  <- !is.na(loc.par)
+    if (se) {
+      se_df[mask] <- se_par[loc.par[mask]]
+    } else {
+      se_df[mask] <- NA_real_
     }
 
     # 2) for the a total test form

@@ -11,6 +11,10 @@
 #
 #' @importFrom Rfast colsums
 inv_tcc <- function(x, data, D = 1, intpol = TRUE, range.tcc = c(-7, 7), tol = 1e-4, max.it = 500) {
+  
+  # transform a data set to matrix
+  data <- data.matrix(data)
+  
   # check missing data
   # replace NAs with 0
   na.lg <- is.na(data)
@@ -177,6 +181,7 @@ inv_tcc <- function(x, data, D = 1, intpol = TRUE, range.tcc = c(-7, 7), tol = 1
 # This function is used for the eval_mst() function.
 inv_tcc_nr <- function(x, D = 1, intpol = TRUE, range.tcc = c(-7, 7),
                        tol = 1e-4, max.it = 500) {
+
   # break down the item metadata into several elements
   elm_item <- breakdown(x)
 

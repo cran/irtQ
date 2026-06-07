@@ -82,6 +82,8 @@ All of the plots are drawn using the \pkg{ggplot2} package. The
 object of class \code{info} can be obtained from the function \code{\link[=info]{info()}}.
 }
 \examples{
+
+\dontrun{
 ## Example using a "-prm.txt" file exported from flexMIRT
 
 # Import the "-prm.txt" output file from flexMIRT
@@ -110,6 +112,8 @@ plot(x, item.loc = 1:8, overlap = TRUE)
 
 # Plot the conditional standard error of estimation (CSEE) at the test level
 plot(x, csee = TRUE)
+
+}
 
 }
 \seealso{

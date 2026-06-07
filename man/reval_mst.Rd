@@ -64,7 +64,7 @@ test characteristic curve (TCC) scoring, facilitating ability estimate
 approximation for observed sum scores not directly obtainable from the TCC,
 such as those below the sum of item guessing parameters. Default is TRUE,
 applying interpolation to bridge gaps in the TCC. Refer to
-\code{\link[=est_score]{est_score()}} for more details and consult Lim et al. (2020) for
+\code{\link[=est_score]{est_score()}} for more details and consult Lim et al. (2021) for
 insights into the interpolation technique within inverse TCC scoring.}
 
 \item{range.tcc}{A vector to define the range of ability estimates for
@@ -159,7 +159,7 @@ in estimating test-taker abilities.}
 \description{
 This function evaluates the measurement precision and bias in
 Multistage-adaptive Test (MST) panels using a recursion-based evaluation
-method introduced by Lim et al. (2020). This function computes conditional
+method introduced by Lim et al. (2021). This function computes conditional
 biases and standard errors of measurement (CSEMs) across a range of IRT
 ability levels, facilitating efficient and accurate MST panel assessments
 without extensive simulations.
@@ -167,7 +167,7 @@ without extensive simulations.
 \details{
 The \code{\link[=reval_mst]{reval_mst()}} function evaluates an MST panel by
 implementing a recursion-based method to assess measurement precision
-across IRT ability levels. This approach, detailed in Lim et al. (2020),
+across IRT ability levels. This approach, detailed in Lim et al. (2021),
 enables the computation of conditional biases and CSEMs efficiently,
 bypassing the need for extensive simulations traditionally required for MST
 evaluation.
@@ -208,7 +208,7 @@ individual performance levels.
 \donttest{
 ## ------------------------------------------------------------------------------
 # Evaluation of a 1-3-3 MST panel using simMST data.
-# This simulation dataset was utilized in Lim et al.'s (2020) simulation study.
+# This simulation dataset was utilized in Lim et al.'s (2021) simulation study.
 # Details:
 #    (a) Panel configuration: 1-3-3 MST panel
 #    (b) Test length: 24 items (each module contains 8 items across all stages)
@@ -276,7 +276,7 @@ Magis, D., Yan, D., & Von Davier, A. A. (2017). \emph{Computerized
 adaptive and multistage testing with R: Using packages catR and mstR}.
 Springer.
 
-Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical
+Lim, H., Davey, T., & Wells, C. S. (2021). A recursion-based analytical
 approach to evaluate the performance of MST. \emph{Journal of Educational
 Measurement, 58}(2), 154-178.
 }

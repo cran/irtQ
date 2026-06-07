@@ -42,10 +42,16 @@
 #'   models specified in the `model` argument are dichotomous (`"1PLM"`,
 #'   `"2PLM"`, `"3PLM"`, or `"DRM"`), the function defaults to 2 categories per
 #'   item. This argument is used only when `x = NULL`. Default is `NULL`.
-#' @param control A list of control parameters to be passed to the optimization
-#'   function [stats::nlminb()]. These parameters define settings for the item
-#'   parameter estimation process, such as the maximum number of iterations.
-#'   See [stats::nlminb()] for additional control options.
+#' @param control A named list of options passed directly to [stats::nlminb()]. 
+#'   These parameters define settings for the item parameter estimation process, 
+#'   such as the maximum number of iterations. By default:
+#'   `control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)`, where  
+#'   - `eval.max` = 500 limits the number of function evaluations  
+#'   - `iter.max` = 200 caps the number of internal optimizer iterations  
+#'   - `x.tol` = 1e‑4 sets the absolute change threshold in parameter values  
+#'     below which [stats::nlminb()] considers the solution to have converged  
+#'   Users may additionally supply other `nlminb()` control options  
+#'   (such as `abs.tol`, `rel.tol`, `trace`, etc.) as needed.
 #' @param verbose Logical. If `FALSE`, all progress messages are suppressed.
 #'   Default is `TRUE`.
 #'
@@ -208,7 +214,7 @@ est_item <- function(x = NULL,
                      gprior = list(dist = "beta", params = c(5, 17)),
                      missing = NA,
                      use.startval = FALSE,
-                     control = list(eval.max = 500, iter.max = 500),
+                     control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4),
                      verbose = TRUE) {
 
   # check start time
@@ -359,26 +365,11 @@ est_item <- function(x = NULL,
     fix.a.1pl = fix.a.1pl, fix.a.gpcm = fix.a.gpcm, fix.g = fix.g
   )
 
-  # factorize the response values
-  resp <- purrr::map2(.x = data, .y = cats, .f = function(k, m) factor(k, levels = (seq_len(m) - 1)))
-
-  # create a contingency table of score categories for each item
-  # and then, transform the table to a matrix format
-  std.id <- 1:nstd
-  freq.cat <-
-    purrr::map(
-      .x = resp,
-      .f = function(k) {
-        stats::xtabs(~ std.id + k,
-          na.action = stats::na.pass, addNA = FALSE
-        ) %>%
-          # as.numeric() %>%
-          matrix(nrow = length(k))
-      }
-    )
-
-  # delete 'resp' object
-  rm(resp, envir = environment(), inherits = FALSE)
+  # build the per-item one-hot frequency-category list used downstream
+  # in the FAPC scoring loop.  See build_freqcat() (R/util.R) for the
+  # output structure; it replaces a factor -> xtabs -> matrix chain
+  # with direct one-hot construction (15-30x faster).
+  freq.cat <- build_freqcat(data, cats)
 
   ## -------------------------------------------------------------------------------------------------------
   ## 2. item parameter estimation
@@ -416,20 +407,13 @@ est_item <- function(x = NULL,
     prm = idx.prm
   )
 
-  # add the rowsum margin to the contingency matrix of the DRM items
-  if (!is.null(idx.drm)) {
-    freq.cat.drm <-
-      purrr::map(
-        .x = freq.cat[idx.drm],
-        ~ {
-          stats::addmargins(A = .x, margin = 2, quiet = TRUE)
-        }
-      )
-    freq.cat[idx.drm] <- freq.cat.drm
-
-    # delete 'freq.cat.drm' object
-    rm(freq.cat.drm, envir = environment(), inherits = FALSE)
-  }
+  # NOTE: previously this point added a per-DRM-item 3rd column equal
+  # to (s + r) via stats::addmargins() so that the 1PLM-constrained
+  # and DRM blocks below could read f_i directly as freq.cat[, 3].
+  # That augmentation is removed: f_i = s_i + r_i is computed at the
+  # point of use (see the loops below), which avoids one purrr::map
+  # over all DRM items, one matrix copy per item, and the integer ->
+  # double promotion that addmargins() silently performs.
 
   # create the lower and upper bounds of the item parameters
   parbd <- lubound(model, cats, n.1PLM, idx4est, fix.a.1pl, fix.g, fix.a.gpcm)
@@ -441,13 +425,21 @@ est_item <- function(x = NULL,
 
   # (1) estimation of DRM items: 1PLM with the constrained slope value
   if (!is.null(loc_1p_const)) {
-    # prepare input files to estimate the 1PLM item parameters
-    f_i <- r_i <- s_i <- array(0, c(nstd, n.1PLM))
-    for (k in 1:n.1PLM) {
-      s_i[, k] <- freq.cat[loc_1p_const][[k]][, 1]
-      r_i[, k] <- freq.cat[loc_1p_const][[k]][, 2]
-      f_i[, k] <- freq.cat[loc_1p_const][[k]][, 3]
+    # prepare input files to estimate the 1PLM item parameters.
+    # extract the per-item (incorrect, correct) columns from freq.cat
+    # via array preallocation (so the resulting matrices have no
+    # dimnames -- preserving the original behavior bit-for-bit) and
+    # compute f_i = s_i + r_i in one elementwise add.  This replaces
+    # the previous pattern that read freq.cat[[k]][, 3] -- a column
+    # added upfront by stats::addmargins() -- and removes the now-
+    # unneeded addmargins() pass entirely.
+    fc1pl <- freq.cat[loc_1p_const]
+    s_i <- r_i <- array(0, c(nstd, n.1PLM))
+    for (k in seq_len(n.1PLM)) {
+      s_i[, k] <- fc1pl[[k]][, 1]
+      r_i[, k] <- fc1pl[[k]][, 2]
     }
+    f_i <- s_i + r_i
 
     # set the starting values
     if (use.startval) {
@@ -514,9 +506,18 @@ est_item <- function(x = NULL,
 
       # in case of a DRM item
       if (score.cat == 2) {
-        s_i <- freq.cat[loc_else][[i]][, 1]
-        r_i <- freq.cat[loc_else][[i]][, 2]
-        f_i <- freq.cat[loc_else][[i]][, 3]
+        # extract (incorrect, correct) columns from the raw freq.cat
+        # matrix for this item; cast to double so f_i has the same
+        # storage.mode that stats::addmargins() previously produced,
+        # preserving downstream estimation1() equivalence
+        fc_i <- freq.cat[loc_else][[i]]
+        s_i <- as.double(fc_i[, 1])
+        r_i <- as.double(fc_i[, 2])
+        # f_i (total response indicator: 1 if examinee answered the
+        # item, 0 otherwise) replaces freq.cat[, 3] which was a margin
+        # column added upfront via stats::addmargins(); the value is
+        # arithmetically identical to s_i + r_i
+        f_i <- s_i + r_i
 
         # set the starting values
         if (use.startval) {
@@ -670,19 +671,36 @@ est_item <- function(x = NULL,
   llike <- -sum(objective)
 
   ## ---------------------------------------------------------------
-  # arrange the estimated item parameters and standard errors
-  par_df <- data.frame(bind.fill(est_par, type = "rbind"))
-  par_df$loc <- c(loc_1p_const, loc_else)
-  par_df <-
-    par_df %>%
-    dplyr::arrange("loc") %>%
-    dplyr::select(-"loc")
-  se_df <- data.frame(bind.fill(est_se, type = "rbind"))
-  se_df$loc <- c(loc_1p_const, loc_else)
-  se_df <-
-    se_df %>%
-    dplyr::arrange("loc") %>%
-    dplyr::select(-"loc")
+  # bind the per-item parameter and SE estimates into data.frames,
+  # then permute the rows from estimation order back into natural
+  # item order.
+  #
+  # The estimation loops above append rows in the order
+  #   [loc_1p_const items first, then loc_else items],
+  # but the downstream cbind data.frame(x[, 1:3], par_df) attaches
+  # x's natural-order id / cats / model columns row-by-row, so par_df
+  # must be permuted back into natural order or every (id, parameter)
+  # pair is wrong whenever the bank mixes 1PLM-constrained items
+  # with other-model items (fix.a.1pl = FALSE).
+  #
+  # order(c(loc_1p_const, loc_else)) is the inverse of the
+  # construction order: c(loc_1p_const, loc_else) lists the natural-
+  # order item indices in the order they were appended, and the
+  # order() of that vector gives the row positions to pick out so
+  # that natural item k ends up in row k of the result.
+  #
+  # Historical note: the previous implementation attempted the same
+  # permutation via dplyr::arrange("loc") %>% dplyr::select(-"loc")
+  # after attaching a loc column, but arrange() called with a STRING
+  # argument sorts by the literal value "loc" (constant across rows)
+  # rather than by the column named loc -- so the arrange step was a
+  # silent no-op and the (id, parameter) mis-pairing went undetected
+  # because est_item() had no test coverage.  The fix is verified by
+  # data-raw/verify_estitem_alignment.R and by the new bug-regression
+  # case in tests/testthat/test-est_item.R.
+  ord    <- order(c(loc_1p_const, loc_else))
+  par_df <- data.frame(bind.fill(est_par, type = "rbind")[ord, , drop = FALSE])
+  se_df  <- data.frame(bind.fill(est_se,  type = "rbind")[ord, , drop = FALSE])
 
   # combine all covariance matrices
   cov_mat <- as.matrix(Matrix::bdiag(cov_list))

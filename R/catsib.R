@@ -63,7 +63,7 @@
 #' To determine an appropriate number of intervals (*K*), [irtQ::catsib()]
 #' automatically decreases *K* from a large starting value (e.g., 80) based on
 #' the rule proposed by Nandakumar and Roussos (2004). Specifically, if more
-#' than 7.5\% of examinees in either the reference or focal group would be
+#' than 7.5% of examinees in either the reference or focal group would be
 #' excluded due to small bin sizes, the number of bins is reduced by one and the
 #' process is repeated. This continues until the retained examinees in each
 #' group comprise at least 92.5\% of the total. However, to prevent having too
@@ -98,6 +98,36 @@
 #' ability estimates are also treated as missing and are excluded from the
 #' CATSIB statistic computation. If `min.resp = NULL`, a score will be computed
 #' for any examinee with at least one valid item response.
+#'
+#' Note that the regression correction (Eq. 7 in Nandakumar & Roussos, 2004)
+#' assumes \eqn{\hat{\rho}^2} (the estimated reliability of ability estimates)
+#' lies in \eqn{[0, 1]}. In practice, however, \eqn{\hat{\rho}^2} can become
+#' negative when the mean squared standard error of ability estimates exceeds the
+#' observed variance of ability estimates — a situation that can arise when (a)
+#' the number of items is very small, (b) a purification procedure removes many
+#' items, or (c) items exhibiting nonuniform DIF inflate the standard errors of
+#' focal group examinees. A negative \eqn{\hat{\rho}^2} causes the regression
+#' correction to amplify rather than attenuate group differences, leading to
+#' inflated Type I error rates. Even a small positive \eqn{\hat{\rho}^2} (e.g.,
+#' 0.03) can collapse the corrected ability scores so tightly around each
+#' group's mean that, when ability impact exists between groups, the two groups'
+#' corrected score distributions no longer overlap. This leaves no bins
+#' containing examinees from both groups, resulting in
+#' \eqn{\hat{\beta} = 0} and \eqn{\text{SE}(\hat{\beta}) = 0} for every item,
+#' which causes the purification loop to terminate early with invalid
+#' statistics. To prevent this correction collapse, [irtQ::catsib()] enforces
+#' a floor of 0.05 on \eqn{\hat{\rho}^2} — i.e.,
+#' \eqn{\hat{\rho}^2 = \max(0.05, \min(1, 1 - \hat{\sigma}_e^2 / \hat{\sigma}_{\hat{\theta}}^2))}
+#' — so that a minimum degree of score spread is always preserved. When the
+#' unclamped \eqn{\hat{\rho}^2} falls below 0.05 for either group, a warning is
+#' issued and DIF results from that iteration should be interpreted with
+#' caution. This situation typically arises during purification when too few
+#' items remain to yield reliable ability estimates. Users should also be aware
+#' that CATSIB, like its predecessor SIBTEST (Shealy & Stout, 1993), was
+#' originally designed and validated for detecting uniform DIF. Its statistical
+#' behavior under nonuniform or mixed DIF conditions has not been formally
+#' evaluated, and caution is warranted when interpreting results for items
+#' suspected of nonuniform DIF.
 #'
 #' @return This function returns a list consisting of four elements:
 #'
@@ -618,9 +648,29 @@ catsib_one <- function(data,
   errvar_ref <- mean((se_ref^2)[score_ref > lb_score & score_ref < up_score], na.rm = TRUE)
   errvar_foc <- mean((se_foc^2)[score_foc > lb_score & score_foc < up_score], na.rm = TRUE)
 
-  # compute the squared correlation (a.k.a. reliability) between theta estimate and true theta
-  rho_ref2 <- suppressWarnings(1 - errvar_ref / sigma2_ref)
-  rho_foc2 <- suppressWarnings(1 - errvar_foc / sigma2_foc)
+  # compute the raw (unclamped) squared correlation (reliability) between theta estimate and true theta
+  rho_ref2_raw <- suppressWarnings(1 - errvar_ref / sigma2_ref)
+  rho_foc2_raw <- suppressWarnings(1 - errvar_foc / sigma2_foc)
+
+  # clamp rho2 to [0.05, 1]: floor of 0.05 prevents corrected scores from
+  # collapsing so tightly around each group's mean that the two groups'
+  # distributions no longer overlap (which produces n.ref=0, n.foc=0 for all
+  # items and prematurely terminates the purification loop with invalid results).
+  rho_ref2 <- max(0.05, min(1, rho_ref2_raw))
+  rho_foc2 <- max(0.05, min(1, rho_foc2_raw))
+
+  # warn when either raw rho2 fell below the 0.05 floor
+  if (rho_ref2_raw < 0.05 || rho_foc2_raw < 0.05) {
+    warning(
+      "The estimated reliability (rho^2) of ability estimates fell below 0.05 ",
+      "for one or more groups (rho^2_ref = ",
+      round(rho_ref2_raw, 3), ", rho^2_foc = ",
+      round(rho_foc2_raw, 3), ") and was floored at 0.05. ",
+      "This typically occurs when too few items remain after purification, ",
+      "leading to large standard errors. Interpret DIF results with caution.",
+      call. = FALSE
+    )
+  }
 
   # apply a regression correction to the ability estimates
   crscore_ref <- mu_ref + rho_ref2 * (score_ref - mu_ref)
@@ -673,102 +723,132 @@ catsib_one <- function(data,
 catsib_item <- function(crscore_ref, crscore_foc, resp.ref, resp.foc,
                         max.bin, min.bin, min.binsize = 3, max.del = 0.075,
                         weight.group) {
-  # combine all corrected theta scores
-  crscore <- c(crscore_ref, crscore_foc)
 
-  # set the range of the ability scale
-  min.crscore <- min(crscore, na.rm = TRUE)
-  max.crscore <- max(crscore, na.rm = TRUE)
-
-  # decide the number of bins and create an initial frequency table
-  for (num.bin in max.bin:min.bin) {
-    # compute the cut-scores to divide the theta scale into the bins
-    cutscore <- seq(from = min.crscore, to = max.crscore, length.out = num.bin + 1)
-
-    # assign a group variable to each score
-    bin_ref <- cut(crscore_ref, breaks = cutscore, include.lowest = TRUE, dig.lab = 7)
-    bin_foc <- cut(crscore_foc, breaks = cutscore, include.lowest = TRUE, dig.lab = 7)
-
-    # exclude bins where candidates' responses are NAs
-    non.na.ref <- !is.na(resp.ref)
-    non.na.foc <- !is.na(resp.foc)
-    bin_ref <- bin_ref[non.na.ref]
-    bin_foc <- bin_foc[non.na.foc]
-
-    # create a temporary data frame of bin frequency for both groups
-    bin.n.ref <- stats::xtabs(~bin_ref, drop.unused.levels = FALSE)
-    bin.n.foc <- stats::xtabs(~bin_foc, drop.unused.levels = FALSE)
-
-    # check if the counts of remaining sample is greater than equal to minimum a criterion
-    isok_ref <- (sum(bin.n.ref[bin.n.ref >= min.binsize & bin.n.foc >= min.binsize]) /
-                   sum(bin.n.ref)) >= 1 - max.del
-    isok_foc <- (sum(bin.n.foc[bin.n.ref >= min.binsize & bin.n.foc >= min.binsize]) /
-                   sum(bin.n.foc)) >= 1 - max.del
-
-    # if the criterion is met, then break out the loop
-    if (all(isok_ref, isok_foc)) {
-      break
+  # check if all responses are NAs
+  all.na.ref <- all(is.na(resp.ref))
+  all.na.foc <- all(is.na(resp.foc))
+  
+  # when all responses are NAs for either group, return NAs
+  if(all.na.ref | all.na.foc) {
+    list(dif_stat = data.frame(
+      beta = NA, se = NA, z.beta = NA, p = NA,
+      n.ref = 0, n.foc = 0, n.total = 0
+    ),
+    contingency = data.frame(
+      bin = NA, n.ref = 0, prop.ref = NA, var.ref = NA,
+      n.foc = 0, prop.foc = NA, var.foc = NA,
+      n.total = 0, beta = NA, var.beta = NA
+    ))
+    
+  } else {
+    
+    # when not all responses are NAs, proceed to compute the beta statistic
+  
+    # combine all corrected theta scores
+    crscore <- c(crscore_ref, crscore_foc)
+    
+    # set the range of the ability scale
+    min.crscore <- min(crscore, na.rm = TRUE)
+    max.crscore <- max(crscore, na.rm = TRUE)
+    
+    # decide the number of bins and create an initial frequency table
+    for (num.bin in max.bin:min.bin) {
+      # compute the cut-scores to divide the theta scale into the bins
+      cutscore <- seq(from = min.crscore, to = max.crscore, length.out = num.bin + 1)
+      
+      # assign a group variable to each score
+      bin_ref <- cut(crscore_ref, breaks = cutscore, include.lowest = TRUE, dig.lab = 7)
+      bin_foc <- cut(crscore_foc, breaks = cutscore, include.lowest = TRUE, dig.lab = 7)
+      
+      # exclude bins where candidates' responses are NAs
+      non.na.ref <- !is.na(resp.ref)
+      non.na.foc <- !is.na(resp.foc)
+      bin_ref <- bin_ref[non.na.ref]
+      bin_foc <- bin_foc[non.na.foc]
+      
+      # create a temporary data frame of bin frequency for both groups
+      bin.n.ref <- stats::xtabs(~bin_ref, drop.unused.levels = FALSE)
+      bin.n.foc <- stats::xtabs(~bin_foc, drop.unused.levels = FALSE)
+      
+      # check if the counts of remaining sample is greater than equal to minimum a criterion
+      isok_ref <- (sum(bin.n.ref[bin.n.ref >= min.binsize & bin.n.foc >= min.binsize]) /
+                     sum(bin.n.ref)) >= 1 - max.del
+      isok_foc <- (sum(bin.n.foc[bin.n.ref >= min.binsize & bin.n.foc >= min.binsize]) /
+                     sum(bin.n.foc)) >= 1 - max.del
+      
+      # if the criterion is met, then break out the loop
+      if (all(isok_ref, isok_foc)) {
+        break
+      }
     }
-  }
-
-  # final data frame containing all components to compute the beta statistic
-  prop.ref <- as.numeric(table(bin_ref, resp.ref[non.na.ref])[, 2] / bin.n.ref)
-  prop.foc <- as.numeric(table(bin_foc, resp.foc[non.na.foc])[, 2] / bin.n.foc)
-  var.ref <- as.numeric(by(
-    data = resp.ref[non.na.ref],
-    INDICES = bin_ref,
-    FUN = stats::var, na.rm = TRUE
-  ))
-  var.foc <- as.numeric(by(
-    data = resp.foc[non.na.foc],
-    INDICES = bin_foc,
-    FUN = stats::var, na.rm = TRUE
-  ))
-  ref.df <-
-    as.data.frame(bin.n.ref, stringsAsFactors = FALSE) %>%
-    stats::setNames(nm = c("bin", "n.ref")) %>%
-    data.frame(prop.ref = prop.ref, var.ref = var.ref)
-  foc.df <-
-    as.data.frame(bin.n.foc, stringsAsFactors = FALSE) %>%
-    stats::setNames(nm = c("bin", "n.foc")) %>%
-    data.frame(prop.foc = prop.foc, var.foc = var.foc)
-  n.ref <- n.foc <- weight <- NULL
-  item_df <-
-    merge(x = ref.df, y = foc.df, by = "bin", all = TRUE, sort = FALSE) %>%
-    subset(n.ref >= 3 & n.foc >= 3) %>%
-    transform(n.total = n.ref + n.foc) %>%
-    dplyr::mutate(
-      weight = dplyr::case_when(
-        weight.group == "comb" ~ .data$n.total / sum(.data$n.total),
-        weight.group == "foc" ~ .data$n.foc / sum(.data$n.foc),
-        weight.group == "ref" ~ .data$n.ref / sum(.data$n.ref)
+    
+    # final data frame containing all components to compute the beta statistic
+    prop.ref <- 
+      as.numeric(table(bin_ref, 
+                       factor(resp.ref[non.na.ref], levels = c(0, 1)))[, 2] / bin.n.ref)
+    prop.foc <- 
+      as.numeric(table(bin_foc, 
+                       factor(resp.foc[non.na.foc], levels = c(0, 1)))[, 2] / bin.n.foc)
+    var.ref <- as.numeric(by(
+      data = resp.ref[non.na.ref],
+      INDICES = bin_ref,
+      FUN = stats::var, na.rm = TRUE
+    ))
+    var.foc <- as.numeric(by(
+      data = resp.foc[non.na.foc],
+      INDICES = bin_foc,
+      FUN = stats::var, na.rm = TRUE
+    ))
+    ref.df <-
+      as.data.frame(bin.n.ref, stringsAsFactors = FALSE) %>%
+      stats::setNames(nm = c("bin", "n.ref")) %>%
+      data.frame(prop.ref = prop.ref, var.ref = var.ref)
+    foc.df <-
+      as.data.frame(bin.n.foc, stringsAsFactors = FALSE) %>%
+      stats::setNames(nm = c("bin", "n.foc")) %>%
+      data.frame(prop.foc = prop.foc, var.foc = var.foc)
+    n.ref <- n.foc <- weight <- NULL
+    item_df <-
+      merge(x = ref.df, y = foc.df, by = "bin", all = TRUE, sort = FALSE) %>%
+      # keep only bins with at least 'min.binsize' examinees in BOTH groups,
+      # consistent with the bin-count selection loop above
+      subset(n.ref >= min.binsize & n.foc >= min.binsize) %>%
+      transform(n.total = n.ref + n.foc) %>%
+      dplyr::mutate(
+        weight = dplyr::case_when(
+          weight.group == "comb" ~ .data$n.total / sum(.data$n.total),
+          weight.group == "foc" ~ .data$n.foc / sum(.data$n.foc),
+          weight.group == "ref" ~ .data$n.ref / sum(.data$n.ref)
+        )
+      ) %>%
+      transform(
+        beta = ((prop.ref - prop.foc) * weight),
+        var.beta = ((var.ref / n.ref + var.foc / n.foc) * weight^2)
       )
-    ) %>%
-    transform(
-      beta = ((prop.ref - prop.foc) * weight),
-      var.beta = ((var.ref / n.ref + var.foc / n.foc) * weight^2)
+    
+    # compute the beta statistic and its SE
+    beta <- sum(item_df$beta)
+    se_beta <- sqrt(sum(item_df$var.beta))
+    z_beta <- beta / se_beta
+    pval_beta <- 2 * stats::pnorm(q = abs(z_beta), mean = 0, sd = 1, lower.tail = FALSE)
+    n.ref <- sum(item_df$n.ref)
+    n.foc <- sum(item_df$n.foc)
+    stat_df <- data.frame(
+      beta = beta, se = se_beta, z.beta = z_beta, p = pval_beta,
+      n.ref = n.ref, n.foc = n.foc, n.total = n.ref + n.foc
     )
-
-  # compute the beta statistic and its SE
-  beta <- sum(item_df$beta)
-  se_beta <- sqrt(sum(item_df$var.beta))
-  z_beta <- beta / se_beta
-  pval_beta <- 2 * stats::pnorm(q = abs(z_beta), mean = 0, sd = 1, lower.tail = FALSE)
-  n.ref <- sum(item_df$n.ref)
-  n.foc <- sum(item_df$n.foc)
-  stat_df <- data.frame(
-    beta = beta, se = se_beta, z.beta = z_beta, p = pval_beta,
-    n.ref = n.ref, n.foc = n.foc, n.total = n.ref + n.foc
-  )
-
-  # round the numbers of the data frame
-  item_df2 <-
-    janitor::adorn_totals(
-      dat = item_df, where = "row", fill = NA, , , "n.ref", "n.foc", "n.total",
-      "beta", "var.beta"
-    ) %>%
-    dplyr::mutate_at(.vars = c(3, 4, 6, 7), "round", digits = 4)
-
-  # return the results
-  list(dif_stat = stat_df, contingency = item_df2)
+    
+    # round the numbers of the data frame
+    item_df2 <-
+      janitor::adorn_totals(
+        dat = item_df, where = "row", fill = NA, , , "n.ref", "n.foc", "n.total",
+        "beta", "var.beta"
+      ) %>%
+      dplyr::mutate_at(.vars = c(3, 4, 6, 7), "round", digits = 4)
+    
+    # return the results
+    list(dif_stat = stat_df, contingency = item_df2)
+  
+  }
+  
 }

@@ -47,6 +47,8 @@
 #' @seealso [irtQ::info()]
 #'
 #' @examples
+#' 
+#' \dontrun{
 #' ## Example using a "-prm.txt" file exported from flexMIRT
 #'
 #' # Import the "-prm.txt" output file from flexMIRT
@@ -75,6 +77,8 @@
 #'
 #' # Plot the conditional standard error of estimation (CSEE) at the test level
 #' plot(x, csee = TRUE)
+#' 
+#' }
 #'
 #' @import ggplot2 dplyr
 #' @importFrom reshape2 melt

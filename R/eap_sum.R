@@ -38,7 +38,11 @@
 #
 #' @importFrom Rfast colsums rowsums
 eap_sum <- function(x, data, norm.prior = c(0, 1), nquad = 41, weights = NULL, D = 1) {
+  
   ## ------------------------------------------------------------------------------------------------
+  # transform a data set to matrix
+  data <- data.matrix(data)
+  
   # check missing data
   # replace NAs with 0
   na.lg <- is.na(data)

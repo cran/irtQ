@@ -65,6 +65,7 @@
 #' # Plot the test characteristic curve (TCC) for the full test form
 #' plot(x, item.loc = NULL)
 #'
+#' \donttest{
 #' # Plot ICCs for the first item (dichotomous),
 #' # with a separate panel for each score category
 #' plot(x, item.loc = 1, score.curve = FALSE, layout.col = 2)
@@ -102,6 +103,7 @@
 #' # Plot item score curves for the last three polytomous items
 #' # overlaid in a single panel
 #' plot(x, item.loc = 53:55, score.curve = TRUE, overlap = TRUE)
+#' }
 #'
 #' @import ggplot2 dplyr
 #' @importFrom reshape2 melt

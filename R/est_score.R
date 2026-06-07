@@ -1,4 +1,4 @@
-#' Estimate examinees' ability (proficiency) parameters
+﻿#' Estimate examinees' ability (proficiency) parameters
 #'
 #' This function estimates examinees' latent ability parameters. Available
 #' scoring methods include maximum likelihood estimation (ML), maximum
@@ -122,7 +122,7 @@
 #'   corresponds to the ability estimate for the maximum observed sum score.
 #'
 #'   For the "INV.TCC" method, standard errors of ability estimates are computed
-#'   using the approach proposed by Lim et al. (2020). The implementation of
+#'   using the approach proposed by Lim et al. (2021). The implementation of
 #'   inverse TCC scoring in this function is based on a modified version of the
 #'   `SNSequate::irt.eq.tse()` function from the \pkg{SNSequate} package
 #'   (González, 2014).
@@ -203,7 +203,7 @@
 #'   estimates.
 #' *Educational Measurement: Issues and Practice, 29*(3), 8-14.
 #'
-#'   Lim, H., Davey, T., & Wells, C. S. (2020). A recursion-based analytical
+#'   Lim, H., Davey, T., & Wells, C. S. (2021). A recursion-based analytical
 #'   approach to evaluate the performance of MST.
 #' *Journal of Educational Measurement, 58*(2), 154-178.
 #'
@@ -248,28 +248,40 @@
 #'
 #' # Estimate abilities using MLF with default fences
 #' # based on the `range` argument
-#' est_score(x, data, D = 1, method = "MLF",
-#'   fence.a = 3.0, fence.b = NULL, se = TRUE)
+#' est_score(x, data,
+#'   D = 1, method = "MLF",
+#'   fence.a = 3.0, fence.b = NULL, se = TRUE
+#' )
 #'
 #' # Estimate abilities using MLF with user-specified fences
-#' est_score(x, data, D = 1, method = "MLF", fence.a = 3.0,
-#'   fence.b = c(-7, 7), se = TRUE)
+#' est_score(x, data,
+#'   D = 1, method = "MLF", fence.a = 3.0,
+#'   fence.b = c(-7, 7), se = TRUE
+#' )
 #'
 #' # Estimate abilities using maximum a posteriori (MAP)
-#' est_score(x, data, D = 1, method = "MAP", norm.prior = c(0, 1),
-#'   nquad = 30, se = TRUE)
+#' est_score(x, data,
+#'   D = 1, method = "MAP", norm.prior = c(0, 1),
+#'   nquad = 30, se = TRUE
+#' )
 #'
 #' # Estimate abilities using expected a posteriori (EAP)
-#' est_score(x, data, D = 1, method = "EAP", norm.prior = c(0, 1),
-#'   nquad = 30, se = TRUE)
+#' est_score(x, data,
+#'   D = 1, method = "EAP", norm.prior = c(0, 1),
+#'   nquad = 30, se = TRUE
+#' )
 #'
 #' # Estimate abilities using EAP summed scoring
-#' est_score(x, data, D = 1, method = "EAP.SUM", norm.prior = c(0, 1),
-#'   nquad = 30)
+#' est_score(x, data,
+#'   D = 1, method = "EAP.SUM", norm.prior = c(0, 1),
+#'   nquad = 30
+#' )
 #'
 #' # Estimate abilities using inverse TCC scoring
-#' est_score(x, data, D = 1, method = "INV.TCC", intpol = TRUE,
-#'   range.tcc = c(-7, 7))
+#' est_score(x, data,
+#'   D = 1, method = "INV.TCC", intpol = TRUE,
+#'   range.tcc = c(-7, 7)
+#' )
 #' }
 #'
 #' @export
@@ -277,8 +289,7 @@ est_score <- function(x, ...) UseMethod("est_score")
 
 #' @describeIn est_score Default method to estimate examinees' latent ability
 #'  parameters using a data frame `x` containing the item metadata.
-#' @importFrom reshape2 melt
-#' @import dplyr
+#' @importFrom dplyr bind_rows
 #' @export
 est_score.default <- function(x,
                               data,
@@ -299,7 +310,6 @@ est_score.default <- function(x,
                               missing = NA,
                               ncore = 1,
                               ...) {
-
   # check if the data set is a vector of an examinee
   if (is.vector(data)) {
     data <- rbind(data)
@@ -346,70 +356,103 @@ est_score.default <- function(x,
     # check the maximum score category across all items
     max.cats <- max(x$cats)
 
-    # count the number of columns of the item metadata
-    max.col <- ncol(x)
+    # pre-populate elm_item with pars, model, cats, id from item metadata
+    elm_item <- breakdown(x)
 
-    # create an empty elm_item object
-    elm_item <- list(pars = NULL, model = NULL, cats = NULL)
+    # B3: classify DRM/PRM items once for the full item set, outside the loop
+    idx_full     <- idxfinder(elm_item)
+    idx_drm_full <- idx_full$idx.drm
+    idx_prm_full <- idx_full$idx.prm
+
+    # B4: pre-compute quadrature points once for EAP method (not per examinee)
+    popdist <- if (method == "EAP") {
+      if (is.null(weights)) {
+        gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
+      } else {
+        data.frame(weights)
+      }
+    } else NULL
 
     # check the number of CPU cores
     if (ncore < 1) {
       stop("The number of logical CPU cores must not be less than 1.", call. = FALSE)
     }
 
+    # warn when parallel overhead likely exceeds computation gain
+    if (ncore > 1 && nstd < 5000) {
+      warning(
+        "ncore > 1 is not recommended for N < 5,000 ",
+        "as parallel overhead exceeds computation time. ",
+        "Consider using ncore = 1.",
+        call. = FALSE
+      )
+    }
+
     # estimation
     if (ncore == 1L) {
-      # reshape the data
-      if (stval.opt == 2) {
-        data <-
-          data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(
-            id.vars = 1:max.col,
-            variable.name = "std",
-            value.name = "resp.num",
-            na.rm = TRUE,
-            factorsAsStrings = FALSE
-          )
-        data$resp <- factor(data$resp.num, levels = (seq_len(max.cats) - 1))
-      } else {
-        data <-
-          data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(
-            id.vars = 1:max.col,
-            variable.name = "std",
-            value.name = "resp",
-            na.rm = TRUE,
-            factorsAsStrings = FALSE
-          )
-        data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
-      }
-      data$std <- as.numeric(data$std)
+      # score each examinee directly from the raw response row;
+      # no wide-to-long transformation needed
+      est <- lapply(seq_len(nstd), function(i) {
+        resp_vec_i <- data[i, ]
 
-      # create a score table to contain the scoring results
-      rst <- data.frame(std = 1:nstd)
+        # subset to non-NA items, mirroring the original na.rm=TRUE melt behavior
+        na_mask <- !is.na(resp_vec_i)
 
-      # scoring
-      est <-
-        dplyr::group_by(data, .data$std) %>%
-        dplyr::summarise(
-          est_score_indiv(
-            exam_dat = dplyr::pick(dplyr::everything()), elm_item = elm_item,
-            max.col = max.col, D = D, method = method,
-            range = range, norm.prior = norm.prior, nquad = nquad,
-            weights = weights, tol = tol, max.iter = max.iter, se = se,
-            stval.opt = stval.opt, ji = ji
-          )
+        # return NA immediately for examinees with all missing responses
+        if (!any(na_mask)) {
+          return(data.frame(est.theta = NA_real_, se.theta = NA_real_))
+        }
+
+        # subset elm_item to observed (non-NA) items only
+        elm_sub       <- elm_item
+        elm_sub$pars  <- elm_item$pars[na_mask, , drop = FALSE]
+        elm_sub$model <- elm_item$model[na_mask]
+        elm_sub$cats  <- elm_item$cats[na_mask]
+
+        # numeric response vector for the observed items
+        resp_sub <- as.numeric(resp_vec_i[na_mask])
+
+        # observed sum score for stval.opt==2 starting value (computed once here)
+        obs_sum_i <- if (stval.opt == 2L) sum(resp_sub) else NULL
+
+        # B3: map pre-computed full-item DRM/PRM indices to the non-NA subset
+        if (all(na_mask)) {
+          # no missing items: pre-computed indices apply directly
+          idx_drm_i <- idx_drm_full
+          idx_prm_i <- idx_prm_full
+        } else {
+          # some missing items: remap to local positions in the observed subset
+          na_pos    <- which(na_mask)
+          idx_drm_i <- if (!is.null(idx_drm_full)) {
+            x <- which(na_pos %in% idx_drm_full); if (length(x) == 0L) NULL else x
+          } else NULL
+          idx_prm_i <- if (!is.null(idx_prm_full)) {
+            x <- which(na_pos %in% idx_prm_full); if (length(x) == 0L) NULL else x
+          } else NULL
+        }
+
+        est_score_indiv(
+          resp_vec = resp_sub,
+          elm_item = elm_sub,
+          max.cats = max.cats,
+          idx.drm  = idx_drm_i,
+          idx.prm  = idx_prm_i,
+          D = D, method = method,
+          range = range, norm.prior = norm.prior, nquad = nquad,
+          weights = weights, tol = tol, max.iter = max.iter, se = se,
+          stval.opt = stval.opt, ji = ji,
+          obs.sum = obs_sum_i,
+          popdist = popdist        # B4: pre-computed quadrature (NULL for non-EAP)
         )
+      })
 
-      # merge the scoring results
-      rst <- merge(x = rst, y = est, by = "std")
-      rst <- rst[, -1]
+      # combine per-examinee results into a single data frame
+      rst <- do.call(rbind, est)
     } else {
       # create a parallel processing cluster
-      # cl <- parallel::makeCluster(ncore)
       cl <- parallel::makeCluster(ncore, ...)
 
-      # divide data into
+      # divide response data into ncore equal chunks
       quotient <- nstd %/% ncore
       remain <- nstd %% ncore
       data_list <- vector("list", ncore)
@@ -424,10 +467,11 @@ est_score.default <- function(x,
       # delete 'data' object
       rm(data, envir = environment(), inherits = FALSE)
 
-      # load some specific variable names into processing cluster
+      # export pre-populated elm_item, pre-computed popdist, and required functions;
+      # x and max.col are no longer needed after B1 (melt removed)
       parallel::clusterExport(cl, c(
-        "x", "elm_item", "D", "method",
-        "max.cats", "max.col", "range", "norm.prior", "nquad",
+        "elm_item", "popdist", "D", "method",
+        "max.cats", "range", "norm.prior", "nquad",
         "weights", "tol", "max.iter", "se", "stval.opt", "ji",
         "est_score_1core", "est_score_indiv", "idxfinder",
         "ll_score", "drm", "prm", "gpcm", "grm",
@@ -435,19 +479,19 @@ est_score.default <- function(x,
         "info_score", "info_drm", "info_prm",
         "gen.weight"
       ), envir = environment())
-      parallel::clusterEvalQ(cl, library(dplyr))
-      # parallel::clusterEvalQ(cl, library(reshape2))
-      # parallel::clusterEvalQ(cl, library(Rfast))
-
+      # B9: pre-load Rfast on workers (used in ll_score, info_drm, etc.);
+      # reshape2 removed since melt is no longer used in est_score_1core
+      parallel::clusterEvalQ(cl, library(Rfast))
 
       # set a function for scoring
       fsm <- function(subdat) {
         est_score_1core(
-          x = x, elm_item = elm_item, data = subdat, D = D,
-          method = method, max.cats = max.cats, max.col = max.col,
+          elm_item = elm_item, data = subdat, D = D,
+          method = method, max.cats = max.cats,
           range = range, norm.prior = norm.prior, nquad = nquad,
           weights = weights, tol = tol, max.iter = max.iter,
-          se = se, stval.opt = stval.opt, ji = ji
+          se = se, stval.opt = stval.opt, ji = ji,
+          popdist = popdist        # B4: pre-computed quadrature passed to workers
         )
       }
 
@@ -489,7 +533,7 @@ est_score.default <- function(x,
 
 
 #' @describeIn est_score An object created by the function [irtQ::est_irt()].
-#' @import dplyr
+#' @importFrom dplyr bind_rows
 #' @export
 est_score.est_irt <- function(x,
                               method = "ML",
@@ -559,69 +603,103 @@ est_score.est_irt <- function(x,
     # check the maximum score category across all items
     max.cats <- max(x$cats)
 
-    # count the number of columns of the item metadata
-    max.col <- ncol(x)
+    # pre-populate elm_item with pars, model, cats, id from item metadata
+    elm_item <- breakdown(x)
 
-    # create an empty elm_item object
-    elm_item <- list(pars = NULL, model = NULL, cats = NULL)
+    # B3: classify DRM/PRM items once for the full item set, outside the loop
+    idx_full     <- idxfinder(elm_item)
+    idx_drm_full <- idx_full$idx.drm
+    idx_prm_full <- idx_full$idx.prm
+
+    # B4: pre-compute quadrature points once for EAP method (not per examinee)
+    popdist <- if (method == "EAP") {
+      if (is.null(weights)) {
+        gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
+      } else {
+        data.frame(weights)
+      }
+    } else NULL
 
     # check the number of CPU cores
     if (ncore < 1) {
       stop("The number of logical CPU cores must not be less than 1.", call. = FALSE)
     }
 
+    # warn when parallel overhead likely exceeds computation gain
+    if (ncore > 1 && nstd < 5000) {
+      warning(
+        "ncore > 1 is not recommended for N < 5,000 ",
+        "as parallel overhead exceeds computation time. ",
+        "Consider using ncore = 1.",
+        call. = FALSE
+      )
+    }
+
     # estimation
     if (ncore == 1L) {
-      # reshape the data
-      if (stval.opt == 2) {
-        data <-
-          data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(
-            id.vars = 1:max.col,
-            variable.name = "std",
-            value.name = "resp.num",
-            na.rm = TRUE,
-            factorsAsStrings = FALSE
-          )
-        data$resp <- factor(data$resp.num, levels = (seq_len(max.cats) - 1))
-      } else {
-        data <-
-          data.frame(x, t(data), check.names = FALSE) %>%
-          reshape2::melt(
-            id.vars = 1:max.col,
-            variable.name = "std",
-            value.name = "resp",
-            na.rm = TRUE,
-            factorsAsStrings = FALSE
-          )
-        data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
-      }
-      data$std <- as.numeric(data$std)
+      # score each examinee directly from the raw response row;
+      # no wide-to-long transformation needed
+      est <- lapply(seq_len(nstd), function(i) {
+        resp_vec_i <- data[i, ]
 
-      # create a score table to contain the scoring results
-      rst <- data.frame(std = 1:nstd)
+        # subset to non-NA items, mirroring the original na.rm=TRUE melt behavior
+        na_mask <- !is.na(resp_vec_i)
 
-      # scoring
-      est <-
-        dplyr::group_by(data, .data$std) %>%
-        dplyr::summarise(
-          est_score_indiv(
-            exam_dat = dplyr::pick(dplyr::everything()), elm_item = elm_item,
-            max.col = max.col, D = D, method = method,
-            range = range, norm.prior = norm.prior, nquad = nquad,
-            weights = weights, tol = tol, max.iter = max.iter, se = se,
-            stval.opt = stval.opt, ji = ji
-          )
+        # return NA immediately for examinees with all missing responses
+        if (!any(na_mask)) {
+          return(data.frame(est.theta = NA_real_, se.theta = NA_real_))
+        }
+
+        # subset elm_item to observed (non-NA) items only
+        elm_sub       <- elm_item
+        elm_sub$pars  <- elm_item$pars[na_mask, , drop = FALSE]
+        elm_sub$model <- elm_item$model[na_mask]
+        elm_sub$cats  <- elm_item$cats[na_mask]
+
+        # numeric response vector for the observed items
+        resp_sub <- as.numeric(resp_vec_i[na_mask])
+
+        # observed sum score for stval.opt==2 starting value (computed once here)
+        obs_sum_i <- if (stval.opt == 2L) sum(resp_sub) else NULL
+
+        # B3: map pre-computed full-item DRM/PRM indices to the non-NA subset
+        if (all(na_mask)) {
+          # no missing items: pre-computed indices apply directly
+          idx_drm_i <- idx_drm_full
+          idx_prm_i <- idx_prm_full
+        } else {
+          # some missing items: remap to local positions in the observed subset
+          na_pos    <- which(na_mask)
+          idx_drm_i <- if (!is.null(idx_drm_full)) {
+            x <- which(na_pos %in% idx_drm_full); if (length(x) == 0L) NULL else x
+          } else NULL
+          idx_prm_i <- if (!is.null(idx_prm_full)) {
+            x <- which(na_pos %in% idx_prm_full); if (length(x) == 0L) NULL else x
+          } else NULL
+        }
+
+        est_score_indiv(
+          resp_vec = resp_sub,
+          elm_item = elm_sub,
+          max.cats = max.cats,
+          idx.drm  = idx_drm_i,
+          idx.prm  = idx_prm_i,
+          D = D, method = method,
+          range = range, norm.prior = norm.prior, nquad = nquad,
+          weights = weights, tol = tol, max.iter = max.iter, se = se,
+          stval.opt = stval.opt, ji = ji,
+          obs.sum = obs_sum_i,
+          popdist = popdist        # B4: pre-computed quadrature (NULL for non-EAP)
         )
+      })
 
-      # merge the scoring results
-      rst <- merge(x = rst, y = est, by = "std")
-      rst <- rst[, -1]
+      # combine per-examinee results into a single data frame
+      rst <- do.call(rbind, est)
     } else {
       # create a parallel processing cluster
       cl <- parallel::makeCluster(ncore, ...)
 
-      # divide data into
+      # divide response data into ncore equal chunks
       quotient <- nstd %/% ncore
       remain <- nstd %% ncore
       data_list <- vector("list", ncore)
@@ -636,10 +714,11 @@ est_score.est_irt <- function(x,
       # delete 'data' object
       rm(data, envir = environment(), inherits = FALSE)
 
-      # load some specific variable names into processing cluster
+      # export pre-populated elm_item, pre-computed popdist, and required functions;
+      # x and max.col are no longer needed after B1 (melt removed)
       parallel::clusterExport(cl, c(
-        "x", "elm_item", "D", "method",
-        "max.cats", "max.col", "range", "norm.prior", "nquad",
+        "elm_item", "popdist", "D", "method",
+        "max.cats", "range", "norm.prior", "nquad",
         "weights", "tol", "max.iter", "se", "stval.opt", "ji",
         "est_score_1core", "est_score_indiv", "idxfinder",
         "ll_score", "drm", "prm", "gpcm", "grm",
@@ -647,19 +726,19 @@ est_score.est_irt <- function(x,
         "info_score", "info_drm", "info_prm",
         "gen.weight"
       ), envir = environment())
-      parallel::clusterEvalQ(cl, library(dplyr))
-      # parallel::clusterEvalQ(cl, library(reshape2))
-      # parallel::clusterEvalQ(cl, library(Rfast))
-
+      # B9: pre-load Rfast on workers (used in ll_score, info_drm, etc.);
+      # reshape2 removed since melt is no longer used in est_score_1core
+      parallel::clusterEvalQ(cl, library(Rfast))
 
       # set a function for scoring
       fsm <- function(subdat) {
         est_score_1core(
-          x = x, elm_item = elm_item, data = subdat, D = D,
-          method = method, max.cats = max.cats, max.col = max.col,
+          elm_item = elm_item, data = subdat, D = D,
+          method = method, max.cats = max.cats,
           range = range, norm.prior = norm.prior, nquad = nquad,
           weights = weights, tol = tol, max.iter = max.iter,
-          se = se, stval.opt = stval.opt, ji = ji
+          se = se, stval.opt = stval.opt, ji = ji,
+          popdist = popdist        # B4: pre-computed quadrature passed to workers
         )
       }
 
@@ -700,15 +779,12 @@ est_score.est_irt <- function(x,
 }
 
 
-# This function is used for each single core computation
-#' @import dplyr
-est_score_1core <- function(x,
-                            elm_item,
+# This function is used for each single core computation in the parallel path
+est_score_1core <- function(elm_item,
                             data,
                             D = 1,
                             method = "ML",
                             max.cats,
-                            max.col,
                             range = c(-4, 4),
                             norm.prior = c(0, 1),
                             nquad = 41,
@@ -717,86 +793,87 @@ est_score_1core <- function(x,
                             max.iter = 30,
                             se = TRUE,
                             stval.opt = 1,
-                            ji = FALSE) {
-  # check the number of examinees
+                            ji = FALSE,
+                            popdist = NULL) {
+  # check the number of examinees in this chunk
   nstd <- nrow(data)
 
-  # reshape the data
-  if (stval.opt == 2) {
-    data <-
-      data.frame(x, t(data), check.names = FALSE) %>%
-      reshape2::melt(
-        id.vars = 1:max.col,
-        variable.name = "std",
-        value.name = "resp.num",
-        na.rm = TRUE,
-        factorsAsStrings = FALSE
-      )
-    data$resp <- factor(data$resp.num, levels = (seq_len(max.cats) - 1))
-  } else {
-    data <-
-      data.frame(x, t(data), check.names = FALSE) %>%
-      reshape2::melt(
-        id.vars = 1:max.col,
-        variable.name = "std",
-        value.name = "resp",
-        na.rm = TRUE,
-        factorsAsStrings = FALSE
-      )
-    data$resp <- factor(data$resp, levels = (seq_len(max.cats) - 1))
-  }
-  data$std <- as.numeric(data$std)
+  # B3: classify DRM/PRM items once for this chunk (called once per worker, not per examinee)
+  idx_full     <- idxfinder(elm_item)
+  idx_drm_full <- idx_full$idx.drm
+  idx_prm_full <- idx_full$idx.prm
 
-  # create a score table to contain the scoring results
-  rst <- data.frame(std = 1:nstd)
+  # score each examinee directly from the raw response row
+  est <- lapply(seq_len(nstd), function(i) {
+    resp_vec_i <- data[i, ]
 
-  # scoring
-  est <-
-    dplyr::group_by(data, .data$std) %>%
-    dplyr::summarise(
-      est_score_indiv(
-        exam_dat = dplyr::pick(dplyr::everything()), elm_item = elm_item,
-        max.col = max.col, D = D, method = method,
-        range = range, norm.prior = norm.prior, nquad = nquad,
-        weights = weights, tol = tol, max.iter = max.iter, se = se,
-        stval.opt = stval.opt, ji = ji
-      )
+    # subset to non-NA items only
+    na_mask <- !is.na(resp_vec_i)
+
+    # return NA for examinees with all missing responses
+    if (!any(na_mask)) {
+      return(data.frame(est.theta = NA_real_, se.theta = NA_real_))
+    }
+
+    # subset elm_item to observed items
+    elm_sub       <- elm_item
+    elm_sub$pars  <- elm_item$pars[na_mask, , drop = FALSE]
+    elm_sub$model <- elm_item$model[na_mask]
+    elm_sub$cats  <- elm_item$cats[na_mask]
+
+    resp_sub  <- as.numeric(resp_vec_i[na_mask])
+    obs_sum_i <- if (stval.opt == 2L) sum(resp_sub) else NULL
+
+    # B3: map pre-computed full-item indices to the non-NA subset
+    if (all(na_mask)) {
+      idx_drm_i <- idx_drm_full
+      idx_prm_i <- idx_prm_full
+    } else {
+      na_pos    <- which(na_mask)
+      idx_drm_i <- if (!is.null(idx_drm_full)) {
+        x <- which(na_pos %in% idx_drm_full); if (length(x) == 0L) NULL else x
+      } else NULL
+      idx_prm_i <- if (!is.null(idx_prm_full)) {
+        x <- which(na_pos %in% idx_prm_full); if (length(x) == 0L) NULL else x
+      } else NULL
+    }
+
+    est_score_indiv(
+      resp_vec = resp_sub,
+      elm_item = elm_sub,
+      max.cats = max.cats,
+      idx.drm  = idx_drm_i,
+      idx.prm  = idx_prm_i,
+      D = D, method = method,
+      range = range, norm.prior = norm.prior, nquad = nquad,
+      weights = weights, tol = tol, max.iter = max.iter, se = se,
+      stval.opt = stval.opt, ji = ji,
+      obs.sum = obs_sum_i,
+      popdist = popdist        # B4: pre-computed quadrature (NULL for non-EAP)
     )
+  })
 
-  # merge the scoring results
-  rst <- merge(x = rst, y = est, by = "std")
-  rst <- rst[, -1]
-
-  # return results
-  rst
+  # combine per-examinee results and return
+  do.call(rbind, est)
 }
 
-# This function computes an ability estimate for an examinee (ML, MLF, MAP, EAP)
-#' @importFrom stats xtabs na.pass
-est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
-                            range = c(-4, 4), norm.prior = c(0, 1), nquad = 41, weights = NULL,
-                            tol = 1e-4, max.iter = 30, se = TRUE, stval.opt = 1, ji = FALSE) {
-  # extract the required objects from the individual exam data
-  elm_item$pars <- data.matrix(exam_dat[, 4:max.col])
-  elm_item$model <- exam_dat$model
-  elm_item$cats <- exam_dat$cats
-  resp <- exam_dat$resp
-  n.resp <- length(resp)
 
-  # classify the items into DRM and PRM item groups
-  idx.item <- idxfinder(elm_item)
-  idx.drm <- idx.item$idx.drm
-  idx.prm <- idx.item$idx.prm
+# This function computes an ability estimate for a single examinee (ML, WL, MLF, MAP, EAP)
+est_score_indiv <- function(resp_vec, elm_item, max.cats, idx.drm, idx.prm,
+                            D = 1, method = "ML",
+                            range = c(-4, 4), norm.prior = c(0, 1), nquad = 41,
+                            weights = NULL, tol = 1e-4, max.iter = 30, se = TRUE,
+                            stval.opt = 1, ji = FALSE, obs.sum = NULL,
+                            popdist = NULL) {
+  # elm_item is pre-populated (pars, model, cats) for the observed (non-NA) items only;
+  # idx.drm/idx.prm are pre-computed by the caller (B3: moved outside the loop)
+  n.resp <- nrow(elm_item$pars)
 
-  # calculate the score categories
-  tmp.id <- 1:n.resp
-  freq.cat <-
-    matrix(
-      stats::xtabs(~ tmp.id + resp,
-        na.action = stats::na.pass, addNA = FALSE
-      ),
-      nrow = n.resp
-    )
+  # B2: build the n.resp x max.cats one-hot freq.cat via direct matrix indexing
+  # (replaces the per-examinee stats::xtabs() call which had high formula overhead)
+  freq.cat <- matrix(0L, nrow = n.resp, ncol = max.cats)
+  resp_int  <- as.integer(resp_vec)          # 0-based integer responses (no NAs: caller subsets)
+  freq.cat[cbind(seq_len(n.resp), resp_int + 1L)] <- 1L
 
   ## ----------------------------------------------------
   ## ML, MLF and MAP
@@ -828,8 +905,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       # compute a perfect NC score
       total.nc <- sum(elm_item$cats - 1)
 
-      # compute a starting value based on the observed sum score
-      obs.sum <- sum(exam_dat$resp.num)
+      # obs.sum is passed in by the caller (sum of non-NA responses)
       if (obs.sum == 0) {
         theta <- log(1 / total.nc)
       } else if (obs.sum == total.nc) {
@@ -846,6 +922,9 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
     # set the iteration number to 0
     i <- 0
     abs_delta <- 1
+    # B5: preserve the last protected finfo for SE reuse on clean convergence;
+    # initialised to 1e-5 (the floor) in case the loop body never executes
+    finfo_last <- 1e-5
     while (abs_delta >= tol) {
       # update the iteration number
       i <- i + 1
@@ -862,7 +941,10 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
       finfo <- gr_fi$finfo
 
       # protect the fisher information having value close to 0
-      finfo[finfo < 1e-5] <- 1e-5
+      finfo[finfo < 1e-5 | is.nan(finfo)] <- 1e-5
+
+      # B5: save protected finfo at current theta before the theta update
+      finfo_last <- finfo
 
       # compute the theta correction factor (delta)
       delta <- grad / finfo
@@ -876,6 +958,9 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
 
       if (i == max.iter) break
     }
+    # B5: flag whether the loop exited via convergence (abs_delta < tol) or
+    # hit the iteration ceiling; finfo_last is only safe to reuse when converged
+    nr_converged <- (abs_delta < tol)
 
     # assign boundary score when the theta estimate is beyond the boundary
     theta[theta <= range[1]] <- range[1]
@@ -886,14 +971,20 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
     if (se) {
       if (est.theta %in% range) {
         se.theta <- 99.9999
+      } else if (nr_converged) {
+        # B5: reuse finfo_last (at theta_prev = est.theta + delta where |delta| < tol);
+        # avoids a second info_score() call; approximation error is O(tol)
+        se.theta <- 1 / sqrt(finfo_last)
       } else {
-        finfo <-
+        # max.iter reached without convergence: the last delta may be large, so
+        # finfo_last could be far from finfo(est.theta) — compute it accurately
+        finfo_se <-
           info_score(
             theta = est.theta, elm_item = elm_item, freq.cat = freq.cat,
             idx.drm = idx.drm, idx.prm = idx.prm, method = method, D = D,
             norm.prior = norm.prior, grad = FALSE, ji = FALSE
           )$finfo
-        se.theta <- 1 / sqrt(finfo)
+        se.theta <- 1 / sqrt(finfo_se)
       }
     } else {
       se.theta <- NA
@@ -903,12 +994,7 @@ est_score_indiv <- function(exam_dat, elm_item, max.col, D = 1, method = "ML",
   ## ----------------------------------------------------
   ## EAP scoring
   if (method == "EAP") {
-    # generate quadrature points and weights
-    if (is.null(weights)) {
-      popdist <- gen.weight(n = nquad, dist = "norm", mu = norm.prior[1], sigma = norm.prior[2])
-    } else {
-      popdist <- data.frame(weights)
-    }
+    # B4: popdist is pre-computed by the caller (gen.weight() no longer called per examinee)
 
     # compute the posterior distribution
     posterior <-

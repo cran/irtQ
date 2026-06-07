@@ -1,68 +1,103 @@
-# E-step function when FIPC method is used
+# Internal E-step core shared by Estep() and Estep_fipc().  Both
+# public wrappers compute the same three quantities -- a per-(
+# examinee, theta) likelihood matrix, the posterior density over
+# the ability quadrature, and the per-item expected frequencies
+# of scored categories -- and differ only in argument naming and
+# in whether the elm_item used to evaluate the likelihood is the
+# same as the one returned in the result list.  Folding the
+# duplicated body into this helper keeps the public signatures
+# unchanged while removing ~30 lines of mirrored code.
+#
+# Args:
+#   elm_item_likehd : list (output of breakdown()) whose $pars,
+#                     $cats, $model drive the likelihood() call.
+#                     For Estep() this is the only elm_item; for
+#                     Estep_fipc() this is the "fixed-or-merged"
+#                     elm_item (elm_item2 in the FIPC notation),
+#                     used because the posterior must be evaluated
+#                     against the items whose parameters are
+#                     currently considered known.
+#   elm_item_return : list passed back as the $elm_item slot of
+#                     the result.  For Estep() this equals
+#                     elm_item_likehd; for Estep_fipc() this is
+#                     the "new items" elm_item (elm_item1) so
+#                     downstream Mstep updates the right rows.
+#   idx.drm, idx.prm : integer item-row indices into elm_item_likehd
+#                     for dichotomous and polytomous items.
+#   data_drm, data_prm, data_all : sparse-Matrix indicator inputs
+#                     produced by divide_data().
+#   weights : single-group case is a data.frame(theta, weight); the
+#             multi-group case is a list of such data.frames, in
+#             which case theta is read from weights[[1]][, 1] (all
+#             groups share the same quadrature grid by construction).
+#   D       : scaling constant (1 = logistic, 1.7 ≈ normal-ogive).
+#   idx.std : NULL for single group, or a list of per-group row
+#             indices into the combined response matrix.
 #' @importFrom Matrix crossprod
+.Estep_core <- function(elm_item_likehd, elm_item_return,
+                        idx.drm, idx.prm,
+                        data_drm, data_prm, data_all,
+                        weights, D, idx.std) {
+  # quadrature points: weights[, 1] in single-group form, or
+  # weights[[1]][, 1] in multi-group form (all groups share the
+  # same grid in the current implementation)
+  theta <- if (is.null(idx.std)) weights[, 1] else weights[[1]][, 1]
+
+  # likelihood matrix L(theta_q | response_i) for each examinee
+  # at every quadrature point; used only as the input to the
+  # posterior() Bayes-rule normalization below
+  likehd <- likelihood(elm_item_likehd,
+    idx.drm = idx.drm, idx.prm = idx.prm,
+    data_drm = data_drm, data_prm = data_prm,
+    theta = theta, D = D
+  )$L
+
+  # posterior density of ability per examinee (rows sum to 1);
+  # idx.std = NULL takes the single-group branch, otherwise the
+  # multi-group branch with per-group prior weights
+  post_dist <- posterior(likehd = likehd, weights = weights, idx.std = idx.std)
+
+  # per-(quadrature, score-category) expected frequency = the
+  # conditional expectation of the one-hot response indicator
+  # given the posterior; sparse-aware crossprod exploits zero
+  # entries in data_all (incl. NA-encoded missing responses)
+  freq.exp <- base::as.matrix(Matrix::crossprod(post_dist, data_all))
+
+  # the returned $elm_item is the caller-chosen one: same as the
+  # likelihood-driving elm_item for Estep, the "new items" elm_item
+  # for Estep_fipc
+  list(
+    elm_item = elm_item_return, post_dist = post_dist, freq.exp = freq.exp,
+    likehd = likehd, idx.std = idx.std
+  )
+}
+
+# E-step function when FIPC method is used.  Drives the likelihood
+# evaluation with the "fixed (iter 1) or merged fixed+new (iter > 1)"
+# elm_item (elm_item2) but returns the new-items elm_item (elm_item1)
+# so the subsequent Mstep updates only the parameters being calibrated.
 Estep_fipc <- function(elm_item1, elm_item2, idx.drm2, idx.prm2,
                        data_drm2, data_prm2, data_all1, weights,
                        D = 1, idx.std = NULL) {
-  # compute the likelihood and log-likelihood matrix of the fixed items
-  # (in the first iteration of EM) or all items (in the rest of the iteration of EM)
-  # this (log) likelihood matrix is used only for computing the posterior density of ability
-  if (is.null(idx.std)) {
-    L_LL <- likelihood(elm_item2,
-      idx.drm = idx.drm2, idx.prm = idx.prm2,
-      data_drm = data_drm2, data_prm = data_prm2, theta = weights[, 1], D = D
-    )
-  } else {
-    L_LL <- likelihood(elm_item2,
-      idx.drm = idx.drm2, idx.prm = idx.prm2,
-      data_drm = data_drm2, data_prm = data_prm2, theta = weights[[1]][, 1], D = D
-    )
-  }
-
-  # posterior distribution
-  post_dist <- posterior(likehd = L_LL$L, weights = weights, idx.std = idx.std)
-
-  # compute the expected frequency of scores categories across all items
-  # this is the conditional expectation of item responses with respect to posterior likelihood distribution
-  freq.exp <- base::as.matrix(Matrix::crossprod(post_dist, data_all1))
-
-  # return results
-  rst <- list(
-    elm_item = elm_item1, post_dist = post_dist, freq.exp = freq.exp,
-    loglikehd = L_LL$LL, likehd = L_LL$L, idx.std = idx.std
+  .Estep_core(
+    elm_item_likehd = elm_item2, elm_item_return = elm_item1,
+    idx.drm = idx.drm2, idx.prm = idx.prm2,
+    data_drm = data_drm2, data_prm = data_prm2, data_all = data_all1,
+    weights = weights, D = D, idx.std = idx.std
   )
-  rst
 }
 
-# E-step function
-#' @importFrom Matrix crossprod
+# E-step function for the standard (non-FIPC) calibration path.
+# Both the likelihood-driving elm_item and the returned elm_item are
+# the same single argument.
 Estep <- function(elm_item, idx.drm = NULL, idx.prm = NULL,
                   data_drm, data_prm, data_all, weights, D = 1, idx.std = NULL) {
-  # compute the likelihood and log-likelihood matrix
-  if (is.null(idx.std)) {
-    L_LL <- likelihood(elm_item,
-      idx.drm = idx.drm, idx.prm = idx.prm,
-      data_drm = data_drm, data_prm = data_prm, theta = weights[, 1], D = D
-    )
-  } else {
-    L_LL <- likelihood(elm_item,
-      idx.drm = idx.drm, idx.prm = idx.prm,
-      data_drm = data_drm, data_prm = data_prm, theta = weights[[1]][, 1], D = D
-    )
-  }
-
-  # posterior distribution
-  post_dist <- posterior(likehd = L_LL$L, weights = weights, idx.std = idx.std)
-
-  # compute the expected frequency of scores categories across all items
-  # this is the conditional expectation of item responses with respect to posterior likelihood distribution
-  freq.exp <- base::as.matrix(Matrix::crossprod(post_dist, data_all))
-
-  # return results
-  rst <- list(
-    elm_item = elm_item, post_dist = post_dist, freq.exp = freq.exp,
-    loglikehd = L_LL$LL, likehd = L_LL$L, idx.std = idx.std
+  .Estep_core(
+    elm_item_likehd = elm_item, elm_item_return = elm_item,
+    idx.drm = idx.drm, idx.prm = idx.prm,
+    data_drm = data_drm, data_prm = data_prm, data_all = data_all,
+    weights = weights, D = D, idx.std = idx.std
   )
-  rst
 }
 
 
@@ -77,7 +112,6 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
   elm_item <- estep$elm_item
   post_dist <- estep$post_dist
   freq.exp <- estep$freq.exp
-  loglikehd <- estep$loglikehd
   likehd <- estep$likehd
   idx.std <- estep$idx.std
 
@@ -94,14 +128,21 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
   if (!is.null(elm_item)) {
     # the dichotomous items: 1PLM with constrained slope values
     if (!is.null(loc_1p_const)) {
-      # prepare input files to estimate the 1PLM item parameters
-      f_i <- array(0, c(n.quad, n.1PLM))
-      for (k in 1:n.1PLM) {
-        cols.tmp <- cols.item$cols.all[[loc_1p_const[k]]]
-        f_i[, k] <- Rfast::rowsums(freq.exp[, cols.tmp])
-      }
+      # prepare input files to estimate the 1PLM item parameters.
+      # cols.item$cols.1pl holds 2 * n.1PLM consecutive column indices
+      # into freq.exp (one (incorrect, correct) pair per 1PLM item by
+      # construction in cols4item()), so the odd positions extract the
+      # "wrong" column (s_i) and the even positions extract the
+      # "correct" column (r_i) for every 1PLM item simultaneously.
       s_i <- freq.exp[, cols.item$cols.1pl][, c(TRUE, FALSE), drop = FALSE]
       r_i <- freq.exp[, cols.item$cols.1pl][, c(FALSE, TRUE), drop = FALSE]
+      # f_i (total responses per 1PLM item per quadrature point) is
+      # the elementwise sum of s_i and r_i; this replaces the previous
+      # n.1PLM-iteration for-loop that called Rfast::rowsums on each
+      # 2-column slice of freq.exp -- the loop was redundant because
+      # cats[k] == 2 for every 1PLM item, so the 2-col rowsum is
+      # identical to a single elementwise add of the s_i/r_i matrices
+      f_i <- s_i + r_i
 
       # set the starting values
       startval <-
@@ -146,10 +187,16 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
 
         # in case of a DRM item
         if (score.cat == 2) {
+          # extract the (incorrect, correct) column pair for this item;
+          # cols.item$cols.all[[k]] always has length 2 for cats == 2
           cols.tmp <- cols.item$cols.all[[loc_else[i]]]
-          f_i <- Rfast::rowsums(freq.exp[, cols.tmp])
           s_i <- freq.exp[, cols.tmp[1]]
           r_i <- freq.exp[, cols.tmp[2]]
+          # total responses per quadrature point = s_i + r_i; replaces
+          # the previous Rfast::rowsums(freq.exp[, cols.tmp]) call,
+          # which was a 2-column rowsum and is identical to the direct
+          # add (avoids a function-call indirection per item per Mstep)
+          f_i <- s_i + r_i
 
           # set the starting values
           startval <-
@@ -244,11 +291,18 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
 
   ## ---------------------------------------------------------------
   if (!is.null(elm_item)) {
-    # arrange the estimated item parameters and standard errors
+    # arrange the estimated item parameters into natural item order.
+    # The estimation loop appends results in [loc_1p_const items,
+    # then loc_else items] order, so we permute by the inverse of
+    # that mapping -- which is exactly order(c(loc_1p_const,
+    # loc_else)).  Replaces a 4-step copy chain (cbind a loc column
+    # -> sort by it -> drop the column) that produced the same
+    # final permutation but allocated three intermediate matrix
+    # copies; the new path computes the integer permutation once
+    # on a small length-nitem vector and applies it as a single
+    # row index.
     par_df <- bind.fill(est_par, type = "rbind")
-    par_df <- cbind(loc = c(loc_1p_const, loc_else), par_df)
-    par_df <- par_df[order(par_df[, 1]), , drop = FALSE]
-    par_df <- par_df[, -1, drop = FALSE]
+    par_df <- par_df[order(c(loc_1p_const, loc_else)), , drop = FALSE]
 
     # create a full data.frame for the item parameter estimates
     colnames(par_df) <- paste0("par.", 1:ncol(par_df))

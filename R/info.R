@@ -499,7 +499,7 @@ info_prm <- function(theta, a, d, D = 1, pr.model,
 
       # weight sum of all score category information
       # which is the item information (II)
-      II <- Rfast::rowsums(IP)
+      II <- Rfast::rowsums(IP, na.rm = TRUE)
     } else {
       II <- NULL
     }
@@ -550,7 +550,7 @@ info_prm <- function(theta, a, d, D = 1, pr.model,
 
       # weight sum of all score category information
       # which is the item information (II)
-      II <- Rfast::rowsums(IP)
+      II <- Rfast::rowsums(IP, na.rm = TRUE)
     } else {
       dP <- dP2 <- II <- NULL
     }
@@ -559,7 +559,7 @@ info_prm <- function(theta, a, d, D = 1, pr.model,
   # compute the gradient of the negative loglikelihood (S)
   if (grad) {
     frac_rp <- r_i / P
-    S <- -Rfast::rowsums(frac_rp * dP)
+    S <- -Rfast::rowsums(frac_rp * dP, na.rm = TRUE)
   } else {
     S <- NULL
   }
@@ -567,7 +567,7 @@ info_prm <- function(theta, a, d, D = 1, pr.model,
   # JI should be computed only for WL method
   # and S is also adjusted accordingly using the weight function of J/2I
   if (ji & info) {
-    J <- Rfast::rowsums((dP * d2P) / P)
+    J <- Rfast::rowsums((dP * d2P) / P, na.rm = TRUE)
   } else {
     J <- NULL
   }
@@ -588,7 +588,7 @@ info_score <- function(theta, elm_item, freq.cat, idx.drm, idx.prm,
     a <- elm_item$pars[idx.drm, 1]
     b <- elm_item$pars[idx.drm, 2]
     g <- elm_item$pars[idx.drm, 3]
-
+    
     # compute the gradient and fisher information
     gi_drm <-
       info_drm(
@@ -605,7 +605,7 @@ info_score <- function(theta, elm_item, freq.cat, idx.drm, idx.prm,
     finfo_drm <- 0
     ji_drm <- 0
   }
-
+  
   # For PRM items
   if (!is.null(idx.prm)) {
     pr.mod <- unique(elm_item$model[idx.prm])
@@ -619,7 +619,7 @@ info_score <- function(theta, elm_item, freq.cat, idx.drm, idx.prm,
       r_i <- freq.cat[lg.prm, , drop = FALSE]
       a <- par.tmp[, 1]
       d <- par.tmp[, -1, drop = FALSE]
-
+      
       # compute the gradient and fisher information
       gi_prm <-
         info_prm(
@@ -636,15 +636,15 @@ info_score <- function(theta, elm_item, freq.cat, idx.drm, idx.prm,
     finfo_prm <- 0
     ji_prm <- 0
   }
-
+  
   # sum of the gradients and the fisher information for DRM and PRM items
-  grad_sum <- sum(grad_drm, grad_prm)
-  finfo_sum <- sum(finfo_drm, finfo_prm)
+  grad_sum <- sum(grad_drm, grad_prm, na.rm = TRUE)
+  finfo_sum <- sum(finfo_drm, finfo_prm, na.rm = TRUE)
   if (ji) {
-    ji_sum <- sum(ji_drm, ji_prm)
+    ji_sum <- sum(ji_drm, ji_prm, na.rm = TRUE)
     grad_sum <- grad_sum - (ji_sum / (2 * finfo_sum))
   }
-
+  
   # extract the fisher information when MAP method is used
   if (method == "MAP") {
     # compute a gradient and hessian of prior distribution
@@ -653,18 +653,18 @@ info_score <- function(theta, elm_item, freq.cat, idx.drm, idx.prm,
         val = theta, is.aprior = FALSE, D = NULL, dist = "norm",
         par.1 = norm.prior[1], par.2 = norm.prior[2]
       )
-
+    
     # extract the hessian and add it
     finfo.prior <- attributes(rst.prior)$hessian
-    finfo_sum <- sum(finfo_sum, finfo.prior)
-
+    finfo_sum <- sum(finfo_sum, finfo.prior, na.rm = TRUE)
+    
     # add the gradient and add it
     if (grad) {
       grad.prior <- attributes(rst.prior)$gradient
-      grad_sum <- sum(grad_sum, grad.prior)
+      grad_sum <- sum(grad_sum, grad.prior, na.rm = TRUE)
     }
   }
-
+  
   # return results
   list(finfo = finfo_sum, grad = grad_sum)
 }

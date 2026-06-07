@@ -34,7 +34,7 @@ est_mg(
   use.startval = FALSE,
   Etol = 0.001,
   MaxE = 500,
-  control = list(eval.max = 200, iter.max = 200),
+  control = list(eval.max = 500, iter.max = 200, x.tol = 1e-04),
   fipc = FALSE,
   fipc.method = "MEM",
   fix.loc = NULL,
@@ -234,17 +234,24 @@ parameter estimation. Otherwise, internally generated starting values are
 used. Default is \code{FALSE}.}
 
 \item{Etol}{A positive numeric value specifying the convergence criterion for
-the E-step of the EM algorithm. Default is \code{1e-4}.}
+the E-step of the EM algorithm. Default is 1e-3.
+Specifically, the EM algorithm terminates when the largest absolute difference
+in item parameter estimates between consecutive iterations is smaller than this value.}
 
 \item{MaxE}{A positive integer specifying the maximum number of iterations
 for the E-step in the EM algorithm. Default is \code{500}.}
 
-\item{control}{A list of control parameters to be passed to the optimization
-function \code{\link[stats:nlminb]{stats::nlminb()}}. These parameters control the M-step of the EM
-algorithm. For example, the maximum number of iterations in each M-step can
-be specified using \code{control = list(iter.max = 200)}. The default maximum
-number of iterations per M-step is 200. See \code{\link[stats:nlminb]{stats::nlminb()}} for
-additional control options.}
+\item{control}{A named list of options passed directly to \code{\link[stats:nlminb]{stats::nlminb()}}
+in each M‑step optimization of the EM algorithm. By default:
+\code{control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)}, where
+\itemize{
+\item \code{eval.max} = 500 limits the number of function evaluations
+\item \code{iter.max} = 200 caps the number of internal optimizer iterations
+\item \code{x.tol} = 1e‑4 sets the absolute change threshold in parameter values
+below which \code{\link[stats:nlminb]{stats::nlminb()}} considers the solution to have converged
+Users may additionally supply other \code{nlminb()} control options
+(such as \code{abs.tol}, \code{rel.tol}, \code{trace}, etc.) as needed.
+}}
 
 \item{fipc}{Logical. If \code{TRUE}, multiple-group fixed item parameter
 calibration (MG-FIPC) is applied during item parameter estimation.
