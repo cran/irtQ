@@ -271,7 +271,7 @@ The \code{group} argument accepts a vector of numeric or character values,
 indicating the group membership of examinees. The vector may contain multiple
 distinct values, where one represents the reference group and the others
 represent focal groups. Its length must match the number of rows in the
-response data, with each value corresponding to an examinee’s group
+response data, with each value corresponding to an examinee's group
 membership. Once \code{group} is specified, a numeric or character vector must be
 supplied via the \code{focal.name} argument to define which group(s) in \code{group}
 represent the focal groups. The reference group is defined as the group not

@@ -31,7 +31,7 @@
 #'
 #' @return A data frame of log-likelihood values.
 #' - Each **row** corresponds to an ability value (`theta`).
-#' - Each **column** corresponds to an examinee’s response pattern.
+#' - Each **column** corresponds to an examinee's response pattern.
 #'
 #' @examples
 #' ## Import the "-prm.txt" output file from flexMIRT

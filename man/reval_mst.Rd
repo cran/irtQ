@@ -158,7 +158,7 @@ in estimating test-taker abilities.}
 }
 \description{
 This function evaluates the measurement precision and bias in
-Multistage-adaptive Test (MST) panels using a recursion-based evaluation
+Multistage-Adaptive Test (MST) panels using a recursion-based evaluation
 method introduced by Lim et al. (2021). This function computes conditional
 biases and standard errors of measurement (CSEMs) across a range of IRT
 ability levels, facilitating efficient and accurate MST panel assessments
@@ -208,7 +208,9 @@ individual performance levels.
 \donttest{
 ## ------------------------------------------------------------------------------
 # Evaluation of a 1-3-3 MST panel using simMST data.
-# This simulation dataset was utilized in Lim et al.'s (2021) simulation study.
+# This panel was assembled using module-level target TIFs and design
+# constraints similar to those used in Lim et al.'s (2021) simulation study
+# (it is not the identical dataset from that study).
 # Details:
 #    (a) Panel configuration: 1-3-3 MST panel
 #    (b) Test length: 24 items (each module contains 8 items across all stages)
@@ -238,7 +240,7 @@ theta <- simMST$theta
 eval <-
   reval_mst(x,
     D = 1.702, route_map = route_map, module = module,
-    cut_score = cut_score, theta = theta, range.tcc = c(-5, 5)
+    cut_score = cut_score, theta = theta, range.tcc = c(-7, 7)
   )
 
 # Review evaluation results

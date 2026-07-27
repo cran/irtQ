@@ -17,7 +17,7 @@ Section 6, as used in Thissen (1982).
 }
 \references{
 Thissen, D. (1982). Marginal maximum likelihood estimation for the one-parameter logistic model.
-\emph{Psychometrika, 47}, 175–186.
+\emph{Psychometrika, 47}, 175-186.
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

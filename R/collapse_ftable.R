@@ -3,7 +3,7 @@
 # step in sx2_fit().  Processes all summed-score groups for one polytomous item.
 #
 # Algorithm:
-#   1. Rfast::rowmins() detects — in one vectorised pass — which score groups
+#   1. Rfast::rowmins() detects - in one vectorised pass - which score groups
 #      require category collapsing (min expected freq < min.collapse).
 #   2. Rows not needing collapse are extracted in bulk with asplit(), avoiding
 #      per-row data.frame construction and function-call overhead.

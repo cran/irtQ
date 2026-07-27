@@ -61,7 +61,7 @@ is \code{NA}.}
 A data frame of log-likelihood values.
 \itemize{
 \item Each \strong{row} corresponds to an ability value (\code{theta}).
-\item Each \strong{column} corresponds to an examinee’s response pattern.
+\item Each \strong{column} corresponds to an examinee's response pattern.
 }
 }
 \description{

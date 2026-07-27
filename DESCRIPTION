@@ -1,7 +1,7 @@
 Package: irtQ
 Type: Package
 Title: Unidimensional Item Response Theory Modeling
-Version: 1.1.0
+Version: 1.2.0
 Description: Fit unidimensional item response theory (IRT) models to test
     data, which includes both dichotomous and polytomous items, calibrate 
     pretest item parameters, estimate examinees' abilities, and examine 
@@ -15,10 +15,10 @@ Description: Fit unidimensional item response theory (IRT) models to test
     The bisection() function was written by modifying the bisection() function 
     (Howard (2017, ISBN:9780367657918)). The code of the inverse test characteristic curve 
     scoring in the est_score() function was written by modifying the irt.eq.tse() function 
-    (González (2014) <doi:10.18637/jss.v059.i07>). In est_score() function, the code of weighted 
+    (Gonzalez (2014) <doi:10.18637/jss.v059.i07>). In est_score() function, the code of weighted 
     likelihood estimation method was written by referring to the Pi(), Ji(), and Ii() functions
     of the catR package (Magis & Barrada (2017) <doi:10.18637/jss.v076.c01>).
-Depends: R (>= 4.4)
+Depends: R (>= 4.5)
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
@@ -30,23 +30,23 @@ Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", 
     person("James", "Howard", email="jh@jameshoward.us", role="ctb"),
     person("Joshua", "Pritikin", email="jpritikin@pobox.com", role="ctb"), 
     person("Jonathan P", "Weeks", email="weeksjp@gmail.com", role="ctb"), 
-    person("Jorge", "González", email="jgonzale@mat.puc.cl", role="ctb"), 
+    person("Jorge", "Gonzalez", email="jgonzale@mat.puc.cl", role="ctb"), 
     person("David", "Magis", email="david.magis@uliege.be", role="ctb") 
     ) 
 Suggests: knitr, rmarkdown, testthat (>= 3.0.0), pkgdown, RhpcBLASctl
 Config/testthat/edition: 3
-RoxygenNote: 7.3.2
 URL: https://hwangQ.github.io/irtQ/, https://github.com/hwangQ/irtQ
 BugReports: https://github.com/hwangQ/irtQ/issues
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-06-07 13:49:59 UTC; kijja
+Packaged: 2026-07-27 07:13:34 UTC; kijja
 Author: Hwanggyu Lim [aut, cre],
   Craig S. Wells [ctb],
   James Howard [ctb],
   Joshua Pritikin [ctb],
   Jonathan P Weeks [ctb],
-  Jorge González [ctb],
+  Jorge Gonzalez [ctb],
   David Magis [ctb]
 Maintainer: Hwanggyu Lim <hglim83@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-06-07 14:30:08 UTC
+Date/Publication: 2026-07-27 07:40:02 UTC

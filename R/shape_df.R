@@ -1,7 +1,7 @@
 #' Create a Data Frame of Item Metadata
 #'
-#' This function creates a data frame of item metadata—including item
-#' parameters, the number of score categories, and IRT model specifications—to
+#' This function creates a data frame of item metadata - including item
+#' parameters, the number of score categories, and IRT model specifications - to
 #' be used in various IRT-related analyses within the \pkg{irtQ} package.
 #'
 #' @param par.drm A list containing three numeric vectors for dichotomous item

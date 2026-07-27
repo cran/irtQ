@@ -24,7 +24,7 @@
 #'   plotting ICCs or item score curves.
 #'
 #'   If `TRUE`, curves are overlaid in a single panel using different colors.
-#'   If `FALSE`, each curve is drawn in a separate panel—either one panel per
+#'   If `FALSE`, each curve is drawn in a separate panel - either one panel per
 #'   item or per score category, depending on the setting of `score.curve`.
 #' @param layout.col An integer value indicating the number of columns in the
 #'   plot when displaying multiple panels. Used only when `overlap = FALSE`.

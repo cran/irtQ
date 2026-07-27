@@ -1,4 +1,4 @@
-﻿#' Estimate examinees' ability (proficiency) parameters
+#' Estimate examinees' ability (proficiency) parameters
 #'
 #' This function estimates examinees' latent ability parameters. Available
 #' scoring methods include maximum likelihood estimation (ML), maximum
@@ -125,7 +125,7 @@
 #'   using the approach proposed by Lim et al. (2021). The implementation of
 #'   inverse TCC scoring in this function is based on a modified version of the
 #'   `SNSequate::irt.eq.tse()` function from the \pkg{SNSequate} package
-#'   (González, 2014).
+#'   (Gonzalez, 2014).
 #'
 #'   For the ML, MLF, WL, and MAP scoring methods, different strategies can be
 #'   used to determine the starting value for ability estimation based on the
@@ -138,7 +138,7 @@
 #'
 #'   - When `stval.opt = 2`, the starting value is derived from the observed
 #'   sum score using a logistic transformation. For example, if the maximum
-#'   possible score (`max.score`) is 30 and the examinee’s observed sum score
+#'   possible score (`max.score`) is 30 and the examinee's observed sum score
 #'   (`obs.score`) is 20, the starting value is `log(obs.score / (max.score -
 #'   obs.score))`.
 #'     - If all responses are incorrect (i.e., `obs.score = 0`), the starting
@@ -182,7 +182,7 @@
 #' @references Bock, R. D., & Mislevy, R. J. (1982). Adaptive EAP estimation of
 #'   ability in a microcomputer environment. *Psychometrika, 35*, 179-198.
 #'
-#'   González, J. (2014). SNSequate: Standard and nonstandard statistical models
+#'   Gonzalez, J. (2014). SNSequate: Standard and nonstandard statistical models
 #'   and methods for test equating.
 #' *Journal of Statistical Software, 59*, 1-30.
 #'
@@ -977,7 +977,7 @@ est_score_indiv <- function(resp_vec, elm_item, max.cats, idx.drm, idx.prm,
         se.theta <- 1 / sqrt(finfo_last)
       } else {
         # max.iter reached without convergence: the last delta may be large, so
-        # finfo_last could be far from finfo(est.theta) — compute it accurately
+        # finfo_last could be far from finfo(est.theta) - compute it accurately
         finfo_se <-
           info_score(
             theta = est.theta, elm_item = elm_item, freq.cat = freq.cat,

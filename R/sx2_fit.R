@@ -99,7 +99,7 @@
 #' ## Example 2: Items 39 and 40 follow the GRM, and items 53, 54, and 55
 #' ##            follow the PCM (with slope parameters fixed to 1)
 #' # Replace the model names with "GPCM" and
-#' # set the slope parameters of items 53–55 to 1
+#' # set the slope parameters of items 53-55 to 1
 #' x[53:55, 3] <- "GPCM"
 #' x[53:55, 4] <- 1
 #'

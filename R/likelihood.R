@@ -20,7 +20,7 @@
 #   data_prm : sparse cbind of category-indicator columns across PRM items
 #              (one column per (item, score-category) pair)
 #   theta    : numeric vector of quadrature points
-#   D        : scaling constant (1 = logistic; 1.7 ≈ normal-ogive)
+#   D        : scaling constant (1 = logistic; 1.7 ~= normal-ogive)
 #
 # Returns:
 #   list with single element $L: nstd x ntheta numeric matrix of likelihoods.
@@ -77,7 +77,7 @@ likelihood <- function(elm_item, idx.drm = NULL, idx.prm = NULL,
 
     # category probabilities cannot be computed in a single vectorized
     # call because items can have different numbers of score categories
-    # (and different models, GRM vs GPCM) — so we loop item by item
+    # (and different models, GRM vs GPCM) - so we loop item by item
     for (k in 1:n.prm) {
 
       # item-k parameter row, dropping NA padding columns (unused threshold

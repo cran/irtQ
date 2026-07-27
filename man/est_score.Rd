@@ -225,7 +225,7 @@ For the "INV.TCC" method, standard errors of ability estimates are computed
 using the approach proposed by Lim et al. (2021). The implementation of
 inverse TCC scoring in this function is based on a modified version of the
 \code{SNSequate::irt.eq.tse()} function from the \pkg{SNSequate} package
-(González, 2014).
+(Gonzalez, 2014).
 
 For the ML, MLF, WL, and MAP scoring methods, different strategies can be
 used to determine the starting value for ability estimation based on the
@@ -237,7 +237,7 @@ specified by \code{range}, using 0.1 increments. The theta value yielding the
 highest log-likelihood is chosen as the starting value.
 \item When \code{stval.opt = 2}, the starting value is derived from the observed
 sum score using a logistic transformation. For example, if the maximum
-possible score (\code{max.score}) is 30 and the examinee’s observed sum score
+possible score (\code{max.score}) is 30 and the examinee's observed sum score
 (\code{obs.score}) is 20, the starting value is \code{log(obs.score / (max.score -   obs.score))}.
 \itemize{
 \item If all responses are incorrect (i.e., \code{obs.score = 0}), the starting
@@ -332,7 +332,7 @@ est_score(x, data,
 Bock, R. D., & Mislevy, R. J. (1982). Adaptive EAP estimation of
 ability in a microcomputer environment. \emph{Psychometrika, 35}, 179-198.
 
-González, J. (2014). SNSequate: Standard and nonstandard statistical models
+Gonzalez, J. (2014). SNSequate: Standard and nonstandard statistical models
 and methods for test equating.
 \emph{Journal of Statistical Software, 59}, 1-30.
 

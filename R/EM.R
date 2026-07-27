@@ -30,7 +30,7 @@
 #             multi-group case is a list of such data.frames, in
 #             which case theta is read from weights[[1]][, 1] (all
 #             groups share the same quadrature grid by construction).
-#   D       : scaling constant (1 = logistic, 1.7 ≈ normal-ogive).
+#   D       : scaling constant (1 = logistic, 1.7 ~= normal-ogive).
 #   idx.std : NULL for single group, or a list of per-group row
 #             indices into the combined response matrix.
 #' @importFrom Matrix crossprod

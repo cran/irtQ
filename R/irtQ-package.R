@@ -13,7 +13,7 @@
 #'   (Bock & Aitkin, 1981). To calibrate pretest (newly developed) items, it
 #'   supports both fixed item parameter calibration (FIPC; Kim, 2006) and fixed
 #'   ability parameter calibration (FAPC; Ban et al., 2001; Stocking, 1988),
-#'   also known as Stocking’s Method A. In addition, the package offers
+#'   also known as Stocking's Method A. In addition, the package offers
 #'   multiple-group item calibration via the MMLE-EM algorithm.
 #'
 #'   For ability estimation, several widely used scoring methods are available,
@@ -44,9 +44,9 @@
 #'
 #' \tabular{ll}{
 #' Package: \tab irtQ\cr
-#' Version: \tab 1.1.0\cr
-#' Date: \tab 2026-06-06\cr
-#' Depends: \tab R (>= 4.4)\cr
+#' Version: \tab 1.2.0\cr
+#' Date: \tab 2026-07-26\cr
+#' Depends: \tab R (>= 4.5)\cr
 #' License: \tab GPL (>= 2)\cr
 #' }
 #'
@@ -75,7 +75,7 @@
 #'   \eqn{K} unique score categories.
 #'
 #' \describe{
-#'   \item{IRT 1–3PL models}{
+#'   \item{IRT 1-3PL models}{
 #'     For the IRT 1PLM, 2PLM, and 3PLM models, the probability that an examinee
 #'     with ability \eqn{\theta} responds correctly to an item is given by:
 #'     \deqn{P(Y = 1 \mid \theta) = g + \frac{(1 - g)}{1 + \exp(-Da(\theta - b))},}
@@ -256,7 +256,7 @@
 #' @section Pretest Item Calibration with the Fixed Ability Parameter Calibration (FAPC) Method (e.g., Stocking, 1988):
 #'
 #' In computerized adaptive testing (CAT), the fixed ability parameter calibration
-#' (FAPC) method—also known as Stocking’s Method A (Stocking, 1988)—is one of the
+#' (FAPC) method (also known as Stocking's Method A; Stocking, 1988) is one of the
 #' simplest and most straightforward approaches for calibrating pretest items.
 #' It involves estimating item parameters using maximum likelihood estimation,
 #' conditional on known or estimated proficiency values.
@@ -308,24 +308,24 @@
 #' which includes a mixed-format test of 55 items: 50 dichotomous items modeled with the 3PLM
 #' and 5 polytomous items modeled with the GRM. These item parameters are treated as the
 #' "true" values for data generation. Specifically:
-#' - Items 1–38: 3PLM items
-#' - Items 39–40: GRM items
-#' - Items 41–52: 3PLM items
-#' - Items 53–55: GRM items (all with 5 score categories)
+#' - Items 1-38: 3PLM items
+#' - Items 39-40: GRM items
+#' - Items 41-52: 3PLM items
+#' - Items 53-55: GRM items (all with 5 score categories)
 #'
-#' **Example 1 – Estimating item parameters for a linear test form**
+#' **Example 1 - Estimating item parameters for a linear test form**
 #' This example uses the first 40 items (38 3PLM and 2 GRM) to form a linear test.
 #' The test is assumed to be administered to a reference group of 2,000 examinees
 #' whose latent ability follows a standard normal distribution, N(0, 1).
 #'
-#' **Examples 2 and 3 – Calibrating pretest items using FIPC and FAPC**
+#' **Examples 2 and 3 - Calibrating pretest items using FIPC and FAPC**
 #' These examples assume a new test form consisting of all 55 items described above.
 #' The first 40 items are treated as the fixed operational items (i.e., the same
 #' as in Example 1), while the remaining 15 items are newly developed pretest
 #' items to be calibrated.
 #'
 #' The new test form is administered to a separate group of 2,000 examinees,
-#' whose ability distribution is assumed to follow N(0.5, 1.3²).
+#' whose ability distribution is assumed to follow \eqn{N(0.5, 1.3^2)}.
 #' The calibration of the pretest items is then conducted on the scale
 #' of the old form by using FIPC and FAPC procedures, respectively.
 #'
@@ -400,7 +400,7 @@
 #'                                  cats = new_cats, model = new_models)
 #'
 #' ## Step 2: Prepare response data for the new test form
-#' # Generate latent abilities for 2,000 new examinees from N(0.5, 1.3²)
+#' # Generate latent abilities for 2,000 new examinees from N(0.5, 1.3^2)
 #' set.seed(21)
 #' theta_new <- rnorm(2000, mean = 0.5, sd = 1.3)
 #'
@@ -523,7 +523,7 @@
 #'   multidimensional computerized adaptive testing.
 #' *Psychometrika, 81*(3), 674-701.
 #'
-#'   González, J. (2014). SNSequate: Standard and nonstandard statistical models
+#'   Gonzalez, J. (2014). SNSequate: Standard and nonstandard statistical models
 #'   and methods for test equating.
 #' *Journal of Statistical Software, 59*, 1-30.
 #'
@@ -573,6 +573,9 @@
 #'   Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 #'   item functioning detection framework in item response theory. *Journal of
 #'   Educational Measurement, 59*(1), 80-104. \doi{10.1111/jedm.12313}.
+#'
+#'   Lim, H., & Han, K. T. (in press). IRT residual-based approach to detecting 
+#'   item parameter drift in CAT \emph{Journal of Educational and Behavioral Statistics}.
 #'
 #'   Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2024). Detecting
 #'   differential item functioning among multiple groups using IRT residual DIF
@@ -681,7 +684,6 @@
 #'
 #' @name irtQ-package
 #' @aliases irtQ
-#' @keywords internal
 NULL
 
 # Suppress R CMD CHECK note for the magrittr dot pronoun used in sx2_fit pipe chains

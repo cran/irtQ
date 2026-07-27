@@ -50,8 +50,8 @@ data frame can be used as input for other functions in the \pkg{irtQ}
 package, such as \code{\link[=est_irt]{est_irt()}} or \code{\link[=simdat]{simdat()}}.
 }
 \description{
-This function creates a data frame of item metadata—including item
-parameters, the number of score categories, and IRT model specifications—to
+This function creates a data frame of item metadata - including item
+parameters, the number of score categories, and IRT model specifications - to
 be used in various IRT-related analyses within the \pkg{irtQ} package.
 }
 \details{

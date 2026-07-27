@@ -20,13 +20,13 @@ loglike_prm <- function(item_par, r_i, theta, pr.mod = c("GRM", "GPCM"), D = 1, 
                         prob_cache = NULL) {
   # `prob_cache`, when non-NULL, is a list produced by make_prm_optim_fns()
   # carrying pre-computed probability objects for the current (item_par, theta):
-  #   GRM  → $P (clipped category probabilities)
-  #   GPCM → $P (= numer / denom)
+  #   GRM  -> $P (clipped category probabilities)
+  #   GPCM -> $P (= numer / denom)
   # loglike_prm only needs $P, so the same cache structure works for both.
   ## -------------------------------------------------------------------------
   if (!fix.a) {
     # compute category probabilities for all thetas;
-    # use the cached P matrix when supplied — bit-exact equivalent to prm()
+    # use the cached P matrix when supplied - bit-exact equivalent to prm()
     ps <- if (is.null(prob_cache)) {
       prm(theta, a = item_par[1], d = item_par[-1], D = D, pr.model = pr.mod)
     } else {
@@ -109,7 +109,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
                         use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                         p_cache = NULL) {
   # `p_cache` (when non-NULL) is the drm() probability matrix for the
-  # branch picked below — supplied by make_drm_optim_fns() so the
+  # branch picked below - supplied by make_drm_optim_fns() so the
   # objective / gradient / hessian share one P(theta) per nlminb point.
   # If NULL, each branch falls back to drm() exactly as before.
   # compute log-likelihood
@@ -258,7 +258,7 @@ llike_drm <- function(a, b, g, f_i, r_i, s_i, theta, D = 1, p_cache = NULL) {
   # use the cached probability matrix when supplied; otherwise compute
   # drm() exactly as before. Caching is bit-exact: the cache simply
   # holds the unmodified return value of drm() for the same (a, b, g)
-  # produced in this branch — no new floating-point ops are introduced.
+  # produced in this branch - no new floating-point ops are introduced.
   p <- if (is.null(p_cache)) drm(theta, a = a, b = b, g = g, D = D) else p_cache
 
   # compute 1 - p

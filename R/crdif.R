@@ -1,13 +1,13 @@
 #' Residual-Based DIF Detection Framework Using Categorical Residuals (RDIF-CR)
 #'
 #' This function computes three statistics of the residual-based DIF detection
-#' framework using categorical residuals (RDIF-CR)—\eqn{RDIF_{R}-CR},
-#' \eqn{RDIF_{S}-CR}, and \eqn{RDIF_{RS}-CR}—for detecting global differential
+#' framework using categorical residuals (RDIF-CR) - \eqn{RDIF_{R}-CR},
+#' \eqn{RDIF_{S}-CR}, and \eqn{RDIF_{RS}-CR} - for detecting global differential
 #' item functioning (DIF), particularly in polytomously scored items. The RDIF-CR
 #' framework evaluates DIF by comparing categorical residual vectors, which are
 #' calculated as the difference between a one-hot encoded response vector
 #' (with 1 for the selected category and 0 for all others) and the IRT
-#' model–predicted probability vector across all score categories.
+#' model - predicted probability vector across all score categories.
 #' This approach enables fine-grained detection of global DIF patterns at the
 #' category level.
 #'
@@ -33,7 +33,7 @@
 #' probabilities of responding in specific score categories, thus offering a
 #' fine-grained view of DIF at the category level. In contrast, net DIF
 #' summarizes these differences into a single value representing the overall
-#' impact of DIF on the item’s expected score.
+#' impact of DIF on the item's expected score.
 #'
 #' The RDIF framework using categorical residuals (RDIF-CR), implemented in
 #' [irtQ::crdif()], extends the original residual-based DIF framework proposed
@@ -46,7 +46,7 @@
 #' ordered score categories (\eqn{k \in \{0,1,2,3,4\}}). Suppose an examinee with
 #' latent ability \eqn{\theta} responds with category 2. The one-hot encoded
 #' response vector for this response is \eqn{(0,0,1,0,0)^T}. Assume that the IRT
-#' model estimates the examinee’s expected score as 2.5 and predicts the
+#' model estimates the examinee's expected score as 2.5 and predicts the
 #' category probabilities as \eqn{(0.1, 0.2, 0.4, 0.25, 0.05)^T}.
 #' In the RDIF-CR framework, the categorical residual vector is calculated by
 #' subtracting the predicted probability vector from the one-hot response vector,
@@ -122,7 +122,7 @@
 #'   Educational Measurement, 59*(1), 80-104. \doi{doi:10.1111/jedm.12313}.
 #'
 #'   Penfield, R. D. (2010). Distinguishing between net and global DIF in
-#'   polytomous items. *Journal of Educational Measurement, 47*(2), 129–149.
+#'   polytomous items. *Journal of Educational Measurement, 47*(2), 129-149.
 #'
 #' @examples
 #' \donttest{

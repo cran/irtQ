@@ -122,9 +122,9 @@ parameters. Three distributions are supported: Beta, Log-normal, and
 Normal. The list must have two elements:
 \itemize{
 \item \code{dist}: A character string, one of \code{"beta"}, \code{"lnorm"}, or \code{"norm"}.
-\item \code{params}: A numeric vector of length two giving the distribution’s
-parameters. For details on each parameterization, see \code{\link[stats:Beta]{stats::dbeta()}},
-\code{\link[stats:Lognormal]{stats::dlnorm()}}, and \code{\link[stats:Normal]{stats::dnorm()}}.
+\item \code{params}: A numeric vector of length two giving the distribution's
+parameters. For details on each parameterization, see \code{\link[stats:dbeta]{stats::dbeta()}},
+\code{\link[stats:dlnorm]{stats::dlnorm()}}, and \code{\link[stats:dnorm]{stats::dnorm()}}.
 }
 
 Defaults are:
@@ -143,8 +143,8 @@ is \code{NA}.}
 \itemize{
 \item first element: number of quadrature points
 \item second element: symmetric bound (absolute value) for those points
-For example, \code{c(49, 6)} specifies 49 evenly spaced points from –6 to 6.
-These points are used in the E-step of the EM algorithm. Default is \code{c(49,   6)}.
+For example, \code{c(49, 6)} specifies 49 evenly spaced points from -6 to 6.
+These points are used in the E-step of the EM algorithm. Default is \code{c(49, 6)}.
 }}
 
 \item{weights}{A two-column matrix or data frame containing the quadrature
@@ -189,12 +189,12 @@ in item parameter estimates between consecutive iterations is smaller than this 
 for the E-step in the EM algorithm. Default is \code{500}.}
 
 \item{control}{A named list of options passed directly to \code{\link[stats:nlminb]{stats::nlminb()}}
-in each M‑step optimization of the EM algorithm. By default:
+in each M-step optimization of the EM algorithm. By default:
 \code{control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)}, where
 \itemize{
 \item \code{eval.max} = 500 limits the number of function evaluations
 \item \code{iter.max} = 200 caps the number of internal optimizer iterations
-\item \code{x.tol} = 1e‑4 sets the absolute change threshold in parameter values
+\item \code{x.tol} = 1e-4 sets the absolute change threshold in parameter values
 below which \code{\link[stats:nlminb]{stats::nlminb()}} considers the solution to have converged
 Users may additionally supply other \code{nlminb()} control options
 (such as \code{abs.tol}, \code{rel.tol}, \code{trace}, etc.) as needed.
@@ -333,7 +333,7 @@ Note that you can easily extract components from the output using the
 \description{
 This function fits unidimensional item response theory (IRT) models to
 mixed-format data comprising both dichotomous and polytomous items, using
-marginal maximum likelihood estimation via the expectation–maximization
+marginal maximum likelihood estimation via the expectation - maximization
 (MMLE-EM) algorithm (Bock & Aitkin, 1981). It also supports fixed item
 parameter calibration (FIPC; Kim, 2006), a practical method for pretest (or
 newly developed) item calibration in computerized adaptive testing (CAT).
@@ -538,7 +538,7 @@ summary(mod.3pl)
 summary(mod.3pl.f)
 
 # Fit different dichotomous models to each item in the LSAT6 data:
-# Fit the constrained 1PL model to items 1–3, the 2PL model to item 4,
+# Fit the constrained 1PL model to items 1-3, the 2PL model to item 4,
 # and the 3PL model with a Beta prior on guessing to item 5
 (mod.drm.mix <- est_irt(
   data = LSAT6, D = 1, model = c("1PLM", "1PLM", "1PLM", "2PLM", "3PLM"),
@@ -663,7 +663,7 @@ score2 <- rnorm(1000, mean = 0.4, sd = 1.3)
 sim.dat2 <- simdat(x = x, theta = score2, D = 1)
 
 # Fit the 3PL model to all dichotomous items and the GRM to all polytomous items
-# Fix five 3PL items (1st–5th) and three GRM items (53rd–55th)
+# Fix five 3PL items (1st - 5th) and three GRM items (53rd - 55th)
 # Also estimate the empirical histogram of the latent variable distribution
 # Use the MEM method
 fix.loc <- c(1:5, 53:55)
@@ -697,7 +697,7 @@ fix.id <- c(x$id[1:5], x$id[53:55])
 summary(mod.fix1)
 
 # Fit the 3PL model to all dichotomous items and the GRM to all polytomous items
-# Fix the same items as before (1st–5th and 53rd–55th)
+# Fix the same items as before (1st - 5th and 53rd - 55th)
 # This time, do not estimate the empirical histogram of the latent prior
 # Instead, estimate the scale of the normal prior distribution
 # Use the MEM method
@@ -716,7 +716,7 @@ fix.loc <- c(1:5, 53:55)
 plot(emphist$weight ~ emphist$theta, type = "h")
 
 # Fit the 3PL model to all dichotomous items and the GRM to all polytomous items
-# Fix only the five 3PL items (1st–5th) and estimate the empirical histogram
+# Fix only the five 3PL items (1st - 5th) and estimate the empirical histogram
 # Use the OEM method (i.e., only one EM cycle is used)
 fix.loc <- c(1:5)
 (mod.fix3 <- est_irt(

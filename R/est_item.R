@@ -48,7 +48,7 @@
 #'   `control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)`, where  
 #'   - `eval.max` = 500 limits the number of function evaluations  
 #'   - `iter.max` = 200 caps the number of internal optimizer iterations  
-#'   - `x.tol` = 1e‑4 sets the absolute change threshold in parameter values  
+#'   - `x.tol` = 1e-4 sets the absolute change threshold in parameter values  
 #'     below which [stats::nlminb()] considers the solution to have converged  
 #'   Users may additionally supply other `nlminb()` control options  
 #'   (such as `abs.tol`, `rel.tol`, `trace`, etc.) as needed.
@@ -190,6 +190,7 @@
 #' }
 #'
 #' @importFrom Matrix sparseMatrix
+#' @importFrom utils modifyList
 #' @import dplyr
 #' @export
 #'
@@ -222,6 +223,11 @@ est_item <- function(x = NULL,
 
   # match.call
   cl <- match.call()
+
+  # Merge user-supplied control list with defaults, enabling partial specification
+  # (e.g., control = list(iter.max = 500) keeps eval.max and x.tol at defaults)
+  default_control <- list(eval.max = 500, iter.max = 200, x.tol = 1e-4)
+  control <- modifyList(default_control, control)
 
   ## -------------------------------------------------------------------------------------------------------
   ## 1. preparation of item parameter estimation

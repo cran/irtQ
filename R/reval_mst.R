@@ -1,7 +1,7 @@
 #' Recursion-based MST evaluation method
 #'
 #' This function evaluates the measurement precision and bias in
-#' Multistage-adaptive Test (MST) panels using a recursion-based evaluation
+#' Multistage-Adaptive Test (MST) panels using a recursion-based evaluation
 #' method introduced by Lim et al. (2021). This function computes conditional
 #' biases and standard errors of measurement (CSEMs) across a range of IRT
 #' ability levels, facilitating efficient and accurate MST panel assessments
@@ -193,7 +193,9 @@
 #' \donttest{
 #' ## ------------------------------------------------------------------------------
 #' # Evaluation of a 1-3-3 MST panel using simMST data.
-#' # This simulation dataset was utilized in Lim et al.'s (2021) simulation study.
+#' # This panel was assembled using module-level target TIFs and design
+#' # constraints similar to those used in Lim et al.'s (2021) simulation study
+#' # (it is not the identical dataset from that study).
 #' # Details:
 #' #    (a) Panel configuration: 1-3-3 MST panel
 #' #    (b) Test length: 24 items (each module contains 8 items across all stages)
@@ -223,7 +225,7 @@
 #' eval <-
 #'   reval_mst(x,
 #'     D = 1.702, route_map = route_map, module = module,
-#'     cut_score = cut_score, theta = theta, range.tcc = c(-5, 5)
+#'     cut_score = cut_score, theta = theta, range.tcc = c(-7, 7)
 #'   )
 #'
 #' # Review evaluation results
@@ -628,61 +630,5 @@ give_path <- function(score, cut_sc) {
 
   # Return the results
   rst <- list(path = path, score = score, cut.sc = cut_sc)
-  rst
-}
-
-# This function extracts the panel information (e.g., available pathways,
-# the number of modules, stages, etc) given the route map information
-panel_info <- function(route_map) {
-  # Transform the format of the route_map to data.frame
-  route_map <- as.data.frame(route_map)
-
-  ## Count the total number of modules
-  end_col <- ncol(route_map)
-
-  # Find the routing module (a.k.a the module in the first stage)
-  mod_stg1 <- which(colSums(route_map) == 0)
-
-  # Find the modules in the subsequent stages
-  config <- list()
-  config[[1]] <- mod_stg1
-  col_bef <- mod_stg1
-  i <- 1
-  repeat{
-    i <- i + 1
-    col_aft <- which(colSums(route_map[col_bef, ] == 1) > 0)
-    config[[i]] <- col_aft
-    if (max(col_aft) == end_col) break
-    col_bef <- col_aft
-  }
-  names(config) <- paste0("stage.", 1:length(config))
-  config <- lapply(X = config, FUN = "unname")
-
-  # Count the total number of stages and the number of modules at each stage
-  n.mod <- sapply(X = config, FUN = "length")
-  n.stg <- length(n.mod)
-
-  # Create a data.frame including all possible pathways with no restriction
-  path_all <- expand.grid(config)
-
-  # Delete the pathways that are not allowed to used
-  remain <- path_all
-  for (s in 1:(n.stg - 1)) {
-    for (m in 1:n.mod[s]) {
-      tmp.1 <- config[[s]][m]
-      tmp.2 <- which(route_map[tmp.1, ] == 1)
-      delete <- (remain[, s] == tmp.1 & !(remain[, s + 1] %in% tmp.2))
-      remain <- remain[!delete, ]
-    }
-  }
-
-  # Arrange the pathway matrix
-  remain <-
-    dplyr::arrange(remain, dplyr::pick(dplyr::everything())) %>%
-    as.matrix()
-  rownames(remain) <- paste0("path.", 1:nrow(remain))
-
-  # Return the results
-  rst <- list(config = config, pathway = remain, n.module = n.mod, n.stage = n.stg)
   rst
 }

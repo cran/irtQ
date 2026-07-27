@@ -174,9 +174,9 @@ parameters. Three distributions are supported: Beta, Log-normal, and
 Normal. The list must have two elements:
 \itemize{
 \item \code{dist}: A character string, one of \code{"beta"}, \code{"lnorm"}, or \code{"norm"}.
-\item \code{params}: A numeric vector of length two giving the distribution’s
-parameters. For details on each parameterization, see \code{\link[stats:Beta]{stats::dbeta()}},
-\code{\link[stats:Lognormal]{stats::dlnorm()}}, and \code{\link[stats:Normal]{stats::dnorm()}}.
+\item \code{params}: A numeric vector of length two giving the distribution's
+parameters. For details on each parameterization, see \code{\link[stats:dbeta]{stats::dbeta()}},
+\code{\link[stats:dlnorm]{stats::dlnorm()}}, and \code{\link[stats:dnorm]{stats::dnorm()}}.
 }
 
 Defaults are:
@@ -195,8 +195,8 @@ is \code{NA}.}
 \itemize{
 \item first element: number of quadrature points
 \item second element: symmetric bound (absolute value) for those points
-For example, \code{c(49, 6)} specifies 49 evenly spaced points from –6 to 6.
-These points are used in the E-step of the EM algorithm. Default is \code{c(49,   6)}.
+For example, \code{c(49, 6)} specifies 49 evenly spaced points from -6 to 6.
+These points are used in the E-step of the EM algorithm. Default is \code{c(49, 6)}.
 }}
 
 \item{weights}{A two-column matrix or data frame containing the quadrature
@@ -242,12 +242,12 @@ in item parameter estimates between consecutive iterations is smaller than this 
 for the E-step in the EM algorithm. Default is \code{500}.}
 
 \item{control}{A named list of options passed directly to \code{\link[stats:nlminb]{stats::nlminb()}}
-in each M‑step optimization of the EM algorithm. By default:
+in each M-step optimization of the EM algorithm. By default:
 \code{control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)}, where
 \itemize{
 \item \code{eval.max} = 500 limits the number of function evaluations
 \item \code{iter.max} = 200 caps the number of internal optimizer iterations
-\item \code{x.tol} = 1e‑4 sets the absolute change threshold in parameter values
+\item \code{x.tol} = 1e-4 sets the absolute change threshold in parameter values
 below which \code{\link[stats:nlminb]{stats::nlminb()}} considers the solution to have converged
 Users may additionally supply other \code{nlminb()} control options
 (such as \code{abs.tol}, \code{rel.tol}, \code{trace}, etc.) as needed.
@@ -291,7 +291,7 @@ three items with IDs G1I1, C1I1, and C1I2 are fixed. In the second group,
 four items with IDs C1I1, C1I2, C2I1, and C2I2 are fixed. In the third
 group, three items with IDs C2I1, C2I2, and G3I1 are fixed.
 
-In this case, there are six unique items fixed across the groups—namely,
+In this case, there are six unique items fixed across the groups - namely,
 G1I1, C1I1, C1I2, C2I1, C2I2, and G3I1, because C1I1 and C1I2 appear in
 both the first and second groups, while C2I1 and C2I2 appear in both the
 second and third groups. Thus, you should specify
@@ -484,8 +484,8 @@ In a single run of the MG-FIPC procedure, the parameters of non-fixed
 distributions for multiple groups, can be estimated on the same scale
 as the fixed items (Kim & Kolen, 2016).
 
-For example, suppose that three different test forms—Form 1, Form 2, and
-Form 3—are administered to three nonequivalent groups: Group1, Group2,
+For example, suppose that three different test forms - Form 1, Form 2, and
+Form 3 - are administered to three nonequivalent groups: Group1, Group2,
 and Group3. Form 1 and Form 2 share 12 common items (C1I1 to C1I12),
 while Form 2 and Form 3 share 10 common items (C2I1 to C2I10). There are
 no common items between Form 1 and Form 3. Also, assume that all unique
@@ -493,7 +493,7 @@ items in Form 1 are from an existing item bank and have already been
 calibrated on the item bank's scale.
 
 In this case, the goal of MG-FIPC is to estimate the parameters of all
-items across the three test forms—except the unique items in Form 1—
+items across the three test forms - except the unique items in Form 1 -
 and the latent ability distributions of the three groups, all on the
 same scale as the item bank. To achieve this, the unique items in Form 1
 must be fixed during MG-FIPC to link the current MG test data to the
@@ -503,7 +503,7 @@ The \code{\link[=est_mg]{est_mg()}} function can implement MG-FIPC by setting
 \code{fipc = TRUE}. In this case, the information on which items to fix must be
 provided through either the \code{fix.loc} or \code{fix.id} argument. When using
 \code{fix.loc}, you must supply a list of item positions (locations)
-to be fixed in each group’s test form. For example, suppose that the test
+to be fixed in each group's test form. For example, suppose that the test
 data from the three groups above are analyzed. In the first group,
 the 1st, 3rd, and 5th items are fixed; in the second group, the 2nd, 3rd,
 4th, and 7th items are fixed; and in the third group, the 1st, 2nd, and
@@ -528,8 +528,8 @@ in \code{fix.id} takes precedence and overrides \code{fix.loc}.
 # 1. MG calibration using the simMG data
 #  - Details:
 #    (a) Constrain common items between groups to have
-#        identical item parameters (i.e., items C1I1–C1I12 between
-#        Groups 1 and 2, and items C2I1–C2I10 between Groups 2 and 3).
+#        identical item parameters (i.e., items C1I1 - C1I12 between
+#        Groups 1 and 2, and items C2I1 - C2I10 between Groups 2 and 3).
 #    (b) Freely estimate the means and variances of the ability
 #        distributions for all groups except the reference group,
 #        where the mean and variance are fixed to 0 and 1, respectively.
@@ -607,8 +607,8 @@ summary(fit.2)
 # 2. MG calibration with FIPC using simMG data
 #  - Details:
 #    (a) Fix the parameters of the common items between the groups
-#        (i.e., items C1I1–C1I12 between Groups 1 and 2, and
-#        items C2I1–C2I10 between Groups 2 and 3)
+#        (i.e., items C1I1 - C1I12 between Groups 1 and 2, and
+#        items C2I1 - C2I10 between Groups 2 and 3)
 #    (b) Freely estimate the means and variances of the ability
 #        distributions for all three groups
 ## ------------------------------------------------------------------------------
@@ -618,10 +618,10 @@ summary(fit.2)
 free.group <- 1:3 # or use 'free.group <- group.name'
 
 # Specify the locations of items to be fixed in each group's metadata
-# For Group 1: C1I1–C1I12 are located in rows 1–10 and 49–50
-# For Group 2: C1I1–C1I12 are in rows 1–12, and
-#              C2I1–C2I10 are in rows 41–50
-# For Group 3: C2I1–C2I10 are in rows 1–10
+# For Group 1: C1I1 - C1I12 are located in rows 1-10 and 49-50
+# For Group 2: C1I1 - C1I12 are in rows 1-12, and
+#              C2I1 - C2I10 are in rows 41-50
+# For Group 3: C2I1 - C2I10 are in rows 1-10
 fix.loc <- list(
   c(1:10, 49:50),
   c(1:12, 41:50),
@@ -713,8 +713,8 @@ getirt(fit.5, what = "group.par")
 #  - Details:
 #    (a) Fix item parameters of the unique items in Group 1 only
 #    (b) Constrain the common items across groups to have
-#        the same item parameters (i.e., C1I1–C1I12 between
-#        Groups 1 and 2, and C2I1–C2I10 between Groups 2 and 3)
+#        the same item parameters (i.e., C1I1 - C1I12 between
+#        Groups 1 and 2, and C2I1 - C2I10 between Groups 2 and 3)
 #    (c) Freely estimate the means and variances of the ability
 #        distributions for all three groups
 ## ------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 #'
 #' This function fits unidimensional item response theory (IRT) models to
 #' mixed-format data comprising both dichotomous and polytomous items, using
-#' marginal maximum likelihood estimation via the expectation–maximization
+#' marginal maximum likelihood estimation via the expectation - maximization
 #' (MMLE-EM) algorithm (Bock & Aitkin, 1981). It also supports fixed item
 #' parameter calibration (FIPC; Kim, 2006), a practical method for pretest (or
 #' newly developed) item calibration in computerized adaptive testing (CAT).
@@ -76,7 +76,7 @@
 #'   parameters. Three distributions are supported: Beta, Log-normal, and
 #'   Normal. The list must have two elements:
 #'   - `dist`: A character string, one of `"beta"`, `"lnorm"`, or `"norm"`.
-#'   - `params`: A numeric vector of length two giving the distribution’s
+#'   - `params`: A numeric vector of length two giving the distribution's
 #'   parameters. For details on each parameterization, see [stats::dbeta()],
 #'   [stats::dlnorm()], and [stats::dnorm()].
 #'
@@ -91,7 +91,7 @@
 #' @param Quadrature  A numeric vector of length two:
 #'   - first element: number of quadrature points
 #'   - second element: symmetric bound (absolute value) for those points
-#'   For example, `c(49, 6)` specifies 49 evenly spaced points from –6 to 6.
+#'   For example, `c(49, 6)` specifies 49 evenly spaced points from -6 to 6.
 #'   These points are used in the E-step of the EM algorithm. Default is `c(49,
 #'   6)`.
 #' @param weights A two-column matrix or data frame containing the quadrature
@@ -129,11 +129,11 @@
 #' @param MaxE A positive integer specifying the maximum number of iterations
 #'   for the E-step in the EM algorithm. Default is `500`.
 #' @param control A named list of options passed directly to [stats::nlminb()]
-#'   in each M‑step optimization of the EM algorithm. By default:
+#'   in each M-step optimization of the EM algorithm. By default:
 #'   `control = list(eval.max = 500, iter.max = 200, x.tol = 1e-4)`, where  
 #'   - `eval.max` = 500 limits the number of function evaluations  
 #'   - `iter.max` = 200 caps the number of internal optimizer iterations  
-#'   - `x.tol` = 1e‑4 sets the absolute change threshold in parameter values  
+#'   - `x.tol` = 1e-4 sets the absolute change threshold in parameter values  
 #'     below which [stats::nlminb()] considers the solution to have converged  
 #'   Users may additionally supply other `nlminb()` control options  
 #'   (such as `abs.tol`, `rel.tol`, `trace`, etc.) as needed.
@@ -481,7 +481,7 @@
 #' summary(mod.3pl.f)
 #'
 #' # Fit different dichotomous models to each item in the LSAT6 data:
-#' # Fit the constrained 1PL model to items 1–3, the 2PL model to item 4,
+#' # Fit the constrained 1PL model to items 1-3, the 2PL model to item 4,
 #' # and the 3PL model with a Beta prior on guessing to item 5
 #' (mod.drm.mix <- est_irt(
 #'   data = LSAT6, D = 1, model = c("1PLM", "1PLM", "1PLM", "2PLM", "3PLM"),
@@ -606,7 +606,7 @@
 #' sim.dat2 <- simdat(x = x, theta = score2, D = 1)
 #'
 #' # Fit the 3PL model to all dichotomous items and the GRM to all polytomous items
-#' # Fix five 3PL items (1st–5th) and three GRM items (53rd–55th)
+#' # Fix five 3PL items (1st - 5th) and three GRM items (53rd - 55th)
 #' # Also estimate the empirical histogram of the latent variable distribution
 #' # Use the MEM method
 #' fix.loc <- c(1:5, 53:55)
@@ -640,7 +640,7 @@
 #' summary(mod.fix1)
 #'
 #' # Fit the 3PL model to all dichotomous items and the GRM to all polytomous items
-#' # Fix the same items as before (1st–5th and 53rd–55th)
+#' # Fix the same items as before (1st - 5th and 53rd - 55th)
 #' # This time, do not estimate the empirical histogram of the latent prior
 #' # Instead, estimate the scale of the normal prior distribution
 #' # Use the MEM method
@@ -659,7 +659,7 @@
 #' plot(emphist$weight ~ emphist$theta, type = "h")
 #'
 #' # Fit the 3PL model to all dichotomous items and the GRM to all polytomous items
-#' # Fix only the five 3PL items (1st–5th) and estimate the empirical histogram
+#' # Fix only the five 3PL items (1st - 5th) and estimate the empirical histogram
 #' # Use the OEM method (i.e., only one EM cycle is used)
 #' fix.loc <- c(1:5)
 #' (mod.fix3 <- est_irt(
@@ -711,6 +711,8 @@
 #'
 #' }
 #'
+#' @importFrom utils modifyList
+#'
 #' @export
 #'
 est_irt <- function(x = NULL,
@@ -750,7 +752,12 @@ est_irt <- function(x = NULL,
   
   # match.call
   cl <- match.call()
-  
+
+  # Merge user-supplied control list with defaults, enabling partial specification
+  # (e.g., control = list(iter.max = 500) keeps eval.max and x.tol at defaults)
+  default_control <- list(eval.max = 500, iter.max = 200, x.tol = 1e-4)
+  control <- modifyList(default_control, control)
+
   # item parameter estimation
   if (!fipc) {
     # item parameter estimation using MMLE-EM algorithm

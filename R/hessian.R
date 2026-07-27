@@ -59,7 +59,7 @@ hess_item_drm_inner <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", 
                                 use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                                 p_cache = NULL) {
   # `p_cache`, when non-NULL, is the drm() probability matrix for the
-  # active branch — reused so the hessian shares one P(theta) with
+  # active branch - reused so the hessian shares one P(theta) with
   # loglike_drm / grad_item_drm at the same nlminb evaluation point.
   # count the number of item parameters to be estimated
   n.par <- length(item_par)
@@ -401,8 +401,8 @@ hess_item_prm_inner <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a
                                 prob_cache = NULL) {
   # `prob_cache`, when non-NULL, is the pre-computed probability list from
   # make_prm_optim_fns() for the current (item_par, theta):
-  #   GRM  → $allPst, $P
-  #   GPCM → $theta_d, $numer, $denom, $P
+  #   GRM  -> $allPst, $P
+  #   GPCM -> $theta_d, $numer, $denom, $P
   # Skipping the expensive drm() / exp(cumsum) block saves the redundant
   # recomputation that loglike_prm and grad_item_prm already paid for.
   # count the number of item parameters to be estimated
@@ -420,7 +420,7 @@ hess_item_prm_inner <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a
     m <- length(d)
 
     # calculate all the probabilities greater than equal to each threshold;
-    # reuse cached allPst and P when supplied — identical to calling drm()
+    # reuse cached allPst and P when supplied - identical to calling drm()
     if (is.null(prob_cache)) {
       allPst <- drm(theta = theta, a = rep(a, m), b = d, g = 0, D = D)
       allQst <- 1 - allPst[, , drop = FALSE]
@@ -521,7 +521,7 @@ hess_item_prm_inner <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a
       m <- length(d) - 1
 
       # calculate category probabilities (theta_d, numer, denom, P);
-      # reuse cached values when supplied — skips the expensive
+      # reuse cached values when supplied - skips the expensive
       # Outer + colCumSums + exp block already paid by loglike / grad
       Da <- D * a
       if (is.null(prob_cache)) {

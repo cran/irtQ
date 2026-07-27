@@ -1,10 +1,10 @@
 # This function find the ability estimate (theta) corresponding to each observed score using the test characteristic curve (TCC).
-# This \code{\link{inv_tcc}} was written by modifying the function \code{irt.eq.tse} of the SNSequate R package (González, 2014)
+# This \code{\link{inv_tcc}} was written by modifying the function \code{irt.eq.tse} of the SNSequate R package (Gonzalez, 2014)
 # Inside the function, the \code{\link{bisection}} function is used to to find the root of theta corresponding to each observed score.
 # The \code{\link{bisection}} function was written by modifying the function \code{bisetion} of the cmna R package (Howard, 2017).
 #
 # Reference
-# González, J. (2014). SNSequate: Standard and nonstandard statistical models and methods for test equating.
+# Gonzalez, J. (2014). SNSequate: Standard and nonstandard statistical models and methods for test equating.
 # \emph{Journal of Statistical Software, 59}, 1-30.
 # Howard, J. P. (2017). \emph{Computational methods for numerical analysis with R}. New York:
 # Chapman and Hall/CRC.

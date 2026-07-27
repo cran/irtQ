@@ -114,9 +114,9 @@ parameters. Three distributions are supported: Beta, Log-normal, and
 Normal. The list must have two elements:
 \itemize{
 \item \code{dist}: A character string, one of \code{"beta"}, \code{"lnorm"}, or \code{"norm"}.
-\item \code{params}: A numeric vector of length two giving the distribution’s
-parameters. For details on each parameterization, see \code{\link[stats:Beta]{stats::dbeta()}},
-\code{\link[stats:Lognormal]{stats::dlnorm()}}, and \code{\link[stats:Normal]{stats::dnorm()}}.
+\item \code{params}: A numeric vector of length two giving the distribution's
+parameters. For details on each parameterization, see \code{\link[stats:dbeta]{stats::dbeta()}},
+\code{\link[stats:dlnorm]{stats::dlnorm()}}, and \code{\link[stats:dnorm]{stats::dnorm()}}.
 }
 
 Defaults are:
@@ -143,7 +143,7 @@ such as the maximum number of iterations. By default:
 \itemize{
 \item \code{eval.max} = 500 limits the number of function evaluations
 \item \code{iter.max} = 200 caps the number of internal optimizer iterations
-\item \code{x.tol} = 1e‑4 sets the absolute change threshold in parameter values
+\item \code{x.tol} = 1e-4 sets the absolute change threshold in parameter values
 below which \code{\link[stats:nlminb]{stats::nlminb()}} considers the solution to have converged
 Users may additionally supply other \code{nlminb()} control options
 (such as \code{abs.tol}, \code{rel.tol}, \code{trace}, etc.) as needed.

@@ -1,7 +1,13 @@
-irtQ
-================
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# irtQ <img src="man/figures/logo.png" align="right" height="139" alt="" />
+
+<!-- badges: start -->
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/irtQ)](https://CRAN.R-project.org/package=irtQ)
+<!-- badges: end -->
 
 The goal of `irtQ` is to fit unidimensional item response theory (IRT)
 models to data that may include both dichotomous and polytomous items.
@@ -10,7 +16,7 @@ The package enables:
 - Typical item parameters estimation
 - Pretest item calibration
 - Multiple-group item calibration
-- Estimation of examinees’ latent abilities
+- Estimation of examinees' latent abilities
 - Evaluation of model-data fit at the item level
 
 Item parameter estimation is conducted using marginal maximum likelihood
@@ -36,25 +42,36 @@ available, including:
 
 Also, model fit assessment includes item fit statistics such as:
 
-- Chi-square (X²; Bock, 1960; Yen, 1981),
-- Likelihood ratio chi-square (G²; McKinley & Mills, 1985),
+- Chi-square (X^2; Bock, 1960; Yen, 1981),
+- Likelihood ratio chi-square (G^2; McKinley & Mills, 1985),
 - Infit and outfit statistics (Ames et al., 2015)
 - Graphical residual diagnostics (Hambleton et al., 1991)
-- S-X² (Orlando & Thissen, 2000, 2003)
+- S-X^2 (Orlando & Thissen, 2000, 2003)
 
 In addition, the package offers a variety of utilities for IRT analysis,
 including:
 
-- Detecting DIF (e.g., RDIF, CATSIB)
+- Detecting differential item functioning (DIF) using RDIF, RDIF-CR
+  (categorical residuals), GRDIF (multiple groups), and CATSIB
+- Detecting item parameter drift (IPD) using the RIPD framework and the
+  Pseudo-count D^2 statistic
 - Computing classification accuracy and consistency indices
+- Designing, evaluating, and simulating multistage-adaptive test (MST)
+  panels, including TIF-crossing cut-score selection, recursion-based
+  analytical evaluation, and Monte Carlo simulation of full MST
+  administrations
 - Simulating response data
 - Computing the conditional distribution of observed scores using the
   Lord-Wingersky recursion
 - Calculating item and test information and characteristic functions
 - Visualizing item and test characteristic and information curves
-- Importing item or ability parameters from popular IRT software
+- Importing item or ability parameters from popular IRT software (e.g.,
+  BILOG-MG, PARSCALE, flexMIRT, and the `mirt` R package)
 - Running flexMIRT (Cai, 2017) directly from R
 - Supporting additional tools for flexible and practical IRT analyses
+
+For full documentation, including function references and tutorial
+articles, visit the package website: <https://hwangQ.github.io/irtQ/>.
 
 ## Installation
 
@@ -96,7 +113,7 @@ For example, users can:
 In the `irtQ` package, item calibration for a linear test form typically
 involves two main steps:
 
-1.  Prepare the examinees’ response data set for the linear test form
+1.  Prepare the examinees' response data set for the linear test form
 
     To estimate item parameters using the `irtQ::est_irt()` function, a
     response data set for the linear test form must first be prepared.
@@ -109,7 +126,7 @@ involves two main steps:
     To estimate item parameters, several key input arguments must be
     specified in the `irtQ::est_irt()` function:
 
-    - `data`: A matrix or data frame containing examinees’ item
+    - `data`: A matrix or data frame containing examinees' item
       responses.
     - `model`: A character vector specifying the IRT model for each item
       (e.g., `"1PLM"`, `"2PLM"`, `"3PLM"`, `"GRM"`, `"GPCM"`).
@@ -183,7 +200,7 @@ steps:
 2.  Prepare the response data set from examinees who answered both the
     operational and pretest items.
 
-    To implement FIPC using the `irtQ::est_irt()` function, examinees’
+    To implement FIPC using the `irtQ::est_irt()` function, examinees'
     response data for the test form must be provided, including both
     operational and pretest items. The response data should be in a
     matrix or data frame format, where rows represent examinees and
@@ -221,8 +238,8 @@ steps:
 ## 3. Pretest Item Calibration with the Fixed Ability Parameter Calibration (FAPC) Method (e.g., Stocking, 1988)
 
 In computerized adaptive testing (CAT), the fixed ability parameter
-calibration (FAPC) method—also known as Stocking’s Method A (Stocking,
-1988)—is one of the simplest and most straightforward approaches for
+calibration (FAPC) method - also known as Stocking's Method A (Stocking,
+1988) - is one of the simplest and most straightforward approaches for
 calibrating pretest items. It involves estimating item parameters using
 maximum likelihood estimation, conditional on known or estimated
 proficiency values.
@@ -236,7 +253,7 @@ items are randomly administered to examinees, rather than adaptively,
 which is often the case for pretest items (Ban et al., 2001; Chen &
 Wang, 2016).
 
-In the package, FAPC can be conducted in two main steps:
+In the `irtQ` package, FAPC can be conducted in two main steps:
 
 1.  Prepare a data set containing both the item response data and the
     corresponding ability (proficiency) estimates.
@@ -244,7 +261,7 @@ In the package, FAPC can be conducted in two main steps:
     To use the `irtQ::est_item()` function, two input data sets are
     required:
 
-    - Ability estimates: A numeric vector containing examinees’ ability
+    - Ability estimates: A numeric vector containing examinees' ability
       (or proficiency) estimates.
     - Item response data: A matrix or data frame containing item
       responses, where rows represent examinees and columns represent
@@ -257,9 +274,9 @@ In the package, FAPC can be conducted in two main steps:
     based on provided ability estimates. To use this function, you must
     specify the following arguments:
 
-    - `data`: A matrix or data frame containing examinees’ item
+    - `data`: A matrix or data frame containing examinees' item
       responses.
-    - `score`: A numeric vector of examinees’ ability (proficiency)
+    - `score`: A numeric vector of examinees' ability (proficiency)
       estimates.
     - `model`: A character vector specifying the IRT model for each item
       (e.g., `"1PLM"`, `"2PLM"`, `"3PLM"`, `"GRM"`, `"GPCM"`).
@@ -271,13 +288,13 @@ In the package, FAPC can be conducted in two main steps:
     For additional details on implementing FAPC, refer to the
     documentation for `irtQ::est_item()`.
 
-## 4. The Process of Evaluating the IRT Model–Data Fit
+## 4. The Process of Evaluating the IRT Model-Data Fit
 
 Evaluating how well an item response theory (IRT) model fits observed
 response data is a critical step in psychometric analysis. The `irtQ`
 package provides both statistical and graphical tools for evaluating
 item-level model fit. These include traditional fit statistics (e.g.,
-X², G², infit, outfit, and S-X²) and diagnostic residual plots.
+X^2, G^2, infit, outfit, and S-X^2) and diagnostic residual plots.
 
 Model fit evaluation using `irtQ` typically involves the following three
 steps:
@@ -302,7 +319,7 @@ be prepared:
     them using the corresponding `irtQ::bring.*()` functions (e.g.,
     `irtQ::bring.flexmirt()`, `irtQ::bring.bilog()`).
 
-2.  **Ability estimates**: A numeric vector of examinees’ estimated
+2.  **Ability estimates**: A numeric vector of examinees' estimated
     proficiency values.
 
 3.  **Response data**: A matrix or data frame in which rows represent
@@ -315,11 +332,11 @@ be prepared:
 The `irtQ::irtfit()` function calculates widely used item fit
 statistics, including:
 
-- Chi-square (X²)
-- Likelihood-ratio chi-square (G²)
+- Chi-square (X^2)
+- Likelihood-ratio chi-square (G^2)
 - Infit and outfit statistics
 
-To compute X² and G² statistics, the latent ability scale must be
+To compute X^2 and G^2 statistics, the latent ability scale must be
 divided into several groups. Two grouping methods are available:
 
 - `"equal.width"`: Divides the scale into intervals of equal length
@@ -340,9 +357,9 @@ response data contain missing values, specify the missing value code
 using the `missing` argument.
 
 Upon execution, the function returns item fit statistics and contingency
-tables used to compute the X² and G² statistics.
+tables used to compute the X^2 and G^2 statistics.
 
-Note that the model-fit evaluation using the S-X² statistic can be
+Note that the model-fit evaluation using the S-X^2 statistic can be
 implemented using the `irtQ::sx2_fit()` function.
 
 ### 3. Draw residual plots using the `plot()` method
@@ -360,7 +377,7 @@ in the raw residual plots. Supported methods include:
 
 - `"wald"`: Wald interval based on the normal approximation (Laplace,
   1812)
-- `"cp"`: Clopper–Pearson interval (Clopper & Pearson, 1934)
+- `"cp"`: Clopper-Pearson interval (Clopper & Pearson, 1934)
 - `"wilson"`: Wilson score interval (Wilson, 1927)
 - `"wilson.cr"`: Wilson score interval with continuity correction
   (Newcombe, 1998)
@@ -433,7 +450,7 @@ mod_ref <- irtQ::est_irt(data = data_ref, D = 1, model = c(rep("3PLM",
 #> Estimating item parameters... 
 #>  EM iteration: 1, Loglike: -53907.8298, Max-Change: 1.476851 EM iteration: 2, Loglike: -47810.7610, Max-Change: 0.333348 EM iteration: 3, Loglike: -47780.1401, Max-Change: 0.130911 EM iteration: 4, Loglike: -47777.7493, Max-Change: 0.064179 EM iteration: 5, Loglike: -47776.9296, Max-Change: 0.038227 EM iteration: 6, Loglike: -47776.4542, Max-Change: 0.026209 EM iteration: 7, Loglike: -47776.1402, Max-Change: 0.019566 EM iteration: 8, Loglike: -47775.9185, Max-Change: 0.015306 EM iteration: 9, Loglike: -47775.7539, Max-Change: 0.012285 EM iteration: 10, Loglike: -47775.6263, Max-Change: 0.01001 EM iteration: 11, Loglike: -47775.5239, Max-Change: 0.008238 EM iteration: 12, Loglike: -47775.4394, Max-Change: 0.006834 EM iteration: 13, Loglike: -47775.3679, Max-Change: 0.005706 EM iteration: 14, Loglike: -47775.3064, Max-Change: 0.004795 EM iteration: 15, Loglike: -47775.2525, Max-Change: 0.004052 EM iteration: 16, Loglike: -47775.2048, Max-Change: 0.003444 EM iteration: 17, Loglike: -47775.1621, Max-Change: 0.002944 EM iteration: 18, Loglike: -47775.1234, Max-Change: 0.002529 EM iteration: 19, Loglike: -47775.0882, Max-Change: 0.002184 EM iteration: 20, Loglike: -47775.0558, Max-Change: 0.001895 EM iteration: 21, Loglike: -47775.0259, Max-Change: 0.001652 EM iteration: 22, Loglike: -47774.9980, Max-Change: 0.001446 EM iteration: 23, Loglike: -47774.9719, Max-Change: 0.001271 EM iteration: 24, Loglike: -47774.9473, Max-Change: 0.001121 EM iteration: 25, Loglike: -47774.9241, Max-Change: 0.000993 
 #> Computing item parameter var-covariance matrix... 
-#> Estimation is finished in 5.32 seconds.
+#> Estimation is finished in 2.5 seconds.
 
 # Summarize estimation results
 irtQ::summary(mod_ref)
@@ -460,9 +477,9 @@ irtQ::summary(mod_ref)
 #>  Maximum parameter change: 0.0009933655
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 4.93
-#>  Standard error computation: 0.17
-#>  Total computation: 5.32
+#>  EM algorithm: 2.24
+#>  Standard error computation: 0.15
+#>  Total computation: 2.5
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -594,7 +611,7 @@ print(est_ref)
 #> 26 Ref_I26    2  3PLM 0.8782582 -1.97974491  0.22367121         NA         NA
 #> 27 Ref_I27    2  3PLM 1.4142228  0.12900789  0.16073407         NA         NA
 #> 28 Ref_I28    2  3PLM 2.7271259  0.11722864  0.24875028         NA         NA
-#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227008  0.22190753         NA         NA
+#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227009  0.22190752         NA         NA
 #> 30 Ref_I30    2  3PLM 1.6924004  0.89383796  0.35473129         NA         NA
 #> 31 Ref_I31    2  3PLM 1.0382178  0.83916998  0.14081448         NA         NA
 #> 32 Ref_I32    2  3PLM 1.6949111 -0.69941722  0.30436382         NA         NA
@@ -634,7 +651,7 @@ meta_fipc <- irtQ::shape_df_fipc(x = est_ref, fix.loc = fixed_pos,
 
 ## Step 2: Prepare response data for the new test
 ## form Generate latent abilities for 2,000 new
-## examinees from N(0.5, 1.3²)
+## examinees from N(0.5, 1.3^2)
 set.seed(21)
 theta_new <- rnorm(2000, mean = 0.5, sd = 1.3)
 
@@ -669,7 +686,7 @@ mod_fipc <- irtQ::est_irt(x = meta_fipc, data = data_new,
 #> Estimating item parameters... 
 #>  EM iteration: 1, Loglike: -41799.5018, Max-Change: 2.177366 EM iteration: 2, Loglike: -60177.8990, Max-Change: 0.660102 EM iteration: 3, Loglike: -60143.0624, Max-Change: 0.22625 EM iteration: 4, Loglike: -60141.1866, Max-Change: 0.082367 EM iteration: 5, Loglike: -60140.7281, Max-Change: 0.031397 EM iteration: 6, Loglike: -60140.4860, Max-Change: 0.012555 EM iteration: 7, Loglike: -60140.3168, Max-Change: 0.005361 EM iteration: 8, Loglike: -60140.1888, Max-Change: 0.002513 EM iteration: 9, Loglike: -60140.0888, Max-Change: 0.001326 EM iteration: 10, Loglike: -60140.0086, Max-Change: 0.000788 
 #> Computing item parameter var-covariance matrix... 
-#> Estimation is finished in 1.39 seconds.
+#> Estimation is finished in 1.73 seconds.
 
 # Summarize estimation results
 irtQ::summary(mod_fipc)
@@ -695,9 +712,9 @@ irtQ::summary(mod_fipc)
 #>  Maximum parameter change: 0.0007875969
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 0.98
+#>  EM algorithm: 1.55
 #>  Standard error computation: 0.05
-#>  Total computation: 1.39
+#>  Total computation: 1.73
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -859,7 +876,7 @@ print(est_new_fipc)
 #> 26 Ref_I26    2  3PLM 0.8782582 -1.97974491  0.22367121         NA         NA
 #> 27 Ref_I27    2  3PLM 1.4142228  0.12900789  0.16073407         NA         NA
 #> 28 Ref_I28    2  3PLM 2.7271259  0.11722864  0.24875028         NA         NA
-#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227008  0.22190753         NA         NA
+#> 29 Ref_I29    2  3PLM 1.2736643 -1.38227009  0.22190752         NA         NA
 #> 30 Ref_I30    2  3PLM 1.6924004  0.89383796  0.35473129         NA         NA
 #> 31 Ref_I31    2  3PLM 1.0382178  0.83916998  0.14081448         NA         NA
 #> 32 Ref_I32    2  3PLM 1.6949111 -0.69941722  0.30436382         NA         NA
@@ -872,7 +889,7 @@ print(est_new_fipc)
 #> 39 Ref_I39    5   GRM 1.9602130 -1.83262071 -1.16744768 -0.6208679 -0.1692025
 #> 40 Ref_I40    5   GRM 1.3329010 -0.72583244 -0.06982294  0.5783162  1.1047434
 #> 41  New_I1    2  3PLM 1.7544480  0.60773268  0.24514471         NA         NA
-#> 42  New_I2    2  3PLM 1.8504109 -1.20664265  0.20151190         NA         NA
+#> 42  New_I2    2  3PLM 1.8504109 -1.20664264  0.20151190         NA         NA
 #> 43  New_I3    2  3PLM 1.6147606  0.49347600  0.13571997         NA         NA
 #> 44  New_I4    2  3PLM 1.0555607 -0.23825505  0.15300057         NA         NA
 #> 45  New_I5    2  3PLM 1.0904024  2.21167266  0.15226183         NA         NA
@@ -881,7 +898,7 @@ print(est_new_fipc)
 #> 48  New_I8    2  3PLM 1.7223300  0.15449590  0.17624706         NA         NA
 #> 49  New_I9    2  3PLM 1.3362538  0.32062018  0.08717881         NA         NA
 #> 50 New_I10    2  3PLM 1.5311035  1.24203909  0.08670597         NA         NA
-#> 51 New_I11    2  3PLM 1.9026709 -0.98886362  0.21168998         NA         NA
+#> 51 New_I11    2  3PLM 1.9026709 -0.98886361  0.21168998         NA         NA
 #> 52 New_I12    2  3PLM 1.3468728 -0.16146762  0.37836732         NA         NA
 #> 53 New_I13    5   GRM 1.2495401 -0.38606491  0.18902252  0.7711329  1.2171389
 #> 54 New_I14    5   GRM 1.2827773 -2.16768674 -1.45593517 -0.7442029 -0.1292640
@@ -894,7 +911,7 @@ plot(emphist$weight ~ emphist$theta, xlab = "Theta",
   ylab = "Density", type = "h")
 ```
 
-<img src="man/figures/README-example-1.png" width="70%" height="50%" />
+<img src="man/figures/README-example-1.png" alt="" width="70%" height="50%" />
 
 ``` r
 
@@ -981,7 +998,7 @@ irtQ::summary(mod_fapc)
 #> 15  New_I15  2000
 #> 
 #> Processing time (in seconds) 
-#>  Total computation: 1.58
+#>  Total computation: 2.14
 #> 
 #> Convergence of Solution 
 #>  All item parameters were successfully converged.
@@ -1129,7 +1146,7 @@ print(data[1:20, 1:6])
 #> [19,]        NA         0        NA         0         1         1
 #> [20,]        NA        NA        NA        NA        NA        NA
 
-## Step 2: Compute IRT model–data fit statistics
+## Step 2: Compute IRT model-data fit statistics
 ## (1) Using the 'equal.width' method to form
 ## ability groups
 fit1 <- irtfit(x = x, score = score, data = data, group.method = "equal.width",
@@ -1252,14 +1269,14 @@ fit2$contingency.fitstat[[4]]
 #> 10  0.3512036  0.6487964  0.048634854 -0.048634854
 #> 11  0.2631380  0.7368620  0.114388254 -0.114388254
 
-## Step 3: Draw residual plots for IRT model–data
+## Step 3: Draw residual plots for IRT model-data
 ## fit diagnostics 1. Dichotomous item (1) Both
 ## raw and standardized residual plots
 plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
   ylim.sr.adjust = TRUE)
 ```
 
-<img src="man/figures/README-example-2.png" width="70%" height="50%" />
+<img src="man/figures/README-example-2.png" alt="" width="70%" height="50%" />
 
     #>                   interval       point total obs.freq.0 obs.freq.1 obs.prop.0
     #> 1  [-0.1218815,0.08512996) -0.02529272     3          3          0  1.0000000
@@ -1302,7 +1319,7 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     plot(x = fit1, item.loc = 1, type = "icc", ci.method = "wald",
       ylim.sr.adjust = TRUE)
 
-<img src="man/figures/README-example-3.png" width="70%" height="50%" />
+<img src="man/figures/README-example-3.png" alt="" width="70%" height="50%" />
 
     #>                   interval       point total obs.freq.0 obs.freq.1 obs.prop.0
     #> 1  [-0.1218815,0.08512996) -0.02529272     3          3          0  1.0000000
@@ -1345,7 +1362,7 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald",
       ylim.sr.adjust = TRUE)
 
-<img src="man/figures/README-example-4.png" width="70%" height="50%" />
+<img src="man/figures/README-example-4.png" alt="" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
     #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
@@ -1413,7 +1430,7 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     plot(x = fit1, item.loc = 113, type = "both", ci.method = "wald",
       ylim.sr.adjust = TRUE)
 
-<img src="man/figures/README-example-5.png" width="70%" height="50%" />
+<img src="man/figures/README-example-5.png" alt="" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
     #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
@@ -1481,7 +1498,7 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     plot(x = fit1, item.loc = 113, type = "icc", ci.method = "wald",
       layout.col = 2, ylim.sr.adjust = TRUE)
 
-<img src="man/figures/README-example-6.png" width="70%" height="50%" />
+<img src="man/figures/README-example-6.png" alt="" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
     #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0
@@ -1549,7 +1566,7 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald",
       layout.col = 4, ylim.sr.adjust = TRUE)
 
-<img src="man/figures/README-example-7.png" width="70%" height="50%" />
+<img src="man/figures/README-example-7.png" alt="" width="70%" height="50%" />
 
     #>                 interval     point total obs.freq.0 obs.freq.1 obs.freq.2
     #> 1  [0.3564295,0.5199582) 0.3564295     1          1          0          0

@@ -56,7 +56,7 @@
 #' indicating the group membership of examinees. The vector may contain multiple
 #' distinct values, where one represents the reference group and the others
 #' represent focal groups. Its length must match the number of rows in the
-#' response data, with each value corresponding to an examinee’s group
+#' response data, with each value corresponding to an examinee's group
 #' membership. Once `group` is specified, a numeric or character vector must be
 #' supplied via the `focal.name` argument to define which group(s) in `group`
 #' represent the focal groups. The reference group is defined as the group not

@@ -12,6 +12,6 @@
 #'
 #' @references
 #' Thissen, D. (1982). Marginal maximum likelihood estimation for the one-parameter logistic model.
-#' *Psychometrika, 47*, 175–186.
+#' *Psychometrika, 47*, 175-186.
 #'
 "LSAT6"

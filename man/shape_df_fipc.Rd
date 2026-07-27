@@ -37,7 +37,7 @@ using \code{\link[=est_irt]{est_irt()}}.
 }
 \details{
 To use this function, first prepare a metadata frame \code{x} containing
-only fixed items—either created by \code{\link[=shape_df]{shape_df()}} or imported from
+only fixed items - either created by \code{\link[=shape_df]{shape_df()}} or imported from
 external software (e.g., via \code{\link[=bring.flexmirt]{bring.flexmirt()}}), which must include
 columns \code{id}, \code{cats}, \code{model}, and all relevant parameter columns (\code{par.1},
 \code{par.2}, etc.). The \code{fix.loc} argument should then specify the exact row

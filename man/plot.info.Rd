@@ -65,7 +65,7 @@ item information functions. Used only when \code{overlap = FALSE}. Default is 4.
 \item{strip.size}{Numeric value specifying the font size of facet labels
 when multiple items are displayed.}
 
-\item{...}{Additional arguments passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}} from
+\item{...}{Additional arguments passed to \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} from
 the \pkg{ggplot2} package.}
 }
 \value{

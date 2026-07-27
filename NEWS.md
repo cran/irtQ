@@ -1,6 +1,79 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# irtQ 1.2.0
+
+## New Features
+
+- Added a new function, `find_cut()`, which identifies TIF-crossing
+  routing cut scores for MST panels. For each adjacent module pair
+  within a stage, the function locates the theta where the two modules'
+  test information functions (TIFs) intersect. A warning is issued when
+  the mean difficulty order of modules within a stage differs from their
+  input index order.
+
+- Added a new S3 method, `plot.find_cut()`, which visualizes TIF curves
+  and routing cut scores stage by stage using **ggplot2** facets.
+  Proper, anomalous, and unselected cut scores are distinguished by line
+  type. A `layout` argument (`"vertical"` / `"horizontal"`) controls the
+  facet orientation.
+
+- Added a new function, `run_mst()`, which simulates MST administrations
+  for a given panel structure and returns response data along with
+  ability and routing information for each simulated examinee.
+
+- Added a new exported dataset, `simIPD`, which contains simulated CAT
+  response data for illustrating IPD detection with `ripd()` and
+  `pcd2()`. The dataset represents one replication of a CAT simulation
+  (N = 3,000; test length = 30; 360-item 3PLM pool) in which 5% of items
+  (18 items) had both $a$ and $b$ parameters decreased by 0.5.
+
+## Minor Improvements
+
+- `est_irt()`, `est_item()`, and `est_mg()` now accept a partial
+  `control` list. Users can specify only the arguments they wish to
+  override (e.g., `control = list(iter.max = 500)`); unspecified
+  arguments fall back to their defaults via `modifyList()`.
+
+- Reorganized the **pkgdown** reference page: `ripd()` and `pcd2()` are
+  now grouped under a new *Item Parameter Drift (IPD)* section, and
+  `reval_mst()`, `panel_info()`, `find_cut()`, `plot.find_cut()`, and
+  `run_mst()` are grouped under a new *Multistage-Adaptive Test (MST)*
+  section.
+
+## Documentation
+
+- Expanded the documentation for `ripd()` by adding a `@details` section
+  that covers the theoretical background of the RIPD framework,
+  asymptotic distributions of the three RIPD statistics, a drift-type
+  diagnostic guide, the CAT-specific three-step workflow, and the
+  purification procedure. Also added a `\donttest{}` example
+  demonstrating a complete CAT-based IPD detection workflow using the
+  `simIPD` dataset. Updated `@references` to include Lim & Choe (2023)
+  and replaced the previous conference paper citation with the in-press
+  journal reference (Lim & Han, in press).
+
+- Added a `\donttest{}` example to `pcd2()` demonstrating CAT-based IPD
+  detection using the `simIPD` dataset, including the bootstrap critical
+  value procedure described in Lim & Han (in press).
+
+- Updated the *MST Panel Evaluation and Simulation* article
+  (`vignettes/articles/mst-panel-evaluation.Rmd`) to introduce
+  `run_mst()` and extend the existing `reval_mst()` content with routing
+  and scoring examples, a `find_cut()`-based principled cut score
+  derivation, a side-by-side routing method comparison, and a Monte
+  Carlo-vs-analytical validation example (Example 6).
+
+## Bug Fixes
+
+- Rebuilt the `simMST` dataset: the previous version had 9 items
+  duplicated across non-adjacent modules because the original assembly
+  only enforced no-overlap within a single routing pathway. The new
+  version enforces a global no-overlap constraint across all 7 modules
+  (56 unique items total) and adds a mean(*b*) per-module band
+  constraint; cut scores were regenerated via `find_cut()` on the
+  rebuilt modules.
+
 # irtQ 1.1.0
 
 ## Major Improvements
@@ -12,8 +85,8 @@
   dichotomous items (N = 10,000) and up to 27% for mixed-format tests,
   through a series of optimizations.
 - Improved the computational speed of `sx2_fit()` substantially by
-  replacing the O(J²) Lord-Wingersky recursion with a forward-backward
-  pass (up to 11× faster for mixed-format tests with J = 55 items) and
+  replacing the O(J^2) Lord-Wingersky recursion with a forward-backward
+  pass (up to 11x faster for mixed-format tests with J = 55 items) and
   vectorizing internal helper functions `expFreq()`, `obsFreq()`, and
   the PRM category-collapsing routine.
 
@@ -26,8 +99,8 @@
   polytomous, and mixed-format item scenarios (355 tests total).
 - Added a new function, `ripd()`, which implements the Residual-based
   Item Parameter Drift (RIPD) detection framework. The function computes
-  three RIPD statistics— $RIPD_R$, $RIPD_S$, and $RIPD_{RS}$—for each
-  item. $RIPD_R$ captures uniform item parameter drift (IPD) via
+  three RIPD statistics: $RIPD_R$, $RIPD_S$, and $RIPD_{RS}$ (one for
+  each item). $RIPD_R$ captures uniform item parameter drift (IPD) via
   differences in mean raw residuals between groups, $RIPD_S$ captures
   nonuniform IPD via differences in mean squared residuals, and
   $RIPD_{RS}$ is a combined chi-square-based statistic sensitive to both
@@ -130,8 +203,8 @@
   freely estimating a single item given that all other items are fixed.
 
 - Added a new function, `reval_mst()`, which evaluates the measurement
-  precision and bias in Multistage-adaptive Test (MST) panels using a
-  recursion-based evaluation method introduced by Lim et al. (2020).
+  precision and bias in Multistage-Adaptive Test (MST) panels using a
+  recursion-based evaluation method introduced by Lim et al. (2020).
 
 - Added a new function, `pcd2()`, which computes the Pseudo-count
   $D^{2}$ statistics (Cappaert et al., 2018; Stone, 2000) to detect item
@@ -139,7 +212,7 @@
 
 # irtQ 0.2.0
 
-- Introduced Warm’s (1989) Weighted Likelihood (WL) estimation method to
+- Introduced Warm's (1989) Weighted Likelihood (WL) estimation method to
   the `est_score()` function. This WL scoring method can now be utilized
   by setting `method = "WL"`.
 
@@ -156,14 +229,14 @@
 - Added two new functions for computing classification accuracy and
   consistency: `cac_rud()` and `cac_lee()`.
 
-  - `cac_rud`: This function implements Rudner’s (2001, 2005) method for
+  - `cac_rud`: This function implements Rudner's (2001, 2005) method for
     computing classification accuracy and consistency. It takes cut
     scores, ability estimates, standard errors, and optional weights as
     inputs and returns a list containing a confusion matrix, marginal
     and conditional classification accuracy and consistency indices, the
     probability of being assigned to each level category, and the cut
     scores used in the analysis.
-  - `cac_lee`: This function implements Lee’s (2010) method for
+  - `cac_lee`: This function implements Lee's (2010) method for
     computing classification accuracy and consistency. It takes a data
     frame containing item metadata, cut scores, optional ability
     estimates, optional weights, a scaling factor, and a logical value
@@ -180,8 +253,8 @@
 
 - Fixed an issue in the `grdif()` function that inaccurately calculated
   the GRDIF statistics when group membership was specified in a
-  non-standard way. Specifically, the problem arose when 0 wasn’t used
-  as the reference group and consecutive numbers (e.g., 1, 2, 3) weren’t
+  non-standard way. Specifically, the problem arose when 0 wasn't used
+  as the reference group and consecutive numbers (e.g., 1, 2, 3) weren't
   used to represent focal groups in the `group` argument.
 
 # irtQ 0.1.1

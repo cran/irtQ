@@ -210,8 +210,8 @@ caused by impact.
 }
 \details{
 In the CATSIB procedure (Nandakumar & Roussos, 2004),
-\eqn{\hat{\theta}^{\ast}}— the expected value of \eqn{\theta} regressed on
-\eqn{\hat{\theta}}—is a continuous variable. The range of
+\eqn{\hat{\theta}^{\ast}} - the expected value of \eqn{\theta} regressed on
+\eqn{\hat{\theta}} - is a continuous variable. The range of
 \eqn{\hat{\theta}^{\ast}} is divided into \emph{K} equal-width intervals, and
 examinees are classified into one of these \emph{K} intervals based on their
 \eqn{\hat{\theta}^{\ast}} values. Any interval containing fewer than three
@@ -263,7 +263,7 @@ Note that the regression correction (Eq. 7 in Nandakumar & Roussos, 2004)
 assumes \eqn{\hat{\rho}^2} (the estimated reliability of ability estimates)
 lies in \eqn{[0, 1]}. In practice, however, \eqn{\hat{\rho}^2} can become
 negative when the mean squared standard error of ability estimates exceeds the
-observed variance of ability estimates — a situation that can arise when (a)
+observed variance of ability estimates - a situation that can arise when (a)
 the number of items is very small, (b) a purification procedure removes many
 items, or (c) items exhibiting nonuniform DIF inflate the standard errors of
 focal group examinees. A negative \eqn{\hat{\rho}^2} causes the regression
@@ -276,9 +276,10 @@ containing examinees from both groups, resulting in
 \eqn{\hat{\beta} = 0} and \eqn{\text{SE}(\hat{\beta}) = 0} for every item,
 which causes the purification loop to terminate early with invalid
 statistics. To prevent this correction collapse, \code{\link[=catsib]{catsib()}} enforces
-a floor of 0.05 on \eqn{\hat{\rho}^2} — i.e.,
+a floor of 0.05 on \eqn{\hat{\rho}^2} - i.e.,
 \eqn{\hat{\rho}^2 = \max(0.05, \min(1, 1 - \hat{\sigma}_e^2 / \hat{\sigma}_{\hat{\theta}}^2))}
-— so that a minimum degree of score spread is always preserved. When the
+\itemize{
+\item so that a minimum degree of score spread is always preserved. When the
 unclamped \eqn{\hat{\rho}^2} falls below 0.05 for either group, a warning is
 issued and DIF results from that iteration should be interpreted with
 caution. This situation typically arises during purification when too few
@@ -288,6 +289,7 @@ originally designed and validated for detecting uniform DIF. Its statistical
 behavior under nonuniform or mixed DIF conditions has not been formally
 evaluated, and caution is warranted when interpreting results for items
 suspected of nonuniform DIF.
+}
 }
 \examples{
 \donttest{
@@ -391,7 +393,7 @@ Statistics, 29}(2), 177-199.
 Shealy, R. T., & Stout, W. F. (1993). A model-based standardization
 approach that separates true bias/DIF from group ability differences and
 detects test bias/DIF as well as item bias/DIF. \emph{Psychometrika, 58},
-159–194.
+159-194.
 }
 \seealso{
 \code{\link[=rdif]{rdif()}}, \link{est_irt}, \code{\link[=est_item]{est_item()}},

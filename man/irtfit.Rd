@@ -135,8 +135,8 @@ partial credit model (PCM) items for which slope parameters are fixed.}
 This function returns an object of class \code{irtfit}, which includes
 the following components:
 
-\item{fit_stat}{A data frame containing the results of three IRT item fit statistics—
-\eqn{\chi^{2}}, \eqn{G^{2}}, infit, and outfit—for all evaluated items.
+\item{fit_stat}{A data frame containing the results of three IRT item fit statistics -
+\eqn{\chi^{2}}, \eqn{G^{2}}, infit, and outfit - for all evaluated items.
 Each row corresponds to one item, and the columns include:
 the item ID; \eqn{\chi^{2}} statistic; \eqn{G^{2}} statistic;
 degrees of freedom for \eqn{\chi^{2}} and \eqn{G^{2}};
@@ -219,8 +219,8 @@ for the \eqn{\chi^{2}} fit statistic.
 }
 
 Note that infit and outfit statistics should be interpreted with caution when
-applied to non-Rasch models. The returned object—particularly the contingency
-tables—can be passed to \code{\link[=plot.irtfit]{plot.irtfit()}} to generate raw and standardized
+applied to non-Rasch models. The returned object - particularly the contingency
+tables - can be passed to \code{\link[=plot.irtfit]{plot.irtfit()}} to generate raw and standardized
 residual plots (Hambleton et al., 1991).
 }
 \section{Methods (by class)}{

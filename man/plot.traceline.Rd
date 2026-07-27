@@ -44,7 +44,7 @@ score category 1. Ignored when \code{item.loc = NULL}. Default is \code{FALSE}.}
 plotting ICCs or item score curves.
 
 If \code{TRUE}, curves are overlaid in a single panel using different colors.
-If \code{FALSE}, each curve is drawn in a separate panel—either one panel per
+If \code{FALSE}, each curve is drawn in a separate panel - either one panel per
 item or per score category, depending on the setting of \code{score.curve}.}
 
 \item{layout.col}{An integer value indicating the number of columns in the
@@ -74,7 +74,7 @@ Default is 1.}
 
 \item{strip.size}{Numeric. Font size of facet labels when ICCs are plotted.}
 
-\item{...}{Additional arguments passed to \code{\link[ggplot2:geom_path]{ggplot2::geom_line()}} from
+\item{...}{Additional arguments passed to \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} from
 the \pkg{ggplot2} package.}
 }
 \value{

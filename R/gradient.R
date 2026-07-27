@@ -159,7 +159,7 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
   # `p_cache`: optional drm() probability matrix for the active branch.
   # When supplied by make_drm_optim_fns(), the same P(theta) is reused
   # across loglike_drm / grad_item_drm / hess_item_drm at the same
-  # (item_par, theta) — saving 2 of the 3 drm() calls per nlminb point.
+  # (item_par, theta) - saving 2 of the 3 drm() calls per nlminb point.
   # When NULL (e.g. callers outside the optim factory), each branch
   # falls back to drm() exactly as before.
   # count the number of item parameters to be estimated
@@ -442,8 +442,8 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
                           prob_cache = NULL) {
   # `prob_cache`, when non-NULL, is produced by make_prm_optim_fns() and
   # carries the pre-computed probability objects for the current item_par:
-  #   GRM  → $allPst (boundary probs from drm()), $P (clipped category probs)
-  #   GPCM → $theta_d, $numer, $denom, $P
+  #   GRM  -> $allPst (boundary probs from drm()), $P (clipped category probs)
+  #   GPCM -> $theta_d, $numer, $denom, $P
   # Using the cache skips the most expensive matrix operations (drm() for GRM;
   # exp(cumsum) + rowsums for GPCM) that loglike_prm already paid for.
   #   # count the number of item parameters to be estimated
@@ -461,7 +461,7 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
     m <- length(d)
 
     # calculate all the probabilities greater than equal to each threshold;
-    # reuse cached allPst when supplied — bit-exact equivalent to drm()
+    # reuse cached allPst when supplied - bit-exact equivalent to drm()
     if (is.null(prob_cache)) {
       allPst <- drm(theta = theta, a = rep(a, m), b = d, g = 0, D = D)
       allQst <- 1 - allPst[, , drop = FALSE]
@@ -533,7 +533,7 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
       m <- length(d) - 1
 
       # calculate category probabilities (theta_d, numer, denom, P);
-      # reuse cached values when supplied — the entire exp(cumsum) block
+      # reuse cached values when supplied - the entire exp(cumsum) block
       # that loglike_prm already computed is skipped on cache hit.
       # Da is a scalar (D * a) and is not cached: negligible to recompute.
       Da <- D * a

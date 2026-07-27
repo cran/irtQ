@@ -3,7 +3,7 @@
 # arguments once and returns three closures that share a single P(theta)
 # cache, so each nlminb evaluation point computes drm()/prm() at most
 # once instead of three times (once per closure). The cache is bit-exact
-# — the cached P matrix is the unmodified return value of drm()/prm()
+# - the cached P matrix is the unmodified return value of drm()/prm()
 # for the active model branch.
 #
 # Cache hits in practice. nlminb (PORT) typically evaluates objective,
@@ -13,7 +13,7 @@
 # evaluate, the cache hits and saves two drm()/prm() calls per
 # accepted point. Line search rejections fill the cache with the
 # rejected trial; the next gradient/hessian call simply misses,
-# refreshes the cache, and proceeds — no correctness risk.
+# refreshes the cache, and proceeds - no correctness risk.
 
 # Build the (objective, gradient, hessian) closure trio for dichotomous
 # (1PLM/2PLM/3PLM) calibration with nlminb. All static arguments
@@ -89,7 +89,7 @@ make_drm_optim_fns <- function(f_i, r_i, s_i, theta, mod, D, nstd,
   # all original arguments plus p_cache to the underlying function. The
   # `hessian` closure routes through hess_item_drm() so the singularity
   # adjustment loop (adjust = TRUE) keeps its current behavior inside
-  # nlminb — the SE-only hess_item_drm() call sites elsewhere remain
+  # nlminb - the SE-only hess_item_drm() call sites elsewhere remain
   # unchanged because p_cache defaults to NULL.
   list(
     objective = function(item_par) {
@@ -136,8 +136,8 @@ make_drm_optim_fns <- function(f_i, r_i, s_i, theta, mod, D, nstd,
 # expensive probability computation runs at most once per nlminb point.
 #
 # Cache structure per model:
-#   GRM  → list(allPst, P)             — boundary and category probs
-#   GPCM → list(theta_d, numer, denom, P) — full intermediate tensors
+#   GRM  -> list(allPst, P) - boundary and category probs
+#   GPCM -> list(theta_d, numer, denom, P) - full intermediate tensors
 #                                           needed by both grad and hess
 #
 # The (theta_d, numer, denom) tuple is cached for GPCM because

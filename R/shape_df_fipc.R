@@ -20,7 +20,7 @@
 #'   polytomous items: "GRM", "GPCM".
 #'
 #' @details To use this function, first prepare a metadata frame `x` containing
-#'   only fixed items—either created by [irtQ::shape_df()] or imported from
+#'   only fixed items - either created by [irtQ::shape_df()] or imported from
 #'   external software (e.g., via [irtQ::bring.flexmirt()]), which must include
 #'   columns `id`, `cats`, `model`, and all relevant parameter columns (`par.1`,
 #'   `par.2`, etc.). The `fix.loc` argument should then specify the exact row
