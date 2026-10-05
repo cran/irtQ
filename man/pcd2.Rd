@@ -81,7 +81,10 @@ responses for each evaluated item. Defaults to \code{NULL}.}
 Default is \code{FALSE}.}
 
 \item{max.iter}{A positive integer specifying the maximum number of
-iterations allowed for the purification process. Default is \code{10}.}
+iterations allowed for the purification process. Default is \code{10}. If the
+limit is reached while flagged items remain, a warning is issued and the
+\code{complete} element of the purification results is \code{FALSE}; for tests with
+many items or many DIF items, consider increasing \code{max.iter}.}
 
 \item{verbose}{Logical. If \code{TRUE}, progress messages from the purification
 procedure will be displayed; if \code{FALSE}, the messages will be suppressed.
@@ -219,7 +222,7 @@ print(ps_d2_puri)
 ## -- Example 3: CAT-based IPD detection using simIPD --------------------------
 ##
 ## The Pseudo-count D2 statistic has no closed-form null distribution.
-## Following Lim & Han (in press), the critical value is estimated empirically
+## Following Lim & Han (2026), the critical value is estimated empirically
 ## via bootstrap:
 ##   (1) Select drift-free (anchor) items to form the null D2 distribution.
 ##   (2) Repeatedly resample from those values and take the 95th percentile.
@@ -240,7 +243,7 @@ data(simIPD)
 ## responses (>= boot_size) and (b) are not known IPD items. These items
 ## serve as the empirical null distribution of D2.
 ## boot_size = 300: chosen to match the minimum response count used in the
-##   bootstrap procedure of the simulation study (Lim & Han, in press).
+##   bootstrap procedure of the simulation study (Lim & Han, 2026).
 ## In practice, exclude items you know or suspect have drifted; here the
 ## ground truth (simIPD$ipd_item) is used for illustration.
 boot_size    <- 300
@@ -256,7 +259,7 @@ pcd2_null <- pcd2(
   purify   = FALSE
 )$no_purify$ipd_stat$pcd2
 
-## -- Step 3. Bootstrap critical value (Lim & Han, in press) --------------
+## -- Step 3. Bootstrap critical value (Lim & Han, 2026) --------------
 ## For each bootstrap iteration: resample boot_size D2 values from the null
 ## distribution and take the 95th percentile. The critical value is the mean
 ## of these percentiles across all iterations.
@@ -300,8 +303,8 @@ approaches for suspected item parameter drift detection. \emph{Measurement:
 Interdisciplinary Research and Perspectives, 16}(4), 226-238.
 
 Stone, C. A. (2000). Monte Carlo based null distribution for an alternative
-goodness-of-fit test statistic in IRT models. \emph{Journal of educational
-measurement, 37}(1), 58-75.
+goodness-of-fit test statistic in IRT models. \emph{Journal of Educational
+Measurement, 37}(1), 58-75.
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

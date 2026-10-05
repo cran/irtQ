@@ -106,7 +106,10 @@ is \code{NA}.}
 Default is \code{FALSE}.}
 
 \item{max.iter}{A positive integer specifying the maximum number of
-iterations allowed for the purification process. Default is \code{10}.}
+iterations allowed for the purification process. Default is \code{10}. If the
+limit is reached while flagged items remain, a warning is issued and the
+\code{complete} element of the purification results is \code{FALSE}; for tests with
+many items or many DIF items, consider increasing \code{max.iter}.}
 
 \item{min.resp}{A positive integer specifying the minimum number of valid
 item responses required from an examinee in order to compute an ability
@@ -325,7 +328,7 @@ difpar_foc <-
   dplyr::mutate_at(.vars = "par.2", .funs = function(x) x + rep(0.7, 4))
 
 # Combine the 4 DIF and 36 non-DIF items for both reference and focal groups
-# Threfore, the first four items now exhibit uniform DIF
+# Therefore, the first four items now exhibit uniform DIF
 par_ref <- rbind(difpar_ref, par_nstd)
 par_foc <- rbind(difpar_foc, par_nstd)
 
@@ -379,21 +382,21 @@ print(dif_2)
 
 }
 \references{
-Li, H. H., & Stout, W. (1996). A new procedure for detection of
-crossing DIF. \emph{Psychometrika, 61}(4), 647-677.
+Li, H.-H., & Stout, W. (1996). A new procedure for detection of
+crossing DIF. \emph{Psychometrika, 61}(4), 647-677. \doi{10.1007/BF02294041}.
 
 Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 item functioning detection framework in item response theory. \emph{Journal of
-Educational Measurement}.
+Educational Measurement, 59}(1), 80-104. \doi{10.1111/jedm.12313}.
 
 Nandakumar, R., & Roussos, L. (2004). Evaluation of the CATSIB DIF
 procedure in a pretest setting. \emph{Journal of Educational and Behavioral
-Statistics, 29}(2), 177-199.
+Statistics, 29}(2), 177-199. \doi{10.3102/10769986029002177}.
 
-Shealy, R. T., & Stout, W. F. (1993). A model-based standardization
-approach that separates true bias/DIF from group ability differences and
-detects test bias/DIF as well as item bias/DIF. \emph{Psychometrika, 58},
-159-194.
+Shealy, R., & Stout, W. (1993). A model-based standardization approach that
+separates true bias/DIF from group ability differences and detects test
+bias/DTF as well as item bias/DIF. \emph{Psychometrika, 58}(2), 159-194.
+\doi{10.1007/BF02294572}.
 }
 \seealso{
 \code{\link[=rdif]{rdif()}}, \link{est_irt}, \code{\link[=est_item]{est_item()}},

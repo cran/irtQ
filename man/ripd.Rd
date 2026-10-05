@@ -128,7 +128,10 @@ to perform the purification. Available options are "ripdrs" for
 \eqn{RIPD_{S}}.}
 
 \item{max.iter}{A positive integer specifying the maximum number of
-iterations allowed for the purification process. Default is \code{10}.}
+iterations allowed for the purification process. Default is \code{10}. If the
+limit is reached while flagged items remain, a warning is issued and the
+\code{complete} element of the purification results is \code{FALSE}; for tests with
+many items or many DIF items, consider increasing \code{max.iter}.}
 
 \item{min.resp}{A positive integer specifying the minimum number of valid
 item responses required from an examinee in order to compute an ability
@@ -335,7 +338,7 @@ discrimination change). Items flagged by all statistics or by
 
 \strong{CAT-Specific Workflow}
 
-The RIPD procedure for CAT consists of three steps (Lim & Han, in press):
+The RIPD procedure for CAT consists of three steps (Lim & Han, 2026):
 \enumerate{
 \item \strong{Focal group CAT}: The current cohort of examinees takes the
 CAT using the operational (potentially drifted) item pool. Each examinee
@@ -404,7 +407,7 @@ a data frame \code{x} that contains item metadata
 \donttest{
 ## --- RIPD Example: Detecting IPD in CAT ---------------------------------
 ##
-## Background (Lim & Han, in press):
+## Background (Lim & Han, 2026):
 ##   In CAT-based IPD detection using RIPD, the reference group is
 ##   "synthetic" -- created by re-administering a CAT to examinees whose
 ##   true abilities are set equal to the focal group's ML theta estimates,
@@ -475,18 +478,16 @@ cat("True positives:", sum(detected \%in\% simIPD$ipd_item), "of",
 }
 \references{
 Lim, H., & Choe, E. M. (2023). Detecting differential item
-functioning in CAT using IRT residual DIF approach.
-\emph{Journal of Educational Measurement, 60}(4), 626-650.
-\doi{doi:10.1111/jedm.12366}.
+functioning in CAT using IRT residual DIF approach. \emph{Journal of Educational
+Measurement, 60}(4), 626-650. \doi{10.1111/jedm.12366}.
 
-Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based
-differential item functioning detection framework in item response theory.
-\emph{Journal of Educational Measurement, 59}(1), 80-104.
-\doi{doi:10.1111/jedm.12313}.
+Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
+item functioning detection framework in item response theory. \emph{Journal of
+Educational Measurement, 59}(1), 80-104. \doi{10.1111/jedm.12313}.
 
-Lim, H., & Han, K. T. (in press). IRT residual-based approach to detecting
-item parameter drift in CAT.
-\emph{Journal of Educational and Behavioral Statistics}.
+Lim, H., & Han, K. T. (2026). IRT residual-based approach to detecting item
+parameter drift in CAT. \emph{Journal of Educational and Behavioral Statistics}.
+\doi{10.3102/10769986261460852}.
 }
 \seealso{
 \code{\link[=rdif]{rdif()}}, \code{\link[=est_irt]{est_irt()}}, \code{\link[=est_item]{est_item()}},

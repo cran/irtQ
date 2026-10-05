@@ -91,11 +91,7 @@ cal_moment <- function(node, weight) {
 #   list of length nitem; element [[k]] is an nstd x cats[k] integer
 #   matrix as described above.
 #
-# Replaces the previous inline pattern that allocated four separate
-# copies of the response data via
-#   data.matrix -> data.frame -> factor list -> xtabs -> matrix.
-# This direct one-hot construction allocates only the final per-item
-# matrices (15-30x faster on large CAT datasets).
+# This direct one-hot construction allocates only the final per-item matrices.
 build_freqcat <- function(data, cats) {
 
   # number of examinees and items in the response matrix
@@ -130,10 +126,7 @@ build_freqcat <- function(data, cats) {
     freq[[k]] <- m
   }
 
-  # preserve list names to match the original purrr::map output:
-  # - if `data` has column names, reuse them
-  # - otherwise emit X1..Xn (the convention `data.frame(matrix)` applies
-  #   to an unnamed matrix, which is what the previous chain produced)
+  # name the list by the column names of data, or X1..Xn when there are none
   cn <- colnames(data)
   if (is.null(cn)) cn <- paste0("X", seq_len(nitem))
   names(freq) <- cn

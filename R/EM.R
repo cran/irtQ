@@ -4,9 +4,7 @@
 # the ability quadrature, and the per-item expected frequencies
 # of scored categories -- and differ only in argument naming and
 # in whether the elm_item used to evaluate the likelihood is the
-# same as the one returned in the result list.  Folding the
-# duplicated body into this helper keeps the public signatures
-# unchanged while removing ~30 lines of mirrored code.
+# same as the one returned in the result list.
 #
 # Args:
 #   elm_item_likehd : list (output of breakdown()) whose $pars,
@@ -136,12 +134,7 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
       # "correct" column (r_i) for every 1PLM item simultaneously.
       s_i <- freq.exp[, cols.item$cols.1pl][, c(TRUE, FALSE), drop = FALSE]
       r_i <- freq.exp[, cols.item$cols.1pl][, c(FALSE, TRUE), drop = FALSE]
-      # f_i (total responses per 1PLM item per quadrature point) is
-      # the elementwise sum of s_i and r_i; this replaces the previous
-      # n.1PLM-iteration for-loop that called Rfast::rowsums on each
-      # 2-column slice of freq.exp -- the loop was redundant because
-      # cats[k] == 2 for every 1PLM item, so the 2-col rowsum is
-      # identical to a single elementwise add of the s_i/r_i matrices
+      # f_i (total responses per 1PLM item per quadrature point) = s_i + r_i
       f_i <- s_i + r_i
 
       # set the starting values
@@ -192,10 +185,7 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
           cols.tmp <- cols.item$cols.all[[loc_else[i]]]
           s_i <- freq.exp[, cols.tmp[1]]
           r_i <- freq.exp[, cols.tmp[2]]
-          # total responses per quadrature point = s_i + r_i; replaces
-          # the previous Rfast::rowsums(freq.exp[, cols.tmp]) call,
-          # which was a 2-column rowsum and is identical to the direct
-          # add (avoids a function-call indirection per item per Mstep)
+          # total responses per quadrature point = s_i + r_i
           f_i <- s_i + r_i
 
           # set the starting values
@@ -294,13 +284,7 @@ Mstep <- function(estep, id, cats, model, quadpt, n.quad, D = 1, cols.item = NUL
     # arrange the estimated item parameters into natural item order.
     # The estimation loop appends results in [loc_1p_const items,
     # then loc_else items] order, so we permute by the inverse of
-    # that mapping -- which is exactly order(c(loc_1p_const,
-    # loc_else)).  Replaces a 4-step copy chain (cbind a loc column
-    # -> sort by it -> drop the column) that produced the same
-    # final permutation but allocated three intermediate matrix
-    # copies; the new path computes the integer permutation once
-    # on a small length-nitem vector and applies it as a single
-    # row index.
+    # that mapping, which is order(c(loc_1p_const, loc_else)).
     par_df <- bind.fill(est_par, type = "rbind")
     par_df <- par_df[order(c(loc_1p_const, loc_else)), , drop = FALSE]
 

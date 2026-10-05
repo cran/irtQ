@@ -42,7 +42,8 @@ Default is \code{TRUE}.}
 \item{n.factor}{A numeric value indicating the number of latent traits (factors)
 estimated. This argument must be specified when \code{type = "sco"}. Default is 1.}
 
-\item{x}{An object returned by the function \code{\link[mirt:mirt]{mirt::mirt()}}.}
+\item{x}{An object returned by \code{\link[mirt:mirt]{mirt::mirt()}}. The \pkg{mirt} package, listed
+in Suggests, must be installed to use bring.mirt().}
 }
 \value{
 These functions return a list containing several components. For
@@ -120,34 +121,44 @@ pscale_sam <- system.file("extdata", "parscale_sample.PAR", package = "irtQ")
 # Read item parameters and convert them to item metadata
 bring.parscale(file = pscale_sam, "par")$full_df
 
+## Example 3
+# Import the item parameters of a model fitted with the mirt package
+\donttest{
+if (requireNamespace("mirt", quietly = TRUE)) {
+  fit <- mirt::mirt(as.data.frame(LSAT6), 1, itemtype = "2PL", verbose = FALSE)
+  bring.mirt(fit)$full_df
+}
+}
+
 }
 \references{
 Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional
 item analysis and test scoring (Computer software). Chapel Hill, NC: Vector
 Psychometric Group.
 
-Chalmers, R. P. (2012). mirt: A multidimensional item response theory package
-for the R environment.
-\emph{Journal of Statistical Software, 48}(6), 1-29.
+Chalmers, R. P. (2012). mirt: A multidimensional item response theory
+package for the R environment. \emph{Journal of Statistical Software, 48}(6),
+1-29.
 
-Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests Using
-IRT-Based Methods.
-\emph{Journal of Statistical Software, 35}(12), 1-33. URL http://www.jstatsoft.org/v35/i12/.
-
-Pritikin, J. (2018). \emph{rpf: Response Probability Functions}. R package version
-0.59. https://CRAN.R-project.org/package=rpf.
-
-Pritikin, J. N., & Falk, C. F. (2020). OpenMx: A modular research environment
-for item response theory method development. \emph{Applied Psychological
-Measurement, 44}(7-8), 561-562.
-
-Muraki, E. & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
-scoring for rating scale data (Computer Software). Chicago, IL: Scientific
+Muraki, E., & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
+scoring for rating scale data (Computer software). Chicago, IL: Scientific
 Software International. URL http://www.ssicentral.com
+
+Pritikin, J. (2018). \emph{rpf: Response Probability Functions}. R package
+version 0.59. https://CRAN.R-project.org/package=rpf.
+
+Pritikin, J. N., & Falk, C. F. (2020). OpenMx: A modular research
+environment for item response theory method development. \emph{Applied
+Psychological Measurement, 44}(7-8), 561-562.
+\doi{10.1177/0146621620929431}.
+
+Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests
+Using IRT-Based Methods. \emph{Journal of Statistical Software, 35}(12), 1-33.
+\doi{10.18637/jss.v035.i12}.
 
 Zimowski, M. F., Muraki, E., Mislevy, R. J., & Bock, R. D. (2003). BILOG-MG
 3: Multiple-group IRT analysis and test maintenance for binary items
-(Computer Software). Chicago, IL: Scientific Software International. URL
+(Computer software). Chicago, IL: Scientific Software International. URL
 http://www.ssicentral.com
 }
 \seealso{

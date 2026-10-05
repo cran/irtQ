@@ -236,7 +236,11 @@ used. Default is \code{FALSE}.}
 \item{Etol}{A positive numeric value specifying the convergence criterion for
 the E-step of the EM algorithm. Default is 1e-3.
 Specifically, the EM algorithm terminates when the largest absolute difference
-in item parameter estimates between consecutive iterations is smaller than this value.}
+in item parameter estimates between consecutive iterations is less than or
+equal to this value. When MG-FIPC is used and all items are fixed, so that
+only the latent ability distributions are estimated, the criterion is
+applied to the largest absolute change in the means and variances of the
+prior distributions.}
 
 \item{MaxE}{A positive integer specifying the maximum number of iterations
 for the E-step in the EM algorithm. Default is \code{500}.}
@@ -307,7 +311,7 @@ information about the EM algorithm process, are suppressed. Default is
 \code{TRUE}.}
 }
 \value{
-This function returns an object of class \code{est_irt}. The returned
+This function returns an object of class \code{est_mg}. The returned
 object contains the following components:
 
 \item{estimates}{A list containing two internal elements: \code{overall} and \code{group}.
@@ -392,8 +396,8 @@ parameters.}
 
 \item{niter}{The number of completed EM cycles.}
 
-\item{maxpar.diff}{The maximum absolute change in parameter estimates at
-convergence.}
+\item{maxpar.diff}{The largest absolute change in the estimates in
+the last EM cycle.}
 
 \item{EMtime}{Time (in seconds) spent on EM cycles.}
 
@@ -401,11 +405,17 @@ convergence.}
 
 \item{TotalTime}{Total computation time (in seconds).}
 
-\item{test.1}{First-order test result indicating whether the gradient
-sufficiently vanished for solution stability.}
+\item{test.1}{A message indicating whether the convergence criteria were
+met: the M-step optimization converged for every item and the largest
+absolute change in the parameter estimates between two consecutive EM
+cycles was less than or equal to \code{Etol}. When \code{fipc.method = "OEM"} with
+new items to calibrate, the single EM cycle is not judged by \code{Etol} and
+only the M-step check applies. For FIPC with all items fixed, see \code{Etol}.}
 
 \item{test.2}{Second-order test result indicating whether the information matrix
-is positive definite, a necessary condition for identifying a local maximum.}
+is positive definite, a necessary condition for identifying a local maximum.
+The message reports a possible local maximum only when the first-order test
+is also satisfied.}
 
 \item{var.note}{A note indicating whether the variance-covariance matrix
 was successfully obtained from the information matrix.}
@@ -432,7 +442,7 @@ logistic IRT models. For polytomous items, the graded response model (GRM)
 and the (generalized) partial credit model (GPCM) are available.
 }
 \details{
-Multiple-group (MG) item calibration (Bock & Zimowski, 1996)
+Multiple-group (MG) item calibration (Bock & Zimowski, 1997)
 provides a unified framework for handling testing scenarios involving
 multiple groups, such as nonequivalent groups equating, vertical scaling,
 and the identification of differential item functioning (DIF). In such
@@ -440,7 +450,7 @@ applications, examinees from different groups typically respond to either
 the same test form or to different forms that share common (anchor) items.
 
 The goal of MG item calibration is to estimate both item parameters and
-latent ability distributions for all groups simultaneously (Bock & Zimowski, 1996).
+latent ability distributions for all groups simultaneously (Bock & Zimowski, 1997).
 The \pkg{irtQ} package implements MG calibration via the \code{\link[=est_mg]{est_mg()}} function,
 which uses marginal maximum likelihood estimation through the
 expectation-maximization (MMLE-EM) algorithm (Bock & Aitkin, 1981).
@@ -755,9 +765,9 @@ Bock, R. D., & Aitkin, M. (1981). Marginal maximum likelihood
 estimation of item parameters: Application of an EM algorithm.
 \emph{Psychometrika, 46}, 443-459.
 
-Bock, R. D., & Zimowski, M. F. (1997). Multiple group IRT. In W. J.
-van der Linden & R. K. Hambleton (Eds.), \emph{Handbook of modern item response theory}
-(pp. 433-448). New York: Springer.
+Bock, R. D., & Zimowski, M. F. (1997). Multiple group IRT. In W. J. van der
+Linden & R. K. Hambleton (Eds.), \emph{Handbook of modern item response theory}
+(pp. 433-448). Springer. \doi{10.1007/978-1-4757-2691-6_25}.
 
 Kim, S. (2006). A comparative study of IRT fixed parameter calibration
 methods. \emph{Journal of Educational Measurement, 43}(4), 355-381.

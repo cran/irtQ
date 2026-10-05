@@ -109,12 +109,12 @@ covirt(x, D = 1, nstd = 2000, norm.prior = c(0, 1), nquad = 41)
 
 }
 \references{
-Li, Y. & Lissitz, R. (2004). Applications of the analytically
+Li, Y., & Lissitz, R. (2004). Applications of the analytically
 derived asymptotic standard errors of item response theory item parameter
-estimates. \emph{Journal of educational measurement, 41}(2), 85-117.
+estimates. \emph{Journal of Educational Measurement, 41}(2), 85-117.
 
-Thissen, D. & Wainer, H. (1982). Some standard errors in item response theory.
-\emph{Psychometrika, 47}, 397-412.
+Thissen, D., & Wainer, H. (1982). Some standard errors in item response
+theory. \emph{Psychometrika, 47}, 397-412.
 }
 \seealso{
 \code{\link[=est_irt]{est_irt()}}, \code{\link[=simdat]{simdat()}}, \code{\link[=shape_df]{shape_df()}},

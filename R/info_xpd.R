@@ -15,20 +15,13 @@
 #                = sum_c freq.cat[[k]][i, c] * (post %*% gamma[, c])[i]
 #
 # So a single GEMM (per item) collapses the q-axis without ever
-# materializing the (nstd*ntheta) x npar gradient matrix that the
-# previous implementation built.  This was the dominant peak-memory
-# allocation in the SE step of est_irt() / est_mg() and the reason
-# large CAT calibrations exhausted RAM on a 128 GB machine.
+# materializing the (nstd*ntheta) x npar gradient matrix, which would be
+# the dominant peak-memory allocation in the SE step of est_irt() / est_mg().
 #
 # We extract gamma without re-deriving it model-by-model: for each
 # category c we feed grad_llike() a SYNTHETIC freq pattern that is 1
 # in category c (and 0 elsewhere), at theta = quadpt.  The returned
-# gradient row IS gamma_p(q, c), bit-for-bit consistent with the
-# original code path because the same gradient routine is called.
-#
-# Numerical equivalence with the previous implementation is verified
-# bit-for-bit (max abs diff <= 8e-15) across 5 mixed-format scenarios
-# in data-raw/verify_info_xpd.R.
+# gradient row is gamma_p(q, c).
 #' @importFrom Rfast rowsums
 info_xpd <- function(elm_item, freq.cat, post_dist, quadpt, nstd,
                      D = 1, loc_1p_const, loc_else, n.1PLM, fix.a.1pl, fix.a.gpcm, fix.g, a.val.1pl,
@@ -37,7 +30,7 @@ info_xpd <- function(elm_item, freq.cat, post_dist, quadpt, nstd,
   cats  <- elm_item$cats
   model <- elm_item$model
 
-  # number of quadrature points (replaces n.quadpt.vec / nstd)
+  # number of quadrature points
   ntheta <- length(quadpt)
 
   # total number of free parameters across all items in estimation order;
@@ -128,8 +121,7 @@ info_xpd <- function(elm_item, freq.cat, post_dist, quadpt, nstd,
       mod       <- model[k]
       score.cat <- cats[k]
 
-      # extract the final item parameters for this single item using
-      # the same set_startval() call shape as the previous code path
+      # extract the final item parameters for this single item with set_startval()
       if (score.cat == 2L) {
         item_par <- set_startval(
           pars = elm_item$pars, item = k,
@@ -216,13 +208,10 @@ info_xpd <- function(elm_item, freq.cat, post_dist, quadpt, nstd,
   }
 
   # reorder columns to put parameters back into their original position
-  # (this is the same column permutation that the previous code path
-  # applied to its grad_mat before the final cross-product)
   kernel_fisher <- kernel_fisher[, order(reloc.par)]
 
   # info_mat = sum_i kernel_fisher[i,]^T %*% kernel_fisher[i,] is
-  # exactly crossprod(kernel_fisher) -- one BLAS DSYRK call replaces
-  # the previous nstd-iteration R loop
+  # exactly crossprod(kernel_fisher), a single BLAS DSYRK call
   crossprod(kernel_fisher)
 }
 

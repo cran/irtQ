@@ -57,7 +57,8 @@ value label at the crossing point.
 cut_result <- find_cut(
   x         = simMST$item_bank,
   module    = simMST$module,
-  route_map = simMST$route_map
+  route_map = simMST$route_map,
+  D         = 1.702
 )
 
 ## Default: stages stacked vertically (stage 1 at the top)

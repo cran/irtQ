@@ -808,3 +808,155 @@ print.find_cut <- function(x, digits = 4L, ...) {
       "cut_score = <result>$cut_score)\n")
   invisible(x)    # return x invisibly for assignment chaining
 }
+
+#' Print a Combined CTT Analysis
+#'
+#' Prints a condensed, headline-style summary of an object of class `"ctt"`
+#' returned by [ctt()], following the same brief/full print-summary split
+#' used by [irtQ::est_irt()] (compare `print.est_irt()` vs.
+#' `summary.est_irt()`/`print.summary.est_irt()`).
+#'
+#' @param x An object of class `"ctt"`, as returned by [ctt()].
+#' @param digits Number of decimal places used when rounding numeric values
+#'   for display. Default is `3`. Note that the item- and test-level
+#'   statistics bundled into `x` are already rounded to 3 decimal places
+#'   before [ctt()] returns them, so a `digits` value greater than 3 here
+#'   cannot recover precision that was already discarded upstream.
+#' @param ... Additional arguments passed to or from other methods (currently
+#'   not used).
+#'
+#' @return `x`, invisibly.
+#'
+#' @author Hwanggyu Lim \email{hglim83@@gmail.com}
+#'
+#' @seealso [ctt()], [summary.ctt()]
+#'
+#' @examples
+#' # simulate the responses of 300 examinees to 15 dichotomous 3PLM items
+#' set.seed(1)
+#' x <- shape_df(
+#'   par.drm = list(a = rep(1.5, 15), b = seq(-1.5, 1.5, length.out = 15),
+#'                  g = rep(0.2, 15)),
+#'   cats = 2, model = "3PLM"
+#' )
+#' dat <- simdat(x = x, theta = rnorm(300), D = 1)
+#'
+#' # run the CTT analysis
+#' out <- ctt(data = dat)
+#'
+#' # print the condensed report
+#' print(out)
+#'
+#' @export
+print.ctt <- function(x, digits = 3, ...) {
+
+  # echo the original call, as in irtQ's print.est_irt()/print.est_item()
+  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
+      "\n\n", sep = "")
+
+  cat("Classical Test Theory (CTT) Analysis\n")
+  cat(" Number of items: ", nrow(x$item), "\n", sep = "")
+  cat(" Number of examinees: ", x$alpha$n_examinee, "\n", sep = "")
+  cat(" Cronbach's alpha: ", round(x$alpha$alpha, digits), "\n", sep = "")
+  cat(" SEM: ", round(x$alpha$sem, digits), "\n", sep = "")
+  cat(" Mean difficulty: ", round(x$alpha$mean_difficulty, digits), "\n",
+      sep = "")
+  cat(" Mean discrimination (raw / corrected): ",
+      round(x$alpha$mean_discrimination_raw, digits), " / ",
+      round(x$alpha$mean_discrimination_corrected, digits), "\n", sep = "")
+
+  # report how many items were flagged, if flagging was requested
+  if ("flag" %in% names(x$item)) {
+    n_flagged <- sum(x$item$flag != "")
+    cat(" Flagged items: ", n_flagged, " of ", nrow(x$item), "\n", sep = "")
+  }
+
+  cat("\nUse summary() for the full item-level and frequency-distribution",
+      "report.\n")
+  invisible(x)
+}
+
+#' Print the Full Report for a Combined CTT Analysis
+#'
+#' Displays the complete classical test theory (CTT) report for an object of
+#' class `"summary.ctt"` produced by [summary.ctt()]: the function call, the
+#' full item-level statistics table (including flags, if present), the
+#' test-level reliability summary, and the total-score frequency
+#' distribution, following the sectioned reporting style used by
+#' `print.summary.est_irt()` in irtQ.
+#'
+#' @param x An object of class `"summary.ctt"`, as returned by
+#'   [summary.ctt()].
+#' @param digits Number of decimal places used when rounding numeric values
+#'   for display. Default is `3`. Note that the statistics bundled into `x`
+#'   are already rounded to 3 decimal places upstream, so a `digits` value
+#'   greater than 3 here cannot recover precision that was already
+#'   discarded; `digits` is only useful for displaying the report at 3 or
+#'   fewer decimal places.
+#' @param ... Additional arguments passed to or from other methods (currently
+#'   not used).
+#'
+#' @return `x`, invisibly.
+#'
+#' @author Hwanggyu Lim \email{hglim83@@gmail.com}
+#'
+#' @seealso [ctt()], [summary.ctt()]
+#'
+#' @examples
+#' # simulate the responses of 300 examinees to 15 dichotomous 3PLM items
+#' set.seed(1)
+#' x <- shape_df(
+#'   par.drm = list(a = rep(1.5, 15), b = seq(-1.5, 1.5, length.out = 15),
+#'                  g = rep(0.2, 15)),
+#'   cats = 2, model = "3PLM"
+#' )
+#' dat <- simdat(x = x, theta = rnorm(300), D = 1)
+#'
+#' # run the CTT analysis
+#' out <- ctt(data = dat)
+#'
+#' # print the full report with values rounded to 2 decimal places
+#' print(summary(out), digits = 2)
+#'
+#' @export
+print.summary.ctt <- function(x, digits = 3, ...) {
+
+  # echo the original call
+  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
+      "\n\n", sep = "")
+
+  # ---- Item-Level Statistics ------------------------------------------
+  cat("Item-Level Statistics\n")
+  item_disp <- x$item
+  num_cols <- vapply(item_disp, is.numeric, logical(1))
+  item_disp[num_cols] <- lapply(item_disp[num_cols], round, digits = digits)
+  print(item_disp, print.gap = 2, quote = FALSE, row.names = FALSE)
+  cat("\n")
+
+  if ("flag" %in% names(x$item)) {
+    n_flagged <- sum(x$item$flag != "")
+    cat("Flagging thresholds: difficulty in [", x$crit$crit.p[1], ", ",
+        x$crit$crit.p[2], "], discrimination >= ", x$crit$crit.dis, "\n",
+        sep = "")
+    cat(n_flagged, " of ", nrow(x$item), " item(s) flagged.\n\n", sep = "")
+  }
+
+  # ---- Test-Level Reliability Summary ----------------------------------
+  cat("Test-Level Reliability Summary\n")
+  alpha_disp <- x$alpha
+  num_cols_a <- vapply(alpha_disp, is.numeric, logical(1))
+  alpha_disp[num_cols_a] <- lapply(alpha_disp[num_cols_a], round,
+                                    digits = digits)
+  print(alpha_disp, print.gap = 2, quote = FALSE, row.names = FALSE)
+  cat("\n")
+
+  # ---- Total-Score Frequency Distribution ------------------------------
+  cat("Total-Score Frequency Distribution\n")
+  freq_disp <- x$freq
+  num_cols_f <- vapply(freq_disp, is.numeric, logical(1))
+  freq_disp[num_cols_f] <- lapply(freq_disp[num_cols_f], round, digits = digits)
+  print(freq_disp, print.gap = 2, quote = FALSE, row.names = FALSE)
+  cat("\n")
+
+  invisible(x)
+}

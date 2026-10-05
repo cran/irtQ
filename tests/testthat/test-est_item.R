@@ -26,8 +26,8 @@ x_1plm5 <- shape_df(
   cats = rep(2L, 5L), model = "1PLM"
 )
 
-# Mixed 1PLM-constrained + 2PLM + 3PLM bank.  This is THE scenario
-# that exercises the bug the recent fix targeted: estimation order
+# Mixed 1PLM-constrained + 2PLM + 3PLM bank.  This scenario exercises the
+# row alignment of est_item(): estimation order
 # is [loc_1p_const items first, then loc_else items], so c(1,3,5,
 # 2,4,6) -- different from natural order -- and the (id, params)
 # pairing has to be permuted back via order(c(loc_1p_const,
@@ -118,18 +118,16 @@ test_that("est_item() covariance is a square npar x npar matrix", {
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 2. Bug regression: (id, parameter) row alignment for mixed banks
+# 2. Row alignment of (id, parameter) pairs for mixed banks
 # ══════════════════════════════════════════════════════════════════════════════
-# Pre-fix, the per-item estimation loop in est_item.R appended results
-# in [loc_1p_const items first, then loc_else items] order, but the
-# downstream pipeline used dplyr::arrange("loc") -- which sorts by the
-# literal string "loc" (a no-op) -- so par_df / se_df rows stayed in
-# estimation order while the cbind to x[, 1:3] used natural order.
-# Result: the row labelled with id "M2" carried params for some other
-# item.  The shared-a check below is the discriminating signal,
-# because the 1PLM-constrained code path forces all 1PLM items to
-# share a single estimated `a` -- if mis-pairing brings non-1PLM
-# values into 1PLM rows, the rows no longer agree.
+# The per-item estimation loop in est_item.R appends results in
+# [loc_1p_const items first, then loc_else items] order, and par_df /
+# se_df are permuted back to natural order before the cbind to
+# x[, 1:3]; a mis-pairing would give the row labelled with id "M2"
+# the params of some other item.  The shared-a check below is the
+# discriminating signal, because the 1PLM-constrained code path forces
+# all 1PLM items to share a single estimated `a` -- if mis-pairing
+# brings non-1PLM values into 1PLM rows, the rows would differ.
 
 test_that("est_item() mixed 1PLM-const + others: par.est$id stays in input order", {
   sim <- sim_with_score(x_mixed_drm6, seed = 21)
@@ -207,15 +205,11 @@ test_that("est_item() mixed DRM + GRM: covariance is finite + symmetric", {
   expect_lt(max(abs(fit$covariance - t(fit$covariance))), 1e-10)
 })
 
-test_that("est_item() handles cats = 3 GRM without diag<- crash", {
-  # cats == 3 GRM was a long-standing bug in hess_item_prm_inner():
-  # the off-diagonal b-block fill via diag(hess[2:m, 3:(m+1)]) <-
-  # hess_b1b2 silently dropped the 1x1 sub-matrix to a scalar when
-  # m == 2 (cats == 3), after which diag<-() raised
-  #   "only matrix diagonals can be replaced".
-  # Fixed by switching to 2-column index-matrix assignment, which
-  # treats the m == 2 single-cell case the same as m >= 3 multi-
-  # cell cases.  This test guards against regression.
+test_that("est_item() handles cats = 3 GRM items", {
+  # cats == 3 GRM has m == 2, so the off-diagonal b-block of
+  # hess_item_prm_inner() is a single cell; it is filled by 2-column
+  # index-matrix assignment, which treats this case the same as the
+  # m >= 3 multi-cell cases (diag<-() on the 1x1 sub-matrix would fail).
   set.seed(701)
   x_grm3 <- shape_df(
     par.prm = list(a = c(1.0, 1.1),
@@ -255,6 +249,19 @@ test_that("est_item() recovers 2PLM b parameters within loose tolerance", {
                    c(list(x = x_pop, data = data, score = theta,
                           fix.a.1pl = TRUE), ITEM_ARGS))
   expect_equal(unname(fit$par.est$par.2), true_b, tolerance = 0.3)
+})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 5b. Default guessing prior
+# ══════════════════════════════════════════════════════════════════════════════
+
+test_that("est_item() default gprior is Beta(5, 16), as in est_irt() and est_mg()", {
+  expect_equal(eval(formals(est_item)$gprior),
+               list(dist = "beta", params = c(5, 16)))
+  # the default must agree with the other calibration functions
+  expect_equal(eval(formals(est_item)$gprior), eval(formals(est_irt)$gprior))
+  expect_equal(eval(formals(est_item)$gprior), eval(formals(est_mg)$gprior))
 })
 
 

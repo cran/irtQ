@@ -116,8 +116,12 @@
 #'   Item calibration is then performed relative to the estimated empirical priors.
 #' @param Etol A positive numeric value specifying the convergence criterion for
 #'   the E-step of the EM algorithm. Default is 1e-3. 
-#'   Specifically, the EM algorithm terminates when the largest absolute difference 
-#'   in item parameter estimates between consecutive iterations is smaller than this value.
+#'   Specifically, the EM algorithm terminates when the largest absolute difference
+#'   in item parameter estimates between consecutive iterations is less than or
+#'   equal to this value. When MG-FIPC is used and all items are fixed, so that
+#'   only the latent ability distributions are estimated, the criterion is
+#'   applied to the largest absolute change in the means and variances of the
+#'   prior distributions.
 #' @param fipc Logical. If `TRUE`, multiple-group fixed item parameter
 #'   calibration (MG-FIPC) is applied during item parameter estimation.
 #'   When `fipc = TRUE`, the information on which items are fixed
@@ -151,7 +155,7 @@
 #'   Note that if the `fix.id` argument is not NULL, the information provided in
 #'   `fix.loc` is ignored. See below for details.
 #'
-#' @details Multiple-group (MG) item calibration (Bock & Zimowski, 1996)
+#' @details Multiple-group (MG) item calibration (Bock & Zimowski, 1997)
 #' provides a unified framework for handling testing scenarios involving
 #' multiple groups, such as nonequivalent groups equating, vertical scaling,
 #' and the identification of differential item functioning (DIF). In such
@@ -159,7 +163,7 @@
 #' the same test form or to different forms that share common (anchor) items.
 #'
 #' The goal of MG item calibration is to estimate both item parameters and
-#' latent ability distributions for all groups simultaneously (Bock & Zimowski, 1996).
+#' latent ability distributions for all groups simultaneously (Bock & Zimowski, 1997).
 #' The \pkg{irtQ} package implements MG calibration via the [irtQ::est_mg()] function,
 #' which uses marginal maximum likelihood estimation through the
 #' expectation-maximization (MMLE-EM) algorithm (Bock & Aitkin, 1981).
@@ -241,7 +245,7 @@
 #' Note that when both `fix.loc` and `fix.id` are provided, the information
 #' in `fix.id` takes precedence and overrides `fix.loc`.
 #'
-#' @return This function returns an object of class `est_irt`. The returned
+#' @return This function returns an object of class `est_mg`. The returned
 #'   object contains the following components:
 #'
 #' \item{estimates}{A list containing two internal elements: `overall` and `group`.
@@ -326,8 +330,8 @@
 #'
 #' \item{niter}{The number of completed EM cycles.}
 #'
-#' \item{maxpar.diff}{The maximum absolute change in parameter estimates at
-#'   convergence.}
+#' \item{maxpar.diff}{The largest absolute change in the estimates in
+#'   the last EM cycle.}
 #'
 #' \item{EMtime}{Time (in seconds) spent on EM cycles.}
 #'
@@ -335,11 +339,17 @@
 #'
 #' \item{TotalTime}{Total computation time (in seconds).}
 #'
-#' \item{test.1}{First-order test result indicating whether the gradient
-#'   sufficiently vanished for solution stability.}
+#' \item{test.1}{A message indicating whether the convergence criteria were
+#'   met: the M-step optimization converged for every item and the largest
+#'   absolute change in the parameter estimates between two consecutive EM
+#'   cycles was less than or equal to `Etol`. When `fipc.method = "OEM"` with
+#'   new items to calibrate, the single EM cycle is not judged by `Etol` and
+#'   only the M-step check applies. For FIPC with all items fixed, see `Etol`.}
 #'
 #' \item{test.2}{Second-order test result indicating whether the information matrix
-#'   is positive definite, a necessary condition for identifying a local maximum.}
+#'   is positive definite, a necessary condition for identifying a local maximum.
+#'   The message reports a possible local maximum only when the first-order test
+#'   is also satisfied.}
 #'
 #' \item{var.note}{A note indicating whether the variance-covariance matrix
 #'   was successfully obtained from the information matrix.}
@@ -364,9 +374,9 @@
 #' estimation of item parameters: Application of an EM algorithm.
 #' *Psychometrika, 46*, 443-459.
 #'
-#' Bock, R. D., & Zimowski, M. F. (1997). Multiple group IRT. In W. J.
-#' van der Linden & R. K. Hambleton (Eds.), *Handbook of modern item response theory*
-#' (pp. 433-448). New York: Springer.
+#'   Bock, R. D., & Zimowski, M. F. (1997). Multiple group IRT. In W. J. van der
+#'   Linden & R. K. Hambleton (Eds.), *Handbook of modern item response theory*
+#'   (pp. 433-448). Springer. \doi{10.1007/978-1-4757-2691-6_25}.
 #'
 #' Kim, S. (2006). A comparative study of IRT fixed parameter calibration
 #' methods. *Journal of Educational Measurement, 43*(4), 355-381.
@@ -1030,9 +1040,7 @@ est_mg_em <- function(x = NULL,
 
   # build the per-item one-hot frequency-category list used by
   # divide_data() below and by info_xpd() in the SE step.  See
-  # build_freqcat() (R/util.R) for the output structure; it replaces a
-  # data.frame -> factor -> xtabs -> matrix chain that allocated four
-  # separate copies of the response data.
+  # build_freqcat() (R/util.R) for the output structure.
   freq.cat <- build_freqcat(data, cats)
 
   # break down the item metadata into several elements
@@ -1110,7 +1118,8 @@ est_mg_em <- function(x = NULL,
 
     # compute the difference between previous and updated item parameter estimates
     diff_par <- mstep$elm_item$pars - elm_item$pars
-    max.diff <- abs(max(diff_par, na.rm = TRUE))
+    # convergence statistic: largest absolute parameter change
+    max.diff <- suppressWarnings(max(abs(diff_par), na.rm = TRUE))
 
     # loglikelihood value
     llike <- do.call(what = "sum", args = mstep$loglike)
@@ -1124,8 +1133,8 @@ est_mg_em <- function(x = NULL,
       ))
     }
 
-    # check the convergence of EM algorithm
-    converge <- max.diff <= Etol
+    # check the convergence of EM algorithm; a non-finite change is not converged
+    converge <- is.finite(max.diff) && max.diff <= Etol
 
     # extract the updated item parameter estimates
     elm_item$pars <- mstep$elm_item$pars
@@ -1148,7 +1157,8 @@ est_mg_em <- function(x = NULL,
   est_time1 <- round(as.numeric(difftime(time2, time1, units = "secs")), 2)
 
   # the first order test: check convergence-criteria test
-  test_1st <- all(c(all(mstep$convergence == 0L), r < MaxE))
+  # require M-step convergence for every item and the EM criterion
+  test_1st <- all(mstep$convergence == 0L) && converge
   if (test_1st) {
     memo3 <- "Convergence criteria are satisfied."
   } else {
@@ -1210,10 +1220,7 @@ est_mg_em <- function(x = NULL,
     }
     time1 <- Sys.time()
 
-    # compute the information matrix of item parameters; info_xpd()
-    # works on the original ntheta-length quadrature grid (no
-    # nstd*ntheta expansion), so the caller no longer needs to
-    # construct quadpt.vec
+    # compute the information matrix of item parameters on the quadrature grid
     info.data <- info_xpd(
       elm_item = elm_item, freq.cat = freq.cat, post_dist = post_dist,
       quadpt = quadpt, nstd = nstd,
@@ -1236,11 +1243,8 @@ est_mg_em <- function(x = NULL,
 
     # second-order test + variance-covariance matrix in one Cholesky:
     # chol(info.mat) succeeds iff info.mat is positive-definite, and the
-    # cached factor R lets chol2inv(R) compute the inverse cheaply (one
-    # Cholesky pass instead of an O(n^3) eigen-decomposition followed by
-    # an O(n^3) LU-based solve).  When chol() fails (rare for converged
-    # solutions), fall back to the original eigen + solve path so that
-    # near-singular cases keep their previous behavior bit-for-bit.
+    # cached factor R lets chol2inv(R) compute the inverse.  When chol() fails
+    # (rare for converged solutions), fall back to an eigenvalue check and solve().
     chol_R <- suppressWarnings(tryCatch(chol(info.mat), error = function(e) NULL))
     if (!is.null(chol_R)) {
       test_2nd <- TRUE
@@ -1301,11 +1305,8 @@ est_mg_em <- function(x = NULL,
     data.frame(x[, 1:3], elm_item$pars) %>%
     confirm_df(g2na = TRUE)
 
-  # deploy the standard errors on the location of matrix as the item parameter estimates
   # deploy the standard errors into the same row/column layout that
-  # holds the item parameter estimates; see est_irt.R linear-form
-  # branch for the rationale of the logical-mask assignment that
-  # replaces the previous per-row for-loop
+  # holds the item parameter estimates (see est_irt_em())
   se_df <- loc.par <- param_loc$loc.par
   mask  <- !is.na(loc.par)
   if (se) {
@@ -1795,24 +1796,10 @@ est_mg_fipc <- function(x = NULL,
   weights.gr <- replicate(n = ngroup, expr = weights, simplify = FALSE)
   names(weights.gr) <- group.name
 
-  # build the per-item one-hot frequency-category list ONCE on the
-  # combined response matrix.  By construction (lines 1644-1730),
-  #   data_fix == data_all[, fix.loc]
-  #   data_new == data_all[, nofix.loc]
-  #   x_all$cats[fix.loc]   == x_fix$cats
-  #   x_all$cats[nofix.loc] == cats   (= x_new$cats)
-  # so the per-item integer matrices freq_all.cat[fix.loc] and
-  # freq_all.cat[nofix.loc] are bit-for-bit identical to what the
-  # previous code produced via separate build_freqcat() calls on
-  # data_fix and data_new.  R lists hold their elements by reference,
-  # so list-subsetting creates view-style aliases without copying any
-  # of the underlying nstd x cats[k] matrices -- saving roughly 50%
-  # of the freq.cat peak memory during the FIPC busy window and
-  # cutting build_freqcat() runtime by ~2x.  All downstream consumers
-  # (divide_data, info_xpd) index freq.cat with integer locations
-  # only, never element names, so the subsetting is observationally
-  # identical to the previous separate-build pattern.  Mirrors the
-  # equivalent rewrite in est_irt.R lines 1517-1531.
+  # build the per-item one-hot frequency-category list once on the combined
+  # response matrix; data_fix and data_new are the fix.loc and nofix.loc
+  # columns of data_all, so list subsetting gives their freq.cat without
+  # copying the underlying matrices
   freq_all.cat <- build_freqcat(data_all, x_all$cats)
   if (!is.null(x_new)) {
     freq_fix.cat <- freq_all.cat[fix.loc]
@@ -1960,15 +1947,17 @@ est_mg_fipc <- function(x = NULL,
     if (!is.null(x_new)) {
       # compute the difference between previous and updated item parameter estimates
       diff_par <- mstep$elm_item$pars - elm_item_new$pars
-      max.diff <- abs(max(diff_par, na.rm = TRUE))
+      # convergence statistic: largest absolute parameter change
+      max.diff <- suppressWarnings(max(abs(diff_par), na.rm = TRUE))
     } else {
-      # compute the mean and sd of the updated prior distribution
+      # compute the mean and variance of the updated prior distribution
       mmt_dist_new <-
         as.matrix(purrr::map_dfc(.x = mstep$weights, ~ {
           cal_moment(node = .x$theta, weight = .x$weight)
         }))
       diff_par <- mmt_dist_new - mmt_dist_old
-      max.diff <- abs(max(diff_par, na.rm = TRUE))
+      # convergence statistic: largest absolute change in prior mean and variance
+      max.diff <- suppressWarnings(max(abs(diff_par), na.rm = TRUE))
     }
 
     # loglikelihood value
@@ -1983,8 +1972,8 @@ est_mg_fipc <- function(x = NULL,
       ))
     }
 
-    # check the convergence of EM algorithm
-    converge <- max.diff <= Etol
+    # check the convergence of EM algorithm; a non-finite change is not converged
+    converge <- is.finite(max.diff) && max.diff <= Etol
 
     # extract the updated item (or group) parameter estimates
     # and update the new and all item parameters
@@ -2014,7 +2003,10 @@ est_mg_fipc <- function(x = NULL,
   est_time1 <- round(as.numeric(difftime(time2, time1, units = "secs")), 2)
 
   # the first order test: check convergence-criteria test
-  test_1st <- all(c(all(mstep$convergence == 0L), r < MaxE))
+  # OEM runs a single EM cycle by design, so only the M-step check applies;
+  # with all items fixed (no new items), the EM criterion must still be met
+  test_1st <- all(mstep$convergence == 0L) &&
+    (converge || (fipc.method == "OEM" && !is.null(x_new)))
   if (test_1st) {
     memo3 <- "Convergence criteria are satisfied."
   } else {
@@ -2088,8 +2080,7 @@ est_mg_fipc <- function(x = NULL,
       }
       time1 <- Sys.time()
 
-      # compute the information matrix of item parameters; see linear-
-      # form branch above -- info_xpd() now consumes quadpt directly
+      # compute the information matrix of item parameters
       info.data <- info_xpd(
         elm_item = elm_item_new, freq.cat = freq_new.cat, post_dist = post_dist,
         quadpt = quadpt, nstd = nstd,
@@ -2111,7 +2102,7 @@ est_mg_fipc <- function(x = NULL,
       info.mat <- info.data + info.prior
 
       # second-order test + variance-covariance matrix in one Cholesky:
-      # see est_mg() linear-form branch above for the full rationale.
+      # see est_mg_em()
       chol_R <- suppressWarnings(tryCatch(chol(info.mat), error = function(e) NULL))
       if (!is.null(chol_R)) {
         test_2nd <- TRUE
@@ -2175,9 +2166,7 @@ est_mg_fipc <- function(x = NULL,
 
     # deploy the standard errors into the same row/column layout that
     # holds the item parameter estimates.
-    # 1) for the only new items.  See est_irt.R linear-form branch
-    #    for the rationale of the logical-mask assignment that
-    #    replaces the previous per-row for-loop.
+    # 1) for the only new items (see est_irt_em() for the loc.par layout).
     se_df <- loc.par <- param_loc$loc.par
     mask  <- !is.na(loc.par)
     if (se) {

@@ -150,10 +150,10 @@ info(x = test_flex, theta = theta, D = 1, tif = TRUE)
 
 }
 \references{
-Hambleton, R. K., & Swaminathan, H. (1985) \emph{Item response theory:
-Principles and applications}. Boston, MA: Kluwer.
+Hambleton, R. K., & Swaminathan, H. (1985). \emph{Item response
+theory: Principles and applications}. Boston, MA: Kluwer.
 
-Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991) \emph{Fundamentals of
+Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991). \emph{Fundamentals of
 item response theory}. Newbury Park, CA: Sage.
 }
 \seealso{

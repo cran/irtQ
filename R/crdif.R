@@ -37,7 +37,8 @@
 #'
 #' The RDIF framework using categorical residuals (RDIF-CR), implemented in
 #' [irtQ::crdif()], extends the original residual-based DIF framework proposed
-#' by Lim et al. (2022) to detect global DIF in polytomous items. This framework
+#' by Lim et al. (2022) to detect global DIF in polytomous items (Jung & Lim,
+#' 2026; Lim, Malatesta, & Lee, 2024). This framework
 #' includes three statistics: \eqn{RDIF_{R}-CR}, \eqn{RDIF_{S}-CR}, and
 #' \eqn{RDIF_{RS}-CR}, each designed to capture different aspects of group-level
 #' differences in categorical response patterns.
@@ -96,8 +97,9 @@
 #'     column indicating the iteration in which the result was obtained.}
 #'     \item{moments}{A list of moments (means and covariance matrices) of the
 #'     RDIF-CR statistics for all items, updated based on the final iteration.}
-#'     \item{dif_item}{A list of three numeric vectors identifying items flagged
-#'     as DIF at any iteration, by each statistic.}
+#'     \item{dif_item}{A numeric vector of the positions (rows of \code{x}) of
+#'     the items flagged as DIF by the \code{purify.by} statistic across all
+#'     purification iterations, sorted in ascending order.}
 #'     \item{n.iter}{An integer indicating the number of iterations performed during
 #'     the purification procedure.}
 #'     \item{score}{A numeric vector of updated ability estimates used in the final
@@ -117,12 +119,21 @@
 #'  [irtQ::est_score()]
 #'
 #' @references
+#'   Jung, H., & Lim, H. (2026, April). Detecting global and net DIF in
+#'   polytomous items using RDIF. Paper presented at the annual meeting of the
+#'   National Council on Measurement in Education, Los Angeles, CA.
+#'
 #'   Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 #'   item functioning detection framework in item response theory. *Journal of
-#'   Educational Measurement, 59*(1), 80-104. \doi{doi:10.1111/jedm.12313}.
+#'   Educational Measurement, 59*(1), 80-104. \doi{10.1111/jedm.12313}.
+#'
+#'   Lim, H., Malatesta, J., & Lee, Y. (2024, July). Advancing polytomous DIF
+#'   detection with the residual DIF framework. Paper presented at the annual
+#'   International Meeting of the Psychometric Society, Prague, Czech Republic.
 #'
 #'   Penfield, R. D. (2010). Distinguishing between net and global DIF in
 #'   polytomous items. *Journal of Educational Measurement, 47*(2), 129-149.
+#'   \doi{10.1111/j.1745-3984.2010.00105.x}.
 #'
 #' @examples
 #' \donttest{

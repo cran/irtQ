@@ -8,7 +8,7 @@ test_that("find_cut() returns correct structure with simMST 1-3-3 panel", {
   module    <- simMST$module
   route_map <- simMST$route_map
 
-  result    <- find_cut(x = x, module = module, route_map = route_map)
+  result    <- find_cut(x = x, module = module, route_map = route_map, D = 1.702)
 
   # ── Class and top-level structure ────────────────────────────────────────
   expect_s3_class(result, "find_cut")
@@ -39,7 +39,7 @@ test_that("find_cut() details contain correct stage-level information", {
   x         <- simMST$item_bank
   module    <- simMST$module
   route_map <- simMST$route_map
-  result    <- find_cut(x = x, module = module, route_map = route_map)
+  result    <- find_cut(x = x, module = module, route_map = route_map, D = 1.702)
 
   # details is a named list
   expect_type(result$details, "list")
@@ -77,7 +77,7 @@ test_that("find_cut() tif_data is a well-formed tibble", {
   x         <- simMST$item_bank
   module    <- simMST$module
   route_map <- simMST$route_map
-  result    <- find_cut(x = x, module = module, route_map = route_map)
+  result    <- find_cut(x = x, module = module, route_map = route_map, D = 1.702)
 
   td <- result$tif_data
   expect_s3_class(td, "tbl_df")
@@ -92,7 +92,7 @@ test_that("find_cut() cut_score is directly usable in run_mst()", {
   x         <- simMST$item_bank
   module    <- simMST$module
   route_map <- simMST$route_map
-  result    <- find_cut(x = x, module = module, route_map = route_map)
+  result    <- find_cut(x = x, module = module, route_map = route_map, D = 1.702)
 
   set.seed(42L)
   theta_true <- rnorm(50L)
@@ -120,7 +120,7 @@ test_that("print.find_cut() runs without error", {
   x         <- simMST$item_bank
   module    <- simMST$module
   route_map <- simMST$route_map
-  result    <- find_cut(x = x, module = module, route_map = route_map)
+  result    <- find_cut(x = x, module = module, route_map = route_map, D = 1.702)
 
   expect_output(print(result), "MST TIF-Crossing Cut Score Results")
   expect_output(print(result), "Selected cut score")
@@ -133,15 +133,17 @@ test_that("find_cut() input validation catches bad arguments", {
   module    <- simMST$module
   route_map <- simMST$route_map
 
-  expect_error(find_cut(x = as.matrix(x), module = module, route_map = route_map),
+  expect_error(find_cut(x = as.matrix(x), module = module, route_map = route_map,
+                        D = 1.702),
                "'x' must be a data frame")
-  expect_error(find_cut(x = x, module = as.data.frame(module), route_map = route_map),
+  expect_error(find_cut(x = x, module = as.data.frame(module), route_map = route_map,
+                        D = 1.702),
                "'module' must be a numeric binary matrix")
   expect_error(find_cut(x = x, module = module, route_map = route_map,
-                        theta_range = c(1, -1)),
+                        D = 1.702, theta_range = c(1, -1)),
                "theta_range")
   expect_error(find_cut(x = x, module = module, route_map = route_map,
-                        n_grid = 50L),
+                        D = 1.702, n_grid = 50L),
                "n_grid")
 })
 
@@ -153,11 +155,11 @@ test_that("find_cut() ref_theta selects the closest proper crossing", {
 
   # Default ref_theta = 0
   result_0  <- find_cut(x = x, module = module, route_map = route_map,
-                        ref_theta = 0)
+                        D = 1.702, ref_theta = 0)
 
   # ref_theta = 2 should still return a valid result
   result_2  <- find_cut(x = x, module = module, route_map = route_map,
-                        ref_theta = 2)
+                        D = 1.702, ref_theta = 2)
 
   # Both should return the same structure
   expect_s3_class(result_0, "find_cut")
@@ -176,7 +178,7 @@ test_that("plot.find_cut() returns a ggplot object for all layout options", {
   route_map <- simMST$route_map
 
   cut_result <- suppressWarnings(
-    find_cut(x = x, module = module, route_map = route_map)
+    find_cut(x = x, module = module, route_map = route_map, D = 1.702)
   )
 
   # Default: vertical layout
@@ -196,13 +198,13 @@ test_that("plot.find_cut() returns a ggplot object for all layout options", {
   expect_s3_class(p_no_label, "ggplot")
 })
 
-test_that("find_cut() tif_data now includes stage 1", {
+test_that("find_cut() tif_data includes stage 1", {
   x         <- simMST$item_bank
   module    <- simMST$module
   route_map <- simMST$route_map
 
   cut_result <- suppressWarnings(
-    find_cut(x = x, module = module, route_map = route_map)
+    find_cut(x = x, module = module, route_map = route_map, D = 1.702)
   )
 
   # tif_data must contain all three stages (1, 2, 3) for simMST
@@ -214,4 +216,22 @@ test_that("find_cut() tif_data now includes stage 1", {
     cut_result$tif_data$stage == 1L
   ])
   expect_equal(stage1_modules, 1L)
+})
+
+test_that("find_cut() uses D = 1 by default", {
+  x         <- simMST$item_bank
+  module    <- simMST$module
+  route_map <- simMST$route_map
+
+  # the default scaling constant is 1, as in the other irtQ functions
+  expect_equal(formals(find_cut)$D, 1)
+
+  # a call without D gives the same results as D = 1, and differs from D = 1.702
+  res_default <- suppressWarnings(find_cut(x = x, module = module, route_map = route_map))
+  res_d1      <- suppressWarnings(find_cut(x = x, module = module, route_map = route_map, D = 1))
+  res_d1702   <- suppressWarnings(find_cut(x = x, module = module, route_map = route_map, D = 1.702))
+  for (nm in c("cut_score", "details", "tif_data")) {
+    expect_identical(res_default[[nm]], res_d1[[nm]])
+  }
+  expect_false(identical(res_default$tif_data, res_d1702$tif_data))
 })

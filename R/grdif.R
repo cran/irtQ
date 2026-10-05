@@ -137,6 +137,9 @@
 #'     \item{moments}{A list of three data frames showing the MRR and MSR
 #'     moments across iterations. The final column in each data frame indicates
 #'     the iteration in which the statistics were computed.}
+#'     \item{dif_item}{A numeric vector of the positions (rows of \code{x}) of
+#'     the items flagged as DIF by the \code{purify.by} statistic across all
+#'     purification iterations, sorted in ascending order.}
 #'     \item{n.iter}{The total number of iterations executed during the
 #'     purification process.}
 #'     \item{score}{A numeric vector of the final purified ability estimates
@@ -160,12 +163,12 @@
 #' [irtQ::simdat()], [irtQ::shape_df()], [irtQ::est_score()]
 #'
 #' @references Lim, H., & Choe, E. M. (2023). Detecting differential item
-#'   functioning in CAT using IRT residual DIF approach.
-#'  *Journal of Educational Measurement, 60*(4), 626-650. \doi{doi:10.1111/jedm.12366}.
+#'   functioning in CAT using IRT residual DIF approach. *Journal of Educational
+#'   Measurement, 60*(4), 626-650. \doi{10.1111/jedm.12366}.
 #'
 #'   Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 #'   item functioning detection framework in item response theory. *Journal of
-#'   Educational Measurement, 59*(1), 80-104. \doi{doi:10.1111/jedm.12313}.
+#'   Educational Measurement, 59*(1), 80-104. \doi{10.1111/jedm.12313}.
 #'
 #'   Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2024). Detecting
 #'   differential item functioning among multiple groups using IRT residual DIF

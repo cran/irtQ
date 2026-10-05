@@ -1,15 +1,20 @@
 Package: irtQ
 Type: Package
 Title: Unidimensional Item Response Theory Modeling
-Version: 1.2.0
+Version: 1.3.0
+Date: 2026-10-05
 Description: Fit unidimensional item response theory (IRT) models to test
     data, which includes both dichotomous and polytomous items, calibrate 
     pretest item parameters, estimate examinees' abilities, and examine 
     the IRT model-data fit on item-level in different ways as well as provide 
-    useful functions related to IRT analyses such as IRT model-data fit 
-    evaluation and differential item functioning analysis. 
-    The bring.flexmirt() and write.flexmirt() functions were written by modifying 
-    the read.flexmirt() function (Pritikin & Falk (2022) <doi:10.1177/0146621620929431>).
+    useful functions related to IRT analyses such as differential item
+    functioning analysis.
+    In addition, the package provides a set of classical test theory functions
+    for computing item- and test-level statistics (e.g., item difficulty, item-total
+    correlation, and coefficient alpha) and for scoring and analyzing selected-response
+    item data.
+    The bring.flexmirt() and write.flexmirt() functions were written by modifying
+    the read.flexmirt() function (Pritikin & Falk (2020) <doi:10.1177/0146621620929431>).
     The bring.bilog() and bring.parscale() functions were written by modifying the read.bilog() 
     and read.parscale() functions, respectively (Weeks (2010) <doi:10.18637/jss.v035.i12>).
     The bisection() function was written by modifying the bisection() function 
@@ -23,8 +28,7 @@ License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports: stats, statmod, utils, tibble, dplyr, purrr, tidyr, rlang,
-        reshape2, janitor, ggplot2, gridExtra, parallel, Matrix, Rfast,
-        mirt
+        reshape2, janitor, ggplot2, gridExtra, parallel, Matrix, Rfast
 Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", "cre")), 
     person("Craig S.", "Wells", email="cswells@educ.umass.edu", role="ctb"), 
     person("James", "Howard", email="jh@jameshoward.us", role="ctb"),
@@ -33,13 +37,15 @@ Authors@R: c(person("Hwanggyu", "Lim", email="hglim83@gmail.com", role=c("aut", 
     person("Jorge", "Gonzalez", email="jgonzale@mat.puc.cl", role="ctb"), 
     person("David", "Magis", email="david.magis@uliege.be", role="ctb") 
     ) 
-Suggests: knitr, rmarkdown, testthat (>= 3.0.0), pkgdown, RhpcBLASctl
+Suggests: knitr, rmarkdown, testthat (>= 3.0.0), pkgdown, RhpcBLASctl,
+        mirt
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://hwangQ.github.io/irtQ/, https://github.com/hwangQ/irtQ
 BugReports: https://github.com/hwangQ/irtQ/issues
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-07-27 07:13:34 UTC; kijja
+Packaged: 2026-10-05 16:06:38 UTC; kijja
 Author: Hwanggyu Lim [aut, cre],
   Craig S. Wells [ctb],
   James Howard [ctb],
@@ -49,4 +55,4 @@ Author: Hwanggyu Lim [aut, cre],
   David Magis [ctb]
 Maintainer: Hwanggyu Lim <hglim83@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-07-27 07:40:02 UTC
+Date/Publication: 2026-10-05 16:30:18 UTC

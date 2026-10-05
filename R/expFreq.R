@@ -5,7 +5,7 @@ expFreq <- function(t.score, cats, prob.cats, lkhd_noitem, lkhd, wts, score.freq
   t_noitem <- t.score - cats + 2L
 
   # compute joint[k, j] = sum_theta w_theta * P(cat=j-1|theta) * P(rest_score=k-1|theta)
-  # one BLAS DGEMM replaces K separate Rfast::colsums() calls
+  # one BLAS DGEMM computes all K column sums at once
   joint <- crossprod(lkhd_noitem, prob.cats * wts[, 2])  # (t_noitem x cats)
 
   # fill the (t.score+1) x cats staircase matrix in one vectorised assignment:

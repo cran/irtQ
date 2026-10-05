@@ -33,8 +33,9 @@
 #'   \emph{i}, column \emph{j} indicates that examinees can be routed from
 #'   module \emph{i} to module \emph{j}. This is the same \code{route_map}
 #'   argument used in \code{\link{run_mst}}.
-#' @param D A numeric scaling constant for the IRT model. Default is
-#'   \code{1.702}.
+#' @param D A scaling constant used in IRT models to make the logistic function
+#'   closely approximate the normal ogive function. A value of 1.7 is commonly
+#'   used for this purpose. Default is 1.
 #' @param theta_range A numeric vector of length 2 specifying the theta range
 #'   over which to search for TIF crossings. Default is \code{c(-6, 6)}.
 #' @param n_grid An integer specifying the number of equally spaced theta
@@ -160,7 +161,7 @@
 #' ## For each adjacent module pair at stages 2 and 3, find_cut() identifies
 #' ## the theta at which the harder module's TIF first exceeds the easier
 #' ## module's TIF (proper crossing), and returns it as a cut score.
-#' cut_result <- find_cut(x = x, module = module, route_map = route_map)
+#' cut_result <- find_cut(x = x, module = module, route_map = route_map, D = 1.702)
 #'
 #' ## Print a summary: crossing points found, anomalous crossings excluded,
 #' ## and the final selected cut scores per stage transition.
@@ -204,7 +205,7 @@
 find_cut <- function(x,
                      module,
                      route_map,
-                     D           = 1.702,
+                     D           = 1,
                      theta_range = c(-6, 6),
                      n_grid      = 2001L,
                      ref_theta   = 0) {
@@ -572,7 +573,8 @@ find_cut <- function(x,
 #' cut_result <- find_cut(
 #'   x         = simMST$item_bank,
 #'   module    = simMST$module,
-#'   route_map = simMST$route_map
+#'   route_map = simMST$route_map,
+#'   D         = 1.702
 #' )
 #'
 #' ## Default: stages stacked vertically (stage 1 at the top)

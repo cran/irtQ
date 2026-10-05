@@ -51,7 +51,7 @@
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
 #' @references Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional
-#'   item analysis and test scoring (Computer Software). Chapel Hill, NC: Vector
+#'   item analysis and test scoring (Computer software). Chapel Hill, NC: Vector
 #'   Psychometric Group.
 #'
 #' @examples

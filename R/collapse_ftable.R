@@ -7,8 +7,7 @@
 #      require category collapsing (min expected freq < min.collapse).
 #   2. Rows not needing collapse are extracted in bulk with asplit(), avoiding
 #      per-row data.frame construction and function-call overhead.
-#   3. Only rows that actually need collapsing invoke the original
-#      collapse_ftable(), preserving bit-for-bit identical numerical output.
+#   3. Only rows that need collapsing call collapse_ftable().
 #
 # exp_mat     : data.frame or matrix (nrows x K), expected frequencies
 # obs_mat     : data.frame or matrix (nrows x K), observed frequencies
@@ -38,7 +37,7 @@ collapse_ftable_prm <- function(exp_mat, obs_mat, min.collapse = 1) {
   }
 
   # collapse path: rows with at least one category below threshold;
-  # delegates to the original collapse_ftable() to guarantee identical output
+  # delegate to collapse_ftable()
   for (j in needs_idx) {
     x   <- data.frame(exp = exp_m[j, ], obs = obs_m[j, ])
     tmp <- collapse_ftable(x = x, col = 1L, min.collapse = min.collapse)

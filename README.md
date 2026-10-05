@@ -21,7 +21,7 @@ The package enables:
 
 Item parameter estimation is conducted using marginal maximum likelihood
 estimation via the expectation-maximization (MMLE-EM) algorithm (Bock &
-Aitkin, 1981).  
+Aitkin, 1981).\
 For pretest item calibration, `irtQ` supports:
 
 - Fixed item parameter calibration (FIPC; Kim, 2006),
@@ -44,7 +44,7 @@ Also, model fit assessment includes item fit statistics such as:
 
 - Chi-square (X^2; Bock, 1960; Yen, 1981),
 - Likelihood ratio chi-square (G^2; McKinley & Mills, 1985),
-- Infit and outfit statistics (Ames et al., 2015)
+- Infit and outfit statistics (Ames & Penfield, 2015)
 - Graphical residual diagnostics (Hambleton et al., 1991)
 - S-X^2 (Orlando & Thissen, 2000, 2003)
 
@@ -66,12 +66,20 @@ including:
 - Calculating item and test information and characteristic functions
 - Visualizing item and test characteristic and information curves
 - Importing item or ability parameters from popular IRT software (e.g.,
-  BILOG-MG, PARSCALE, flexMIRT, and the `mirt` R package)
+  BILOG-MG, PARSCALE, flexMIRT, and the `mirt` R package; the latter
+  requires the suggested **mirt** package)
 - Running flexMIRT (Cai, 2017) directly from R
 - Supporting additional tools for flexible and practical IRT analyses
 
+Beyond these IRT-based analyses, the package also provides a small set
+of classical test theory (CTT) functions (`ctt()`, `freq_score()`,
+`ctt_distr()`, and `score_resp()`) for computing traditional item- and
+test-level statistics and for scoring selected-response item data.
+
 For full documentation, including function references and tutorial
-articles, visit the package website: <https://hwangQ.github.io/irtQ/>.
+articles, visit the package website: <https://hwangQ.github.io/irtQ/>. A
+short introduction is available with
+`vignette("irtQ", package = "irtQ")`.
 
 ## Installation
 
@@ -132,8 +140,8 @@ involves two main steps:
       (e.g., `"1PLM"`, `"2PLM"`, `"3PLM"`, `"GRM"`, `"GPCM"`).
     - `cats`: A numeric vector indicating the number of score categories
       for each item. For dichotomous items, use 2.
-    - `D`: A scaling constant (typically 1.702) to align the logistic
-      function with the normal ogive model.
+    - `D`: A scaling constant; the default, 1, gives the logistic
+      metric, and 1.702 approximates the normal ogive.
 
     Optionally, you may incorporate prior distributions for item
     parameters:
@@ -282,8 +290,8 @@ In the `irtQ` package, FAPC can be conducted in two main steps:
       (e.g., `"1PLM"`, `"2PLM"`, `"3PLM"`, `"GRM"`, `"GPCM"`).
     - `cats`: A numeric vector indicating the number of score categories
       for each item. For dichotomous items, use 2.
-    - `D`: A scaling constant (typically 1.702) to align the logistic
-      function with the normal ogive model.
+    - `D`: A scaling constant; the default, 1, gives the logistic
+      metric, and 1.702 approximates the normal ogive.
 
     For additional details on implementing FAPC, refer to the
     documentation for `irtQ::est_item()`.
@@ -394,63 +402,62 @@ individual items.
 library(irtQ)
 
 ##---------------------------------------------------------------------------
-## 1. Item parameter estimation for a linear test
-## form
+## 1. Item parameter estimation for a linear test form
 ##---------------------------------------------------------------------------
 
-## Step 1: Prepare response data for the
-## reference group Import the '-prm.txt' output
-## file from flexMIRT
-meta_true <- system.file("extdata", "flexmirt_sample-prm.txt",
-  package = "irtQ")
+## Step 1: Prepare response data for the reference group
+## Import the "-prm.txt" output file from flexMIRT
+meta_true <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
 
-# Extract item metadata using
-# `irtQ::bring.flexmirt()` This will serve as the
-# base test form for later pretest item examples
+# Extract item metadata using `irtQ::bring.flexmirt()`
+# This will serve as the base test form for later pretest item examples
 x_new <- irtQ::bring.flexmirt(file = meta_true, "par")$Group1$full_df
 
-# Extract items 1 to 40 to define the linear test
-# form used in this illustration
+# Extract items 1 to 40 to define the linear test form used in this illustration
 x_ref <- x_new[1:40, ]
 
-# Generate true ability values (N = 2,000) from
-# N(0, 1) for the reference group
+# Generate true ability values (N = 2,000) from N(0, 1) for the reference group
 set.seed(20)
 theta_ref <- rnorm(2000, mean = 0, sd = 1)
 
 # Simulate response data for the linear test form
-# Scaling factor D = 1 assumes a logistic IRT
-# model
-data_ref <- irtQ::simdat(x = x_ref, theta = theta_ref,
-  D = 1)
+# Scaling factor D = 1 assumes a logistic IRT model
+data_ref <- irtQ::simdat(x = x_ref, theta = theta_ref, D = 1)
 
-## Step 2: Estimate item parameters for the
-## linear test form using the following
-## arguments: data = data_ref # Response data D =
-## 1 # Scaling factor model = c(rep('3PLM', 38),
-## rep('GRM', 2)) # Item models cats = c(rep(2,
-## 38), rep(5, 2)) # Score categories per item
-## item.id = paste0('Ref_I', 1:40) # Item IDs
-## use.gprior = TRUE # Use prior for guessing
-## parameter gprior = list(dist = 'beta', params
-## = c(5, 16))# Prior: Beta(5,16) for g
-## Quadrature = c(49, 6) # 49 quadrature points
-## from -6 to 6 group.mean = 0 group.var = 1 #
-## Fixed latent ability: N(0,1) EmpHist = TRUE #
-## Estimate empirical ability distribution Etol =
-## 1e-3 # E-step convergence tolerance MaxE = 500
-## # Max EM iterations
-mod_ref <- irtQ::est_irt(data = data_ref, D = 1, model = c(rep("3PLM",
-  38), rep("GRM", 2)), cats = c(rep(2, 38), rep(5,
-  2)), item.id = paste0("Ref_I", 1:40), use.gprior = TRUE,
-  gprior = list(dist = "beta", params = c(5, 16)),
-  Quadrature = c(49, 6), group.mean = 0, group.var = 1,
-  EmpHist = TRUE, Etol = 0.001, MaxE = 500)
+## Step 2: Estimate item parameters for the linear test form
+## using the following arguments:
+# data       = data_ref                              # Response data
+# D          = 1                                     # Scaling factor
+# model      = c(rep("3PLM", 38), rep("GRM", 2))     # Item models
+# cats       = c(rep(2, 38), rep(5, 2))              # Score categories per item
+# item.id    = paste0("Ref_I", 1:40)                 # Item IDs
+# use.gprior = TRUE                                  # Use prior for guessing parameter
+# gprior     = list(dist = "beta", params = c(5, 16))# Prior: Beta(5,16) for g
+# Quadrature = c(49, 6)                              # 49 quadrature points from -6 to 6
+# group.mean = 0
+# group.var  = 1                                     # Fixed latent ability: N(0,1)
+# EmpHist    = TRUE                                  # Estimate empirical ability distribution
+# Etol       = 1e-3                                  # E-step convergence tolerance
+# MaxE       = 500                                   # Max EM iterations
+mod_ref <- irtQ::est_irt(
+  data       = data_ref,                             
+  D          = 1,                                     
+  model      = c(rep("3PLM", 38), rep("GRM", 2)),    
+  cats       = c(rep(2, 38), rep(5, 2)),             
+  item.id    = paste0("Ref_I", 1:40),                 
+  use.gprior = TRUE,                                  
+  gprior     = list(dist = "beta", params = c(5, 16)),
+  Quadrature = c(49, 6),                              
+  group.mean = 0,
+  group.var  = 1,                                    
+  EmpHist    = TRUE,                                 
+  Etol       = 1e-3,                                 
+  MaxE       = 500)                                  
 #> Parsing input... 
 #> Estimating item parameters... 
-#>  EM iteration: 1, Loglike: -53907.8298, Max-Change: 1.476851 EM iteration: 2, Loglike: -47810.7610, Max-Change: 0.333348 EM iteration: 3, Loglike: -47780.1401, Max-Change: 0.130911 EM iteration: 4, Loglike: -47777.7493, Max-Change: 0.064179 EM iteration: 5, Loglike: -47776.9296, Max-Change: 0.038227 EM iteration: 6, Loglike: -47776.4542, Max-Change: 0.026209 EM iteration: 7, Loglike: -47776.1402, Max-Change: 0.019566 EM iteration: 8, Loglike: -47775.9185, Max-Change: 0.015306 EM iteration: 9, Loglike: -47775.7539, Max-Change: 0.012285 EM iteration: 10, Loglike: -47775.6263, Max-Change: 0.01001 EM iteration: 11, Loglike: -47775.5239, Max-Change: 0.008238 EM iteration: 12, Loglike: -47775.4394, Max-Change: 0.006834 EM iteration: 13, Loglike: -47775.3679, Max-Change: 0.005706 EM iteration: 14, Loglike: -47775.3064, Max-Change: 0.004795 EM iteration: 15, Loglike: -47775.2525, Max-Change: 0.004052 EM iteration: 16, Loglike: -47775.2048, Max-Change: 0.003444 EM iteration: 17, Loglike: -47775.1621, Max-Change: 0.002944 EM iteration: 18, Loglike: -47775.1234, Max-Change: 0.002529 EM iteration: 19, Loglike: -47775.0882, Max-Change: 0.002184 EM iteration: 20, Loglike: -47775.0558, Max-Change: 0.001895 EM iteration: 21, Loglike: -47775.0259, Max-Change: 0.001652 EM iteration: 22, Loglike: -47774.9980, Max-Change: 0.001446 EM iteration: 23, Loglike: -47774.9719, Max-Change: 0.001271 EM iteration: 24, Loglike: -47774.9473, Max-Change: 0.001121 EM iteration: 25, Loglike: -47774.9241, Max-Change: 0.000993 
+#>  EM iteration: 1, Loglike: -53907.8298, Max-Change: 1.917401 EM iteration: 2, Loglike: -47810.7610, Max-Change: 0.333348 EM iteration: 3, Loglike: -47780.1401, Max-Change: 0.130911 EM iteration: 4, Loglike: -47777.7493, Max-Change: 0.064179 EM iteration: 5, Loglike: -47776.9296, Max-Change: 0.038227 EM iteration: 6, Loglike: -47776.4542, Max-Change: 0.026209 EM iteration: 7, Loglike: -47776.1402, Max-Change: 0.019566 EM iteration: 8, Loglike: -47775.9185, Max-Change: 0.015306 EM iteration: 9, Loglike: -47775.7539, Max-Change: 0.012285 EM iteration: 10, Loglike: -47775.6263, Max-Change: 0.01001 EM iteration: 11, Loglike: -47775.5239, Max-Change: 0.008238 EM iteration: 12, Loglike: -47775.4394, Max-Change: 0.006834 EM iteration: 13, Loglike: -47775.3679, Max-Change: 0.005706 EM iteration: 14, Loglike: -47775.3064, Max-Change: 0.004795 EM iteration: 15, Loglike: -47775.2525, Max-Change: 0.004052 EM iteration: 16, Loglike: -47775.2048, Max-Change: 0.003444 EM iteration: 17, Loglike: -47775.1621, Max-Change: 0.002944 EM iteration: 18, Loglike: -47775.1234, Max-Change: 0.002529 EM iteration: 19, Loglike: -47775.0882, Max-Change: 0.002184 EM iteration: 20, Loglike: -47775.0558, Max-Change: 0.001895 EM iteration: 21, Loglike: -47775.0259, Max-Change: 0.001652 EM iteration: 22, Loglike: -47774.9980, Max-Change: 0.001446 EM iteration: 23, Loglike: -47774.9719, Max-Change: 0.001271 EM iteration: 24, Loglike: -47774.9473, Max-Change: 0.001121 EM iteration: 25, Loglike: -47774.9241, Max-Change: 0.000993 
 #> Computing item parameter var-covariance matrix... 
-#> Estimation is finished in 2.5 seconds.
+#> Estimation is finished in 4.67 seconds.
 
 # Summarize estimation results
 irtQ::summary(mod_ref)
@@ -477,9 +484,9 @@ irtQ::summary(mod_ref)
 #>  Maximum parameter change: 0.0009933655
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 2.24
-#>  Standard error computation: 0.15
-#>  Total computation: 2.5
+#>  EM algorithm: 4.3
+#>  Standard error computation: 0.18
+#>  Total computation: 4.67
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -625,68 +632,67 @@ print(est_ref)
 #> 40 Ref_I40    5   GRM 1.3329010 -0.72583244 -0.06982294  0.5783162  1.1047434
 
 ##------------------------------------------------------------------------------
-## 2. Pretest item calibration using Fixed Item
-## Parameter Calibration (FIPC)
+## 2. Pretest item calibration using Fixed Item Parameter Calibration (FIPC)
 ##------------------------------------------------------------------------------
 
-## Step 1: Prepare item metadata for both fixed
-## operational items and pretest items Define
-## anchor item positions (items to be fixed)
+## Step 1: Prepare item metadata for both fixed operational items and pretest items
+# Define anchor item positions (items to be fixed)
 fixed_pos <- c(1:40)
 
-# Specify IDs, models, and categories for 15
-# pretest items Includes 12 3PLM and 3 GRM items
-# (each GRM has 5 categories)
+# Specify IDs, models, and categories for 15 pretest items
+# Includes 12 3PLM and 3 GRM items (each GRM has 5 categories)
 new_ids <- paste0("New_I", 1:15)
 new_models <- c(rep("3PLM", 12), rep("GRM", 3))
 new_cats <- c(rep(2, 12), rep(5, 3))
 
-# Construct item metadata using
-# `shape_df_fipc()`. See Details of
-# `shape_df_fipc()` for more information First 40
-# items are anchor items (fixed); last 15 are
-# pretest (freely estimated)
-meta_fipc <- irtQ::shape_df_fipc(x = est_ref, fix.loc = fixed_pos,
-  item.id = new_ids, cats = new_cats, model = new_models)
+# Construct item metadata using `shape_df_fipc()`. See Details of `shape_df_fipc()`
+# for more information
+# First 40 items are anchor items (fixed); last 15 are pretest (freely estimated)
+meta_fipc <- irtQ::shape_df_fipc(x = est_ref, fix.loc = fixed_pos, item.id = new_ids,
+                                 cats = new_cats, model = new_models)
 
-## Step 2: Prepare response data for the new test
-## form Generate latent abilities for 2,000 new
-## examinees from N(0.5, 1.3^2)
+## Step 2: Prepare response data for the new test form
+# Generate latent abilities for 2,000 new examinees from N(0.5, 1.3^2)
 set.seed(21)
 theta_new <- rnorm(2000, mean = 0.5, sd = 1.3)
 
-# Simulate response data using true item
-# parameters and true abilities
-data_new <- irtQ::simdat(x = x_new, theta = theta_new,
-  D = 1)
+# Simulate response data using true item parameters and true abilities
+data_new <- irtQ::simdat(x = x_new, theta = theta_new, D = 1)
 
-## Step 3: Calibrate pretest items using FIPC Fit
-## 3PLM to dichotomous and GRM to polytomous
-## items Fix first 40 items and freely estimate
-## the remaining 15 pretest items using the
-## following arguments: x = meta_fipc # Combined
-## item metadata data = data_new # Response data
-## D = 1 # Scaling constant use.gprior = TRUE #
-## Use prior for guessing parameter gprior =
-## list(dist = 'beta', params = c(5, 16)) #
-## Prior: Beta(5,16) for g Quadrature = c(49, 6)
-## # 49 quadrature points from -6 to 6 EmpHist =
-## TRUE # Estimate empirical ability distribution
-## Etol = 1e-3 # E-step convergence tolerance
-## MaxE = 500 # Max EM iterations fipc = TRUE #
-## Enable FIPC fipc.method = 'MEM' # Use Multiple
-## EM cycles fix.loc = c(1:40) # Anchor item
-## positions to fix
-mod_fipc <- irtQ::est_irt(x = meta_fipc, data = data_new,
-  D = 1, use.gprior = TRUE, gprior = list(dist = "beta",
-    params = c(5, 16)), Quadrature = c(49, 6),
-  EmpHist = TRUE, Etol = 0.001, MaxE = 500, fipc = TRUE,
-  fipc.method = "MEM", fix.loc = c(1:40))
+## Step 3: Calibrate pretest items using FIPC
+##  Fit 3PLM to dichotomous and GRM to polytomous items
+## Fix first 40 items and freely estimate the remaining 15 pretest items
+## using the following arguments:
+# x           = meta_fipc                     # Combined item metadata
+# data        = data_new                      # Response data
+# D           = 1                             # Scaling constant
+# use.gprior  = TRUE                          # Use prior for guessing parameter
+# gprior      = list(dist = "beta", params = c(5, 16))  # Prior: Beta(5,16) for g
+# Quadrature  = c(49, 6)                      # 49 quadrature points from -6 to 6
+# EmpHist     = TRUE                          # Estimate empirical ability distribution
+# Etol        = 1e-3                          # E-step convergence tolerance
+# MaxE        = 500                           # Max EM iterations
+# fipc        = TRUE                          # Enable FIPC
+# fipc.method = "MEM"                         # Use Multiple EM cycles
+# fix.loc     = c(1:40)                       # Anchor item positions to fix
+mod_fipc <- irtQ::est_irt(
+  x           = meta_fipc,                    
+  data        = data_new,                   
+  D           = 1,                            
+  use.gprior  = TRUE,                          
+  gprior      = list(dist = "beta", params = c(5, 16)),  
+  Quadrature  = c(49, 6),                      
+  EmpHist     = TRUE,                         
+  Etol        = 1e-3,                         
+  MaxE        = 500,                           
+  fipc        = TRUE,                         
+  fipc.method = "MEM",                         
+  fix.loc     = c(1:40))                       
 #> Parsing input... 
 #> Estimating item parameters... 
-#>  EM iteration: 1, Loglike: -41799.5018, Max-Change: 2.177366 EM iteration: 2, Loglike: -60177.8990, Max-Change: 0.660102 EM iteration: 3, Loglike: -60143.0624, Max-Change: 0.22625 EM iteration: 4, Loglike: -60141.1866, Max-Change: 0.082367 EM iteration: 5, Loglike: -60140.7281, Max-Change: 0.031397 EM iteration: 6, Loglike: -60140.4860, Max-Change: 0.012555 EM iteration: 7, Loglike: -60140.3168, Max-Change: 0.005361 EM iteration: 8, Loglike: -60140.1888, Max-Change: 0.002513 EM iteration: 9, Loglike: -60140.0888, Max-Change: 0.001326 EM iteration: 10, Loglike: -60140.0086, Max-Change: 0.000788 
+#>  EM iteration: 1, Loglike: -41799.5018, Max-Change: 2.177366 EM iteration: 2, Loglike: -60177.8990, Max-Change: 0.660102 EM iteration: 3, Loglike: -60143.0624, Max-Change: 0.22625 EM iteration: 4, Loglike: -60141.1866, Max-Change: 0.082367 EM iteration: 5, Loglike: -60140.7281, Max-Change: 0.031397 EM iteration: 6, Loglike: -60140.4860, Max-Change: 0.012555 EM iteration: 7, Loglike: -60140.3168, Max-Change: 0.005361 EM iteration: 8, Loglike: -60140.1888, Max-Change: 0.002513 EM iteration: 9, Loglike: -60140.0888, Max-Change: 0.001386 EM iteration: 10, Loglike: -60140.0086, Max-Change: 0.001119 EM iteration: 11, Loglike: -60139.9427, Max-Change: 0.000908 
 #> Computing item parameter var-covariance matrix... 
-#> Estimation is finished in 1.73 seconds.
+#> Estimation is finished in 1.3 seconds.
 
 # Summarize estimation results
 irtQ::summary(mod_fipc)
@@ -708,13 +714,13 @@ irtQ::summary(mod_fipc)
 #>  Minimum & Maximum quadrature points: -6, 6
 #>  Number of free parameters: 53
 #>  Number of fixed items: 40
-#>  Number of E-step cycles completed: 10
-#>  Maximum parameter change: 0.0007875969
+#>  Number of E-step cycles completed: 11
+#>  Maximum parameter change: 0.0009076875
 #> 
 #> Processing time (in seconds) 
-#>  EM algorithm: 1.55
-#>  Standard error computation: 0.05
-#>  Total computation: 1.73
+#>  EM algorithm: 1.12
+#>  Standard error computation: 0.04
+#>  Total computation: 1.3
 #> 
 #> Convergence and Stability of Solution 
 #>  First-order test: Convergence criteria are satisfied.
@@ -723,9 +729,9 @@ irtQ::summary(mod_fipc)
 #>   Variance-covariance matrix of item parameter estimates is obtainable.
 #> 
 #> Summary of Estimation Results 
-#>  -2loglikelihood: 120280
-#>  Akaike Information Criterion (AIC): 120386
-#>  Bayesian Information Criterion (BIC): 120682.9
+#>  -2loglikelihood: 120279.9
+#>  Akaike Information Criterion (AIC): 120385.9
+#>  Bayesian Information Criterion (BIC): 120682.7
 #>  Item Parameters: 
 #>          id  cats  model  par.1  se.1  par.2  se.2  par.3  se.3  par.4  se.4
 #> 1    Ref_I1     2   3PLM   0.69    NA   1.14    NA   0.19    NA     NA    NA
@@ -888,27 +894,25 @@ print(est_new_fipc)
 #> 38 Ref_I38    2  3PLM 0.7239630 -0.42947088  0.21019599         NA         NA
 #> 39 Ref_I39    5   GRM 1.9602130 -1.83262071 -1.16744768 -0.6208679 -0.1692025
 #> 40 Ref_I40    5   GRM 1.3329010 -0.72583244 -0.06982294  0.5783162  1.1047434
-#> 41  New_I1    2  3PLM 1.7544480  0.60773268  0.24514471         NA         NA
-#> 42  New_I2    2  3PLM 1.8504109 -1.20664264  0.20151190         NA         NA
-#> 43  New_I3    2  3PLM 1.6147606  0.49347600  0.13571997         NA         NA
-#> 44  New_I4    2  3PLM 1.0555607 -0.23825505  0.15300057         NA         NA
-#> 45  New_I5    2  3PLM 1.0904024  2.21167266  0.15226183         NA         NA
-#> 46  New_I6    2  3PLM 2.8516500  1.54044406  0.19668025         NA         NA
-#> 47  New_I7    2  3PLM 1.3790784  0.09572744  0.17329931         NA         NA
-#> 48  New_I8    2  3PLM 1.7223300  0.15449590  0.17624706         NA         NA
-#> 49  New_I9    2  3PLM 1.3362538  0.32062018  0.08717881         NA         NA
-#> 50 New_I10    2  3PLM 1.5311035  1.24203909  0.08670597         NA         NA
-#> 51 New_I11    2  3PLM 1.9026709 -0.98886361  0.21168998         NA         NA
-#> 52 New_I12    2  3PLM 1.3468728 -0.16146762  0.37836732         NA         NA
-#> 53 New_I13    5   GRM 1.2495401 -0.38606491  0.18902252  0.7711329  1.2171389
-#> 54 New_I14    5   GRM 1.2827773 -2.16768674 -1.45593517 -0.7442029 -0.1292640
-#> 55 New_I15    5   GRM 0.9146992 -0.76013553 -0.03738067  0.6086850  1.1283143
+#> 41  New_I1    2  3PLM 1.7543402  0.60768748  0.24512492         NA         NA
+#> 42  New_I2    2  3PLM 1.8507316 -1.20642098  0.20158480         NA         NA
+#> 43  New_I3    2  3PLM 1.6143166  0.49324431  0.13562223         NA         NA
+#> 44  New_I4    2  3PLM 1.0553544 -0.23865064  0.15287748         NA         NA
+#> 45  New_I5    2  3PLM 1.0900633  2.21190002  0.15223745         NA         NA
+#> 46  New_I6    2  3PLM 2.8521623  1.54040816  0.19668704         NA         NA
+#> 47  New_I7    2  3PLM 1.3791948  0.09594720  0.17338939         NA         NA
+#> 48  New_I8    2  3PLM 1.7222468  0.15443907  0.17622375         NA         NA
+#> 49  New_I9    2  3PLM 1.3362979  0.32068908  0.08720578         NA         NA
+#> 50 New_I10    2  3PLM 1.5308617  1.24212064  0.08671002         NA         NA
+#> 51 New_I11    2  3PLM 1.9021076 -0.98959007  0.21130200         NA         NA
+#> 52 New_I12    2  3PLM 1.3469003 -0.16129939  0.37842809         NA         NA
+#> 53 New_I13    5   GRM 1.2493662 -0.38617153  0.18897747  0.7711592  1.2172181
+#> 54 New_I14    5   GRM 1.2823294 -2.16859443 -1.45652159 -0.7445505 -0.1294246
+#> 55 New_I15    5   GRM 0.9145699 -0.76032211 -0.03746317  0.6086947  1.1283965
 
-# Plot estimated empirical distribution of
-# ability
-emphist <- irtQ::getirt(mod_fipc, what = "weights")
-plot(emphist$weight ~ emphist$theta, xlab = "Theta",
-  ylab = "Density", type = "h")
+# Plot estimated empirical distribution of ability
+emphist <- irtQ::getirt(mod_fipc, what="weights")
+plot(emphist$weight ~ emphist$theta, xlab="Theta", ylab="Density", type = "h")
 ```
 
 <img src="man/figures/README-example-1.png" alt="" width="70%" height="50%" />
@@ -916,51 +920,53 @@ plot(emphist$weight ~ emphist$theta, xlab = "Theta",
 ``` r
 
 ##------------------------------------------------------------------------------
-## 3. Pretest item calibration using Fixed
-## Ability Parameter Calibration (FAPC)
+## 3. Pretest item calibration using Fixed Ability Parameter Calibration (FAPC)
 ##------------------------------------------------------------------------------
 
-## Step 1: Prepare response data and ability
-## estimates In FAPC, ability estimates are
-## assumed known and fixed.  Estimate abilities
-## for new examinees using the first 40 fixed
-## operational (anchor) items only.  Pretest
-## items are not used for scoring, as their
-## parameters are not yet calibrated.
+## Step 1: Prepare response data and ability estimates
+# In FAPC, ability estimates are assumed known and fixed.
+# Estimate abilities for new examinees using the first 40 fixed operational (anchor) items only.
+# Pretest items are not used for scoring, as their parameters are not yet calibrated.
 
-# Estimate abilities using ML method via
-# `irtQ::est_score()` Based on fixed anchor item
-# parameters and corresponding responses using
-# the following arguments: x = est_ref # Metadata
-# with operational item parameters data =
-# data_new[, 1:40] # Responses to anchor items D
-# = 1 # Scaling constant method = 'ML' # Scoring
-# method: Maximum Likelihood range = c(-5, 5) #
-# Scoring bounds
-score_ml <- irtQ::est_score(x = est_ref, data = data_new[,
-  1:40], D = 1, method = "ML", range = c(-5, 5))
+# Estimate abilities using ML method via `irtQ::est_score()`
+# Based on fixed anchor item parameters and corresponding responses
+# using the following arguments:
+# x      = est_ref            # Metadata with operational item parameters
+# data   = data_new[, 1:40]   # Responses to anchor items
+# D      = 1                  # Scaling constant
+# method = "ML"               # Scoring method: Maximum Likelihood
+# range  = c(-5, 5)           # Scoring bounds
+score_ml <- irtQ::est_score(
+  x      = est_ref,            
+  data   = data_new[, 1:40],   
+  D      = 1,                  
+  method = "ML",               
+  range  = c(-5, 5))           
 
 # Extract estimated abilities
 theta_est <- score_ml$est.theta
 
 ## Step 2: Calibrate pretest items using FAPC
-## Only the 15 pretest items are included in the
-## calibration using the following arguments:
-## data = data_new[, 41:55] # Responses to
-## pretest items score = theta_est # Fixed
-## ability estimates D = 1 # Scaling constant
-## model = c(rep('3PLM', 12), rep('GRM', 3)) #
-## Item models cats = c(rep(2, 12), rep(5, 3)) #
-## Score categories item.id = paste0('New_I',
-## 1:15) # Item IDs use.gprior = TRUE # Use prior
-## for guessing parameter gprior = list(dist =
-## 'beta', params = c(5, 16)) # Prior: Beta(5,16)
-## for g
-mod_fapc <- irtQ::est_item(data = data_new[, 41:55],
-  score = theta_est, D = 1, model = c(rep("3PLM",
-    12), rep("GRM", 3)), cats = c(rep(2, 12), rep(5,
-    3)), item.id = paste0("New_I", 1:15), use.gprior = TRUE,
-  gprior = list(dist = "beta", params = c(5, 16)))
+# Only the 15 pretest items are included in the calibration
+# using the following arguments:
+# data       = data_new[, 41:55]                      # Responses to pretest items
+# score      = theta_est                              # Fixed ability estimates
+# D          = 1                                       # Scaling constant
+# model      = c(rep("3PLM", 12), rep("GRM", 3))       # Item models
+# cats       = c(rep(2, 12), rep(5, 3))                # Score categories
+# item.id    = paste0("New_I", 1:15)                   # Item IDs
+# use.gprior = TRUE                                    # Use prior for guessing parameter
+# gprior     = list(dist = "beta", params = c(5, 16))   # Prior: Beta(5,16) for g
+mod_fapc <- irtQ::est_item(
+  data       = data_new[, 41:55],                     
+  score      = theta_est,                            
+  D          = 1,                                      
+  model      = c(rep("3PLM", 12), rep("GRM", 3)),      
+  cats       = c(rep(2, 12), rep(5, 3)),                
+  item.id    = paste0("New_I", 1:15),                  
+  use.gprior = TRUE,                                    
+  gprior     = list(dist = "beta", params = c(5, 16))   
+)
 #> Starting... 
 #> Parsing input... 
 #> Estimating item parameters... 
@@ -998,7 +1004,7 @@ irtQ::summary(mod_fapc)
 #> 15  New_I15  2000
 #> 
 #> Processing time (in seconds) 
-#>  Total computation: 2.14
+#>  Total computation: 1.66
 #> 
 #> Convergence of Solution 
 #>  All item parameters were successfully converged.
@@ -1064,20 +1070,15 @@ print(est_new_fapc)
 #> 15 New_I15    5   GRM 0.7683113 -0.9434727 -0.10444162  0.6454301  1.2493058
 
 ## ----------------------------------------------------------------------------
-## 4. IRT model-data fit evaluation using
-## `irtQ::irtfit()`
+## 4. IRT model-data fit evaluation using `irtQ::irtfit()`
 ## ----------------------------------------------------------------------------
 
-## Step 1: Prepare the data set for IRT model fit
-## analysis In this example, we use a simulated
-## mixed-format CAT data set.  Only items with
-## more than 1,000 non-missing responses are
-## evaluated.
+## Step 1: Prepare the data set for IRT model fit analysis
+## In this example, we use a simulated mixed-format CAT data set.
+## Only items with more than 1,000 non-missing responses are evaluated.
 
-# Identify items with more than 1,000 valid
-# responses
-over1000 <- which(colSums(simCAT_MX$res.dat, na.rm = TRUE) >
-  1000)
+# Identify items with more than 1,000 valid responses
+over1000 <- which(colSums(simCAT_MX$res.dat, na.rm = TRUE) > 1000)
 
 # (1) Item metadata
 x <- simCAT_MX$item.prm[over1000, ]
@@ -1147,11 +1148,12 @@ print(data[1:20, 1:6])
 #> [20,]        NA        NA        NA        NA        NA        NA
 
 ## Step 2: Compute IRT model-data fit statistics
-## (1) Using the 'equal.width' method to form
-## ability groups
-fit1 <- irtfit(x = x, score = score, data = data, group.method = "equal.width",
-  n.width = 11, loc.theta = "average", range.score = c(-4,
-    4), D = 1, alpha = 0.05, missing = NA, overSR = 2.5)
+# (1) Using the "equal.width" method to form ability groups
+fit1 <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.width",
+  n.width = 11, loc.theta = "average", range.score = c(-4, 4), 
+  D = 1, alpha = 0.05, missing = NA, overSR = 2.5
+)
 
 # Inspect the structure of the returned object
 names(fit1)
@@ -1184,8 +1186,7 @@ fit1$fit_stat[1:10, ]
 #> 9  1.051 12118       0.636
 #> 10 1.059 10719       0.545
 
-# View the contingency table for the first item
-# (dichotomous)
+# View the contingency table for the first item (dichotomous)
 fit1$contingency.fitstat[[1]]
 #>    total obs.freq.0 obs.freq.1 exp.freq.0 exp.freq.1 obs.prop.0 obs.prop.1
 #> 1      8          5          3   6.102331   1.897669  0.6250000  0.3750000
@@ -1210,11 +1211,12 @@ fit1$contingency.fitstat[[1]]
 #> 9   0.4086532  0.5913468 -0.03995295  0.03995295
 #> 10  0.3394647  0.6605353  0.02502128 -0.02502128
 
-# (2) Using the 'equal.freq' method to form
-# ability groups
-fit2 <- irtfit(x = x, score = score, data = data, group.method = "equal.freq",
-  n.width = 11, loc.theta = "average", range.score = c(-4,
-    4), D = 1, alpha = 0.05, missing = NA)
+# (2) Using the "equal.freq" method to form ability groups
+fit2 <- irtfit(
+  x = x, score = score, data = data, group.method = "equal.freq",
+  n.width = 11, loc.theta = "average", range.score = c(-4, 4), 
+  D = 1, alpha = 0.05, missing = NA
+)
 
 # View the first 10 rows of fit statistics
 fit2$fit_stat[1:10, ]
@@ -1241,8 +1243,7 @@ fit2$fit_stat[1:10, ]
 #> 9  1.051 12118       0.455
 #> 10 1.059 10719       0.636
 
-# View the contingency table for the fourth item
-# (polytomous)
+# View the contingency table for the fourth item (polytomous)
 fit2$contingency.fitstat[[4]]
 #>    total obs.freq.0 obs.freq.1 exp.freq.0 exp.freq.1 obs.prop.0 obs.prop.1
 #> 1   1156        901        255   932.9066   223.0934  0.7794118  0.2205882
@@ -1269,11 +1270,11 @@ fit2$contingency.fitstat[[4]]
 #> 10  0.3512036  0.6487964  0.048634854 -0.048634854
 #> 11  0.2631380  0.7368620  0.114388254 -0.114388254
 
-## Step 3: Draw residual plots for IRT model-data
-## fit diagnostics 1. Dichotomous item (1) Both
-## raw and standardized residual plots
-plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
-  ylim.sr.adjust = TRUE)
+## Step 3: Draw residual plots for IRT model-data fit diagnostics
+# 1. Dichotomous item
+# (1) Both raw and standardized residual plots
+plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald", 
+     ylim.sr.adjust = TRUE)
 ```
 
 <img src="man/figures/README-example-2.png" alt="" width="70%" height="50%" />
@@ -1316,8 +1317,8 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 11 0.03236968  0.7729850 -0.7729850
 
     # (2) Raw residual plot only
-    plot(x = fit1, item.loc = 1, type = "icc", ci.method = "wald",
-      ylim.sr.adjust = TRUE)
+    plot(x = fit1, item.loc = 1, type = "icc", ci.method = "wald", 
+         ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-3.png" alt="" width="70%" height="50%" />
 
@@ -1359,8 +1360,8 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 11 0.03236968  0.7729850 -0.7729850
 
     # (3) Standardized residual plot only
-    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald",
-      ylim.sr.adjust = TRUE)
+    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald", 
+         ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-4.png" alt="" width="70%" height="50%" />
 
@@ -1425,10 +1426,10 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 -2.0763275 -5.6100775  6.4995706
     #> 11 -3.2723764 -9.8393733 10.9248190
 
-    # 2. Polytomous item (1) Both raw and
-    # standardized residual plots
-    plot(x = fit1, item.loc = 113, type = "both", ci.method = "wald",
-      ylim.sr.adjust = TRUE)
+    # 2. Polytomous item
+    # (1) Both raw and standardized residual plots
+    plot(x = fit1, item.loc = 113, type = "both", ci.method = "wald", 
+         ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-5.png" alt="" width="70%" height="50%" />
 
@@ -1493,10 +1494,9 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 -2.0763275 -5.6100775  6.4995706
     #> 11 -3.2723764 -9.8393733 10.9248190
 
-    # (2) Raw residual plot only, with two columns in
-    # layout
-    plot(x = fit1, item.loc = 113, type = "icc", ci.method = "wald",
-      layout.col = 2, ylim.sr.adjust = TRUE)
+    # (2) Raw residual plot only, with two columns in layout
+    plot(x = fit1, item.loc = 113, type = "icc", ci.method = "wald", 
+         layout.col = 2, ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-6.png" alt="" width="70%" height="50%" />
 
@@ -1561,10 +1561,9 @@ plot(x = fit1, item.loc = 1, type = "both", ci.method = "wald",
     #> 10 -2.0763275 -5.6100775  6.4995706
     #> 11 -3.2723764 -9.8393733 10.9248190
 
-    # (3) Standardized residual plot only, with four
-    # columns in layout
-    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald",
-      layout.col = 4, ylim.sr.adjust = TRUE)
+    # (3) Standardized residual plot only, with four columns in layout
+    plot(x = fit1, item.loc = 113, type = "sr", ci.method = "wald", 
+         layout.col = 4, ylim.sr.adjust = TRUE)
 
 <img src="man/figures/README-example-7.png" alt="" width="70%" height="50%" />
 

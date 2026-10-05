@@ -62,8 +62,9 @@ pinfo$n.stage
 
 }
 \references{
-Magis, D., Yan, D., & von Davier, A. A. (2017). \emph{Computerized adaptive
-and multistage testing with R: Using packages catR and mstR}. Springer.
+Magis, D., Yan, D., & von Davier, A. A. (2017). \emph{Computerized adaptive and
+multistage testing with R: Using packages catR and mstR}. Springer.
+\doi{10.1007/978-3-319-69218-0}.
 }
 \seealso{
 \code{\link{reval_mst}}, \code{\link{run_mst}}

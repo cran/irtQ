@@ -23,7 +23,7 @@ est_item(
   use.gprior = TRUE,
   aprior = list(dist = "lnorm", params = c(0, 0.5)),
   bprior = list(dist = "norm", params = c(0, 1)),
-  gprior = list(dist = "beta", params = c(5, 17)),
+  gprior = list(dist = "beta", params = c(5, 16)),
   missing = NA,
   use.startval = FALSE,
   control = list(eval.max = 500, iter.max = 200, x.tol = 1e-04),
@@ -250,7 +250,7 @@ data <- simdat(x = x, theta = score, D = 1)
 #    to be equal
 (mod1 <- est_item(x, data, score,
   D = 1, fix.a.1pl = FALSE, use.gprior = TRUE,
-  gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
+  gprior = list(dist = "beta", params = c(5, 16)), use.startval = FALSE
 ))
 summary(mod1)
 
@@ -260,7 +260,7 @@ getirt(mod1, what = "par.est")
 # 2) Estimate item parameters: fix the slope parameters of 1PLM items to 1
 (mod2 <- est_item(x, data, score,
   D = 1, fix.a.1pl = TRUE, a.val.1pl = 1, use.gprior = TRUE,
-  gprior = list(dist = "beta", params = c(5, 17)), use.startval = FALSE
+  gprior = list(dist = "beta", params = c(5, 16)), use.startval = FALSE
 ))
 summary(mod2)
 
@@ -284,10 +284,10 @@ getirt(mod2, what = "estimates")
 Baker, F. B., & Kim, S. H. (2004). \emph{Item response theory:
 Parameter estimation techniques.} CRC Press.
 
-Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D., J. (2001) A
+Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D. J. (2001). A
 comparative study of on-line pretest item calibration/scaling methods in
 computerized adaptive testing. \emph{Journal of Educational Measurement, 38}(3),
-191-212.
+191-212. \doi{10.1111/j.1745-3984.2001.tb01123.x}.
 
 Birnbaum, A. (1968). Some latent trait models and their use in inferring an
 examinee's ability. In F. M. Lord & M. R. Novick (Eds.),

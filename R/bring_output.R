@@ -18,7 +18,8 @@
 #'   Default is `TRUE`.
 #' @param n.factor A numeric value indicating the number of latent traits (factors)
 #'   estimated. This argument must be specified when `type = "sco"`. Default is 1.
-#' @param x An object returned by the function [mirt::mirt()].
+#' @param x An object returned by [mirt::mirt()]. The \pkg{mirt} package, listed
+#'   in Suggests, must be installed to use bring.mirt().
 #'
 #' @details The [irtQ::bring.flexmirt()] function was developed by modifying
 #'   the `read.flexmirt()` function (Pritikin & Falk, 2020). Similarly,
@@ -77,32 +78,33 @@
 #' @seealso [irtQ::irtQ-package]
 #'
 #' @references Cai, L. (2017). flexMIRT 3.5 Flexible multilevel multidimensional
-#' item analysis and test scoring (Computer software). Chapel Hill, NC: Vector
-#' Psychometric Group.
+#'   item analysis and test scoring (Computer software). Chapel Hill, NC: Vector
+#'   Psychometric Group.
 #'
-#' Chalmers, R. P. (2012). mirt: A multidimensional item response theory package
-#' for the R environment.
-#' *Journal of Statistical Software, 48*(6), 1-29.
+#'   Chalmers, R. P. (2012). mirt: A multidimensional item response theory
+#'   package for the R environment. *Journal of Statistical Software, 48*(6),
+#'   1-29.
 #'
-#' Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests Using
-#' IRT-Based Methods.
-#' *Journal of Statistical Software, 35*(12), 1-33. URL http://www.jstatsoft.org/v35/i12/.
+#'   Muraki, E., & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
+#'   scoring for rating scale data (Computer software). Chicago, IL: Scientific
+#'   Software International. URL http://www.ssicentral.com
 #'
-#' Pritikin, J. (2018). *rpf: Response Probability Functions*. R package version
-#' 0.59. https://CRAN.R-project.org/package=rpf.
+#'   Pritikin, J. (2018). *rpf: Response Probability Functions*. R package
+#'   version 0.59. https://CRAN.R-project.org/package=rpf.
 #'
-#' Pritikin, J. N., & Falk, C. F. (2020). OpenMx: A modular research environment
-#' for item response theory method development. *Applied Psychological
-#' Measurement, 44*(7-8), 561-562.
+#'   Pritikin, J. N., & Falk, C. F. (2020). OpenMx: A modular research
+#'   environment for item response theory method development. *Applied
+#'   Psychological Measurement, 44*(7-8), 561-562.
+#'   \doi{10.1177/0146621620929431}.
 #'
-#' Muraki, E. & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
-#' scoring for rating scale data (Computer Software). Chicago, IL: Scientific
-#' Software International. URL http://www.ssicentral.com
+#'   Weeks, J. P. (2010). plink: An R Package for Linking Mixed-Format Tests
+#'   Using IRT-Based Methods. *Journal of Statistical Software, 35*(12), 1-33.
+#'   \doi{10.18637/jss.v035.i12}.
 #'
-#' Zimowski, M. F., Muraki, E., Mislevy, R. J., & Bock, R. D. (2003). BILOG-MG
-#' 3: Multiple-group IRT analysis and test maintenance for binary items
-#' (Computer Software). Chicago, IL: Scientific Software International. URL
-#' http://www.ssicentral.com
+#'   Zimowski, M. F., Muraki, E., Mislevy, R. J., & Bock, R. D. (2003). BILOG-MG
+#'   3: Multiple-group IRT analysis and test maintenance for binary items
+#'   (Computer software). Chicago, IL: Scientific Software International. URL
+#'   http://www.ssicentral.com
 #'
 #' @examples
 #' ## Example 1
@@ -118,6 +120,15 @@
 #'
 #' # Read item parameters and convert them to item metadata
 #' bring.parscale(file = pscale_sam, "par")$full_df
+#'
+#' ## Example 3
+#' # Import the item parameters of a model fitted with the mirt package
+#' \donttest{
+#' if (requireNamespace("mirt", quietly = TRUE)) {
+#'   fit <- mirt::mirt(as.data.frame(LSAT6), 1, itemtype = "2PL", verbose = FALSE)
+#'   bring.mirt(fit)$full_df
+#' }
+#' }
 #'
 #' @export
 bring.flexmirt <- function(file,
@@ -742,6 +753,11 @@ bring.parscale.ph2 <- function(file) {
 #' @importFrom utils count.fields read.delim read.fwf read.table
 #' @export
 bring.mirt <- function(x) {
+  # bring.mirt() needs the mirt package, which is only suggested
+  if (!requireNamespace("mirt", quietly = TRUE)) {
+    stop("Package 'mirt' is required for bring.mirt(). Please install it.", call. = FALSE)
+  }
+
   # read paramter estimates from an object of mirt
   prm_all <- mirt::coef(x, simplify = TRUE, IRTpars = TRUE)
   cats <- x@Data$K

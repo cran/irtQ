@@ -125,7 +125,10 @@ to perform the purification. Available options are "grdifrs" for
 \eqn{GRDIF_{S}}.}
 
 \item{max.iter}{A positive integer specifying the maximum number of
-iterations allowed for the purification process. Default is \code{10}.}
+iterations allowed for the purification process. Default is \code{10}. If the
+limit is reached while flagged items remain, a warning is issued and the
+\code{complete} element of the purification results is \code{FALSE}; for tests with
+many items or many DIF items, consider increasing \code{max.iter}.}
 
 \item{min.resp}{A positive integer specifying the minimum number of valid
 item responses required from an examinee in order to compute an ability
@@ -220,6 +223,9 @@ each statistic was computed.}
 \item{moments}{A list of three data frames showing the MRR and MSR
 moments across iterations. The final column in each data frame indicates
 the iteration in which the statistics were computed.}
+\item{dif_item}{A numeric vector of the positions (rows of \code{x}) of
+the items flagged as DIF by the \code{purify.by} statistic across all
+purification iterations, sorted in ascending order.}
 \item{n.iter}{The total number of iterations executed during the
 purification process.}
 \item{score}{A numeric vector of the final purified ability estimates
@@ -429,12 +435,12 @@ print(dif_puri_r$with_purify$post.hoc)
 }
 \references{
 Lim, H., & Choe, E. M. (2023). Detecting differential item
-functioning in CAT using IRT residual DIF approach.
-\emph{Journal of Educational Measurement, 60}(4), 626-650. \doi{doi:10.1111/jedm.12366}.
+functioning in CAT using IRT residual DIF approach. \emph{Journal of Educational
+Measurement, 60}(4), 626-650. \doi{10.1111/jedm.12366}.
 
 Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 item functioning detection framework in item response theory. \emph{Journal of
-Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
+Educational Measurement, 59}(1), 80-104. \doi{10.1111/jedm.12313}.
 
 Lim, H., Zhu, D., Choe, E. M., & Han, K. T. (2024). Detecting
 differential item functioning among multiple groups using IRT residual DIF

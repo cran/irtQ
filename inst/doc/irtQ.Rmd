@@ -1,0 +1,187 @@
+---
+title: "Introduction to irtQ"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to irtQ}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6.5,
+  fig.height = 4
+)
+```
+
+## Overview
+
+The **irtQ** package fits unidimensional item response theory (IRT) models to
+test data that may contain both dichotomous and polytomous items. The
+dichotomous models are the one-, two-, and three-parameter logistic models
+(1PLM, 2PLM, and 3PLM), and the polytomous models are the graded response
+model (GRM) and the generalized partial credit model (GPCM). A single test can
+mix these models.
+
+The package covers the steps of a typical IRT analysis: estimating item
+parameters by marginal maximum likelihood with the EM algorithm
+(`est_irt()`, `est_mg()`), calibrating pretest items with fixed item
+parameters or fixed abilities (`est_irt()`, `est_item()`), estimating
+examinees' abilities (`est_score()`), evaluating model-data fit (`irtfit()`,
+`sx2_fit()`), and detecting differential item functioning (`rdif()`,
+`crdif()`, `grdif()`, `catsib()`). It also provides functions for item and
+test information (`info()`), item response curves (`traceline()`),
+classification accuracy and consistency (`cac_lee()`, `cac_rud()`), multistage
+test panels (`panel_info()`, `reval_mst()`, `run_mst()`), and classical test
+theory (`ctt()`).
+
+This vignette walks through a short workflow: read item parameters, simulate
+responses, calibrate the items, estimate abilities, check fit, and compute test
+information. Every example uses the scaling constant `D = 1`.
+
+## Item metadata
+
+Most irtQ functions take a data frame of item metadata as their first
+argument, or a fitted object that contains one. Each row describes one item.
+
+| Column | Meaning |
+|---|---|
+| `id` | Item identifier |
+| `cats` | Number of score categories (2 for a dichotomous item) |
+| `model` | IRT model of the item: `"1PLM"`, `"2PLM"`, `"3PLM"`, `"GRM"`, or `"GPCM"` |
+| `par.1` | Slope (discrimination) parameter |
+| `par.2` | Difficulty for a dichotomous item, or the first threshold for a polytomous item |
+| `par.3` | Guessing parameter for a 3PLM item, or the second threshold for a polytomous item; `NA` for 1PLM and 2PLM items |
+| `par.4`, ... | Further thresholds of a polytomous item; `NA` for dichotomous items |
+
+Item metadata can be read from the output of other IRT software with the
+`bring.*()` functions (`bring.flexmirt()`, `bring.bilog()`,
+`bring.parscale()`, and `bring.mirt()`, which requires the suggested **mirt**
+package) or created with `shape_df()`. The example below reads the flexMIRT
+parameter file that ships with the package and keeps the first 25 items, all of
+which follow the 3PLM.
+
+```{r metadata}
+library(irtQ)
+
+flex_file <- system.file("extdata", "flexmirt_sample-prm.txt", package = "irtQ")
+x <- bring.flexmirt(file = flex_file, type = "par")$Group1$full_df
+x <- x[1:25, ]
+head(x)
+```
+
+A small metadata frame can also be written directly with `shape_df()`.
+
+```{r shape-df}
+shape_df(
+  par.drm = list(a = c(1.0, 1.2), b = c(-0.5, 0.5), g = c(0.2, 0.2)),
+  cats = 2, model = "3PLM"
+)
+```
+
+## Simulating item responses
+
+`simdat()` generates item responses from item metadata and a vector of
+abilities. Here 500 examinees are drawn from a standard normal distribution.
+
+```{r simulate}
+set.seed(2026)
+theta <- rnorm(500, mean = 0, sd = 1)
+resp <- simdat(x = x, theta = theta, D = 1)
+dim(resp)
+```
+
+## Estimating item parameters
+
+`est_irt()` calibrates the items. The model and the number of score categories
+are given for all items at once. A Beta(5, 16) prior on the guessing parameters,
+which is the default, stabilizes the 3PLM estimates; it is written out here for
+clarity.
+
+```{r calibrate}
+fit <- est_irt(
+  data = resp, D = 1, model = "3PLM", cats = 2, item.id = x$id,
+  use.gprior = TRUE, gprior = list(dist = "beta", params = c(5, 16)),
+  verbose = FALSE
+)
+fit
+```
+
+Printing the fitted object reports the number of EM cycles, the number of
+quadrature points, the first- and second-order convergence checks, and the
+log-likelihood. A fuller estimation summary is available from `summary(fit)`.
+
+`getirt()` extracts parts of the fitted object, such as the item parameter
+estimates.
+
+```{r par-est}
+par_est <- getirt(fit, what = "par.est")
+head(par_est)
+```
+
+## Estimating abilities
+
+`est_score()` estimates the abilities of the examinees. A fitted `est_irt`
+object can be passed directly, and the response data stored in the object are
+used. The code below uses maximum likelihood estimation (ML) and compares the
+estimates with the abilities used to simulate the data. The `range` argument
+keeps the ML estimates within [-4, 4], which matters for examinees who answer
+all items correctly or all incorrectly.
+
+```{r score}
+scores <- est_score(fit, method = "ML", range = c(-4, 4))
+head(scores$est.theta)
+cor(scores$est.theta, theta)
+```
+
+## Model-data fit
+
+`sx2_fit()` computes the S-X2 item fit statistic, and `irtfit()` computes
+chi-square and likelihood-ratio statistics, infit and outfit, and the
+contingency tables behind the residual plots.
+
+```{r sx2}
+sx2 <- sx2_fit(fit)
+head(sx2$fit_stat)
+```
+
+`irtfit()` groups the examinees by the ML estimates from the previous section,
+and the plot shows the raw and standardized residuals of the first item.
+
+```{r irtfit-plot}
+fit_irt <- irtfit(
+  x = fit, score = scores$est.theta, group.method = "equal.width",
+  n.width = 10, loc.theta = "middle"
+)
+plot(fit_irt, item.loc = 1, type = "both", ci.method = "wald",
+     show.table = FALSE, ylim.sr.adjust = TRUE)
+```
+
+## Test information
+
+`info()` computes item and test information functions on a grid of ability
+values, and its `plot()` method draws them. Without `item.loc`, the plot shows
+the test information function.
+
+```{r info}
+theta_grid <- seq(-4, 4, 0.1)
+tif <- info(x = fit, theta = theta_grid, tif = TRUE)
+plot(tif)
+```
+
+## Where to go next
+
+The package website at <https://hwangQ.github.io/irtQ/> has articles that
+cover each topic in more detail:
+
+- [Getting Started: A Detailed Guide](https://hwangQ.github.io/irtQ/articles/getting-started.html)
+- [Item Parameter Estimation](https://hwangQ.github.io/irtQ/articles/item-parameter-estimation.html)
+- [Ability Estimation](https://hwangQ.github.io/irtQ/articles/ability-estimation.html)
+- [Model-Data Fit Evaluation](https://hwangQ.github.io/irtQ/articles/model-fit-evaluation.html)
+- [DIF Detection](https://hwangQ.github.io/irtQ/articles/dif-detection.html)
+- [Classification Accuracy and Consistency](https://hwangQ.github.io/irtQ/articles/classification-analysis.html)
+- [Utility Functions](https://hwangQ.github.io/irtQ/articles/utilities.html)
+- [Classical Test Theory (CTT) Analysis](https://hwangQ.github.io/irtQ/articles/ctt-analysis.html)
+- [MST Panel Evaluation and Simulation](https://hwangQ.github.io/irtQ/articles/mst-panel-evaluation.html)

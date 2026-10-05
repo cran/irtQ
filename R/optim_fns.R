@@ -2,9 +2,8 @@
 # nlminb-based item parameter estimation. The factory captures the data
 # arguments once and returns three closures that share a single P(theta)
 # cache, so each nlminb evaluation point computes drm()/prm() at most
-# once instead of three times (once per closure). The cache is bit-exact
-# - the cached P matrix is the unmodified return value of drm()/prm()
-# for the active model branch.
+# once instead of three times (once per closure). The cached P is the
+# return value of drm()/prm() for the active model branch.
 #
 # Cache hits in practice. nlminb (PORT) typically evaluates objective,
 # then gradient, then hessian at the same accepted iterate, with line
@@ -26,9 +25,7 @@ make_drm_optim_fns <- function(f_i, r_i, s_i, theta, mod, D, nstd,
                                aprior, bprior, gprior,
                                use.aprior, use.bprior, use.gprior) {
   # cache state: last item_par for which P was computed and the
-  # corresponding probability matrix returned by drm(). identical()
-  # comparison is bit-exact, so a cache hit guarantees the returned
-  # P is the same object loglike/grad/hess would have computed.
+  # corresponding drm() matrix; identical() requires an exact match of item_par.
   cache_par <- NULL
   cache_p <- NULL
 
@@ -86,11 +83,9 @@ make_drm_optim_fns <- function(f_i, r_i, s_i, theta, mod, D, nstd,
   }
 
   # the trio: each closure asks get_p() for the cached P, then forwards
-  # all original arguments plus p_cache to the underlying function. The
-  # `hessian` closure routes through hess_item_drm() so the singularity
-  # adjustment loop (adjust = TRUE) keeps its current behavior inside
-  # nlminb - the SE-only hess_item_drm() call sites elsewhere remain
-  # unchanged because p_cache defaults to NULL.
+  # all arguments plus p_cache to the underlying function. The hessian
+  # closure goes through hess_item_drm() so the singularity adjustment
+  # (adjust = TRUE) runs inside nlminb; other callers pass no p_cache.
   list(
     objective = function(item_par) {
       p_cache <- get_p(item_par)
@@ -207,9 +202,8 @@ make_prm_optim_fns <- function(r_i, theta, pr.mod, D, nstd,
 
   # the trio: each closure retrieves the cached prob list and forwards it
   # to the corresponding function via prob_cache. The hessian closure
-  # routes through hess_item_prm() so the singularity-adjust loop keeps
-  # its current behavior. SE-only hess_item_prm() call sites outside the
-  # factory remain unchanged (prob_cache defaults to NULL there).
+  # routes through hess_item_prm() so the singularity-adjust loop runs
+  # inside nlminb; other callers pass no prob_cache.
   list(
     objective = function(item_par) {
       prob_cache <- get_prob(item_par)

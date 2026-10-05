@@ -140,9 +140,9 @@
 #' approaches for suspected item parameter drift detection. *Measurement:
 #' Interdisciplinary Research and Perspectives, 16*(4), 226-238.
 #'
-#' Stone, C. A. (2000). Monte Carlo based null distribution for an alternative
-#' goodness-of-fit test statistic in IRT models. *Journal of educational
-#' measurement, 37*(1), 58-75.
+#'   Stone, C. A. (2000). Monte Carlo based null distribution for an alternative
+#'   goodness-of-fit test statistic in IRT models. *Journal of Educational
+#'   Measurement, 37*(1), 58-75.
 #'
 #' @examples
 #' ## Example 1: No critical value specified
@@ -173,7 +173,7 @@
 #' ## -- Example 3: CAT-based IPD detection using simIPD --------------------------
 #' ##
 #' ## The Pseudo-count D2 statistic has no closed-form null distribution.
-#' ## Following Lim & Han (in press), the critical value is estimated empirically
+#' ## Following Lim & Han (2026), the critical value is estimated empirically
 #' ## via bootstrap:
 #' ##   (1) Select drift-free (anchor) items to form the null D2 distribution.
 #' ##   (2) Repeatedly resample from those values and take the 95th percentile.
@@ -194,7 +194,7 @@
 #' ## responses (>= boot_size) and (b) are not known IPD items. These items
 #' ## serve as the empirical null distribution of D2.
 #' ## boot_size = 300: chosen to match the minimum response count used in the
-#' ##   bootstrap procedure of the simulation study (Lim & Han, in press).
+#' ##   bootstrap procedure of the simulation study (Lim & Han, 2026).
 #' ## In practice, exclude items you know or suspect have drifted; here the
 #' ## ground truth (simIPD$ipd_item) is used for illustration.
 #' boot_size    <- 300
@@ -210,7 +210,7 @@
 #'   purify   = FALSE
 #' )$no_purify$ipd_stat$pcd2
 #'
-#' ## -- Step 3. Bootstrap critical value (Lim & Han, in press) --------------
+#' ## -- Step 3. Bootstrap critical value (Lim & Han, 2026) --------------
 #' ## For each bootstrap iteration: resample boot_size D2 values from the null
 #' ## distribution and take the 95th percentile. The critical value is the mean
 #' ## of these percentiles across all iterations.
@@ -527,9 +527,7 @@ pcd2_one <- function(x, data, D = 1, item.skip = NULL,
   # factorize the response values
   # build the per-item one-hot frequency-category list used downstream
   # by divide_data() and the pseudo-count D^2 statistic.  See
-  # build_freqcat() (R/util.R) for the output structure; it replaces a
-  # data.frame -> factor -> xtabs -> matrix chain with direct one-hot
-  # construction (15-30x faster).
+  # build_freqcat() (R/util.R) for the output structure.
   freq.cat <- build_freqcat(data, cats)
 
   # break down the item metadata into several elements

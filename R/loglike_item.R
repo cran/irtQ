@@ -26,7 +26,7 @@ loglike_prm <- function(item_par, r_i, theta, pr.mod = c("GRM", "GPCM"), D = 1, 
   ## -------------------------------------------------------------------------
   if (!fix.a) {
     # compute category probabilities for all thetas;
-    # use the cached P matrix when supplied - bit-exact equivalent to prm()
+    # use the cached P matrix when supplied
     ps <- if (is.null(prob_cache)) {
       prm(theta, a = item_par[1], d = item_par[-1], D = D, pr.model = pr.mod)
     } else {
@@ -105,13 +105,13 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
                         nstd, fix.a = FALSE, fix.g = FALSE, a.val = 1, g.val = .2, n.1PLM = NULL,
                         aprior = list(dist = "lnorm", params = c(1, 0.5)),
                         bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                        gprior = list(dist = "beta", params = c(5, 17)),
+                        gprior = list(dist = "beta", params = c(5, 16)),
                         use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                         p_cache = NULL) {
   # `p_cache` (when non-NULL) is the drm() probability matrix for the
   # branch picked below - supplied by make_drm_optim_fns() so the
   # objective / gradient / hessian share one P(theta) per nlminb point.
-  # If NULL, each branch falls back to drm() exactly as before.
+  # If NULL, each branch calls drm() directly.
   # compute log-likelihood
   # (1) 1PLM: the slope parameters are constrained to be equal across the 1PLM items
   if (!fix.a & mod == "1PLM") {
@@ -256,9 +256,7 @@ loglike_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", 
 # compute a sum of the log-likelihood value for each dichotomous item
 llike_drm <- function(a, b, g, f_i, r_i, s_i, theta, D = 1, p_cache = NULL) {
   # use the cached probability matrix when supplied; otherwise compute
-  # drm() exactly as before. Caching is bit-exact: the cache simply
-  # holds the unmodified return value of drm() for the same (a, b, g)
-  # produced in this branch - no new floating-point ops are introduced.
+  # drm() directly (the cache holds the drm() result for the same (a, b, g))
   p <- if (is.null(p_cache)) drm(theta, a = a, b = b, g = g, D = D) else p_cache
 
   # compute 1 - p

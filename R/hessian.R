@@ -4,7 +4,7 @@ hess_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
                           nstd, fix.a = FALSE, fix.g = TRUE, a.val = 1, g.val = .2, n.1PLM = NULL,
                           aprior = list(dist = "lnorm", params = c(1, 0.5)),
                           bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                          gprior = list(dist = "beta", params = c(5, 17)),
+                          gprior = list(dist = "beta", params = c(5, 16)),
                           use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                           adjust = TRUE,
                           p_cache = NULL) {
@@ -55,7 +55,7 @@ hess_item_drm_inner <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", 
                                 nstd, fix.a = FALSE, fix.g = TRUE, a.val = 1, g.val = .2, n.1PLM = NULL,
                                 aprior = list(dist = "lnorm", params = c(1, 0.5)),
                                 bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                                gprior = list(dist = "beta", params = c(5, 17)),
+                                gprior = list(dist = "beta", params = c(5, 16)),
                                 use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                                 p_cache = NULL) {
   # `p_cache`, when non-NULL, is the drm() probability matrix for the
@@ -465,7 +465,7 @@ hess_item_prm_inner <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a
       # off-diagonal pairs of the b-block: cells (i+1, i+2) and
       # their transposes for i = 1..(m-1).  hess_b1b2 holds the
       # m-1 super-diagonal values in order; the m-1 == 1 case
-      # (cats == 3, m == 2) is the one that previously broke.
+      # (cats == 3, m == 2) is the single-cell case.
       hess_b1b2 <-
         (-Da2) * Rfast::colsums(frac_rp2[, -c(1, (m + 1)), drop = FALSE] *
           pq_st[, -m, drop = FALSE] * pq_st[, -1, drop = FALSE])
@@ -474,10 +474,7 @@ hess_item_prm_inner <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a
       # via a 2-column index works for any number of rows >= 1,
       # so this single code path handles cats == 3 (one cell) and
       # cats >= 4 (multiple cells along the super-diagonal of
-      # the b-block) identically.  The previous diag(hess[2:m,
-      # 3:(m+1)]) <- pattern silently dropped the 1x1 sub-matrix
-      # to a scalar when m == 2, after which diag<-() refused to
-      # replace the diagonal of a non-matrix.
+      # the b-block) identically.
       idx_super <- cbind(2:m, 3:(m + 1))
       hess[idx_super]                       <- hess_b1b2
       hess[idx_super[, 2:1, drop = FALSE]]  <- hess_b1b2

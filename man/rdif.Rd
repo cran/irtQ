@@ -128,7 +128,10 @@ to perform the purification. Available options are "rdifrs" for
 \eqn{RDIF_{S}}.}
 
 \item{max.iter}{A positive integer specifying the maximum number of
-iterations allowed for the purification process. Default is \code{10}.}
+iterations allowed for the purification process. Default is \code{10}. If the
+limit is reached while flagged items remain, a warning is issued and the
+\code{complete} element of the purification results is \code{FALSE}; for tests with
+many items or many DIF items, consider increasing \code{max.iter}.}
 
 \item{min.resp}{A positive integer specifying the minimum number of valid
 item responses required from an examinee in order to compute an ability
@@ -216,8 +219,9 @@ result was obtained.}
 \item{moments}{A data frame reporting the moments of RDIF statistics
 across the final iteration. Includes the same columns as in
 \code{no_purify}, with an additional column for the iteration number.}
-\item{dif_item}{A list of three numeric vectors identifying DIF items
-flagged by each RDIF statistic.}
+\item{dif_item}{A numeric vector of the positions (rows of \code{x}) of
+the items flagged as DIF by the \code{purify.by} statistic across all
+purification iterations, sorted in ascending order.}
 \item{n.iter}{An integer indicating the total number of iterations
 performed during the purification process.}
 \item{score}{A numeric vector of purified ability estimates used to
@@ -254,8 +258,9 @@ details about the RDIF framework.
 The \code{\link[=rdif]{rdif()}} function computes all three RDIF statistics:
 \eqn{RDIF_{R}}, \eqn{RDIF_{S}}, and \eqn{RDIF_{RS}}. The current version of
 \code{\link[=rdif]{rdif()}} supports both dichotomous and polytomous item response data.
-Note that for polytomous items, net DIF are assessed. To evaluate global
-DIF for polytomous items, use \code{\link[=crdif]{crdif()}} function.
+Note that for polytomous items, net DIF is assessed (Jung & Lim, 2026;
+Lim, Malatesta, & Lee, 2024). To evaluate global DIF for polytomous
+items, use \code{\link[=crdif]{crdif()}}.
 
 To compute the RDIF statistics, the \code{\link[=rdif]{rdif()}} function requires:
 (1) item parameter estimates obtained from aggregate data (regardless
@@ -418,13 +423,21 @@ print(dif_puri_rs)
 
 }
 \references{
-Lim, H., & Choe, E. M. (2023). Detecting differential item
-functioning in CAT using IRT residual DIF approach.
-\emph{Journal of Educational Measurement, 60}(4), 626-650. \doi{doi:10.1111/jedm.12366}.
+Jung, H., & Lim, H. (2026, April). Detecting global and net DIF in
+polytomous items using RDIF. Paper presented at the annual meeting of the
+National Council on Measurement in Education, Los Angeles, CA.
+
+Lim, H., & Choe, E. M. (2023). Detecting differential item functioning in
+CAT using IRT residual DIF approach. \emph{Journal of Educational Measurement,
+60}(4), 626-650. \doi{10.1111/jedm.12366}.
 
 Lim, H., Choe, E. M., & Han, K. T. (2022). A residual-based differential
 item functioning detection framework in item response theory. \emph{Journal of
-Educational Measurement, 59}(1), 80-104. \doi{doi:10.1111/jedm.12313}.
+Educational Measurement, 59}(1), 80-104. \doi{10.1111/jedm.12313}.
+
+Lim, H., Malatesta, J., & Lee, Y. (2024, July). Advancing polytomous DIF
+detection with the residual DIF framework. Paper presented at the annual
+International Meeting of the Psychometric Society, Prague, Czech Republic.
 }
 \seealso{
 \code{\link[=est_irt]{est_irt()}}, \code{\link[=est_item]{est_item()}}, \code{\link[=simdat]{simdat()}},

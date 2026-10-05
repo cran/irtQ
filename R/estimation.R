@@ -3,14 +3,12 @@ estimation1 <- function(f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", "3PLM", "G
                         fix.a.1pl = TRUE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1, a.val.gpcm = 1, g.val = .2, n.1PLM = NULL,
                         aprior = list(dist = "lnorm", params = c(1, 0.5)),
                         bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                        gprior = list(dist = "beta", params = c(5, 17)),
+                        gprior = list(dist = "beta", params = c(5, 16)),
                         use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                         control, startval = NULL, lower, upper) {
   # build the cached (objective, gradient, hessian) trio once per call
   # for DRM models - see make_drm_optim_fns() for the cache mechanics.
-  # n.1PLM only matters for the (!fix.a & mod=="1PLM") branch; force NULL
-  # otherwise so the factory's get_p() dispatch matches the original
-  # nlminb call sites byte-for-byte.
+  # n.1PLM only matters for the (!fix.a & mod=="1PLM") branch, so it is NULL otherwise
   if (mod %in% c("1PLM", "2PLM", "3PLM")) {
     drm_fns <- make_drm_optim_fns(
       f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, mod = mod, D = D, nstd = nstd,
@@ -50,7 +48,7 @@ estimation1 <- function(f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM", "3PLM", "G
     }
 
     # estimate the standard error of estimates
-    # (single call, p_cache not needed - keeps existing behavior)
+    # (single call, so no p_cache is passed)
     hess <- hess_item_drm(est$par,
       f_i = f_i, r_i = r_i, s_i = s_i, theta = theta, mod = mod, D = D, nstd = nstd,
       fix.a = fix.a.1pl, fix.g = fix.g, a.val = a.val.1pl, g.val = g.val, n.1PLM = n.1PLM,
@@ -241,7 +239,7 @@ estimation2 <- function(f_i, r_i, s_i, quadpt, mod = c("1PLM", "2PLM", "3PLM", "
                         fix.a.1pl = TRUE, fix.a.gpcm = FALSE, fix.g = FALSE, a.val.1pl = 1, a.val.gpcm = 1, g.val = .2, n.1PLM = NULL,
                         aprior = list(dist = "lnorm", params = c(1, 0.5)),
                         bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                        gprior = list(dist = "beta", params = c(5, 17)),
+                        gprior = list(dist = "beta", params = c(5, 16)),
                         use.aprior = FALSE, use.bprior = FALSE, use.gprior = TRUE,
                         control, startval = NULL, lower, upper, iter = NULL) {
   # build the cached (objective, gradient, hessian) trio once per call

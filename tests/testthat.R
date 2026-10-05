@@ -15,8 +15,8 @@ library(irtQ)
 # thread count is forced to 1 regardless of when the libraries were loaded
 # (the Sys.setenv() calls above only take effect at load time).
 if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
-  RhpcBLASctl::omp_set_num_threads(1)   # OpenMP 스레드를 런타임에 직접 1로 강제
-  RhpcBLASctl::blas_set_num_threads(1)  # BLAS 스레드를 런타임에 직접 1로 강제
+  RhpcBLASctl::omp_set_num_threads(1)   # force one OpenMP thread at runtime
+  RhpcBLASctl::blas_set_num_threads(1)  # force one BLAS thread at runtime
 }
 
 test_check("irtQ")

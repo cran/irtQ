@@ -183,7 +183,11 @@ used. Default is \code{FALSE}.}
 \item{Etol}{A positive numeric value specifying the convergence criterion for
 the E-step of the EM algorithm. Default is 1e-4.
 Specifically, the EM algorithm terminates when the largest absolute difference
-in item parameter estimates between consecutive iterations is smaller than this value.}
+in item parameter estimates between consecutive iterations is less than or
+equal to this value. When FIPC is used and all items are fixed, so that only
+the latent ability distribution is estimated, the criterion is applied to
+the largest absolute change in the mean and variance of the prior
+distribution.}
 
 \item{MaxE}{A positive integer specifying the maximum number of iterations
 for the E-step in the EM algorithm. Default is \code{500}.}
@@ -302,8 +306,8 @@ parameters.}
 
 \item{niter}{The number of completed EM cycles.}
 
-\item{maxpar.diff}{The maximum absolute change in parameter estimates at
-convergence.}
+\item{maxpar.diff}{The largest absolute change in the estimates in
+the last EM cycle.}
 
 \item{EMtime}{Time (in seconds) spent on EM cycles.}
 
@@ -311,11 +315,17 @@ convergence.}
 
 \item{TotalTime}{Total computation time (in seconds).}
 
-\item{test.1}{First-order test result indicating whether the gradient
-sufficiently vanished for solution stability.}
+\item{test.1}{A message indicating whether the convergence criteria were
+met: the M-step optimization converged for every item and the largest
+absolute change in the parameter estimates between two consecutive EM
+cycles was less than or equal to \code{Etol}. When \code{fipc.method = "OEM"} with
+new items to calibrate, the single EM cycle is not judged by \code{Etol} and
+only the M-step check applies. For FIPC with all items fixed, see \code{Etol}.}
 
 \item{test.2}{Second-order test result indicating whether the information matrix
-is positive definite, a necessary condition for identifying a local maximum.}
+is positive definite, a necessary condition for identifying a local maximum.
+The message reports a possible local maximum only when the first-order test
+is also satisfied.}
 
 \item{var.note}{A note indicating whether the variance-covariance matrix
 was successfully obtained from the information matrix.}
@@ -770,10 +780,10 @@ summary(mod.fix4)
 
 }
 \references{
-Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D., J.
-(2001) A comparative study of on-line pretest item calibration/scaling
+Ban, J. C., Hanson, B. A., Wang, T., Yi, Q., & Harris, D. J.
+(2001). A comparative study of on-line pretest item calibration/scaling
 methods in computerized adaptive testing. \emph{Journal of Educational
-Measurement, 38}(3), 191-212.
+Measurement, 38}(3), 191-212. \doi{10.1111/j.1745-3984.2001.tb01123.x}.
 
 Bock, R. D., & Aitkin, M. (1981). Marginal maximum likelihood estimation of
 item parameters: Application of an EM algorithm. \emph{Psychometrika, 46},
@@ -791,7 +801,7 @@ Stocking, M. L. (1988). \emph{Scale drift in on-line calibration} (Research Rep.
 
 Wainer, H., & Mislevy, R. J. (1990). Item response theory, item
 calibration, and proficiency estimation. In H. Wainer (Ed.), \emph{Computer
-adaptive testing: A primer} (Chap. 4, pp.65-102). Hillsdale, NJ: Lawrence
+adaptive testing: A primer} (Chap. 4, pp. 65-102). Hillsdale, NJ: Lawrence
 Erlbaum.
 
 Woods, C. M. (2007). Empirical histograms in item response theory with

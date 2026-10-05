@@ -14,4 +14,11 @@
 #' Thissen, D. (1982). Marginal maximum likelihood estimation for the one-parameter logistic model.
 #' *Psychometrika, 47*, 175-186.
 #'
+#' @examples
+#' # structure of the data
+#' head(LSAT6)
+#'
+#' # fit the 2PL model to the LSAT6 data
+#' est_irt(data = LSAT6, D = 1, model = "2PLM", cats = 2, verbose = FALSE)
+#'
 "LSAT6"

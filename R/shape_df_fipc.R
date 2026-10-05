@@ -64,6 +64,18 @@ shape_df_fipc <- function(x, fix.loc = NULL, item.id = NULL, cats, model) {
   # Validate and standardize the fixed-item metadata
   x_fix <- confirm_df(x)
 
+  # Number of new items: the length of item.id when given, else the longer of cats and model
+  n_new <- if (!is.null(item.id)) length(item.id) else max(length(cats), length(model))
+
+  # Repeat a single value of cats or model for every new item
+  if (length(cats) == 1L) cats <- rep(cats, n_new)
+  if (length(model) == 1L) model <- rep(model, n_new)
+
+  # Stop when cats or model do not match the number of new items
+  if (length(cats) != n_new || length(model) != n_new) {
+    stop("The lengths of `cats` and `model` must be 1 or equal to the number of new items.", call. = FALSE)
+  }
+
   # Generate default metadata for the new items
   x_new <- shape_df(item.id = item.id, cats = cats, model = model, default.par = TRUE)
 

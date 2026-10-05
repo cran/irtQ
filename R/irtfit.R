@@ -3,7 +3,7 @@
 #' This function computes traditional IRT item fit statistics, including the
 #' \eqn{\chi^{2}} fit statistic (e.g., Bock, 1960; Yen, 1981),
 #' the log-likelihood ratio \eqn{\chi^{2}} fit statistic (\eqn{G^{2}}; McKinley
-#' & Mills, 1985), and the infit and outfit statistics (Ames et al., 2015). It
+#' & Mills, 1985), and the infit and outfit statistics (Ames & Penfield, 2015). It
 #' also returns contingency tables used to compute the \eqn{\chi^{2}} and
 #' \eqn{G^{2}} statistics.
 #'
@@ -85,9 +85,9 @@
 #' Regarding degrees of freedom (*df*):
 #' - The \eqn{\chi^2} statistic is approximately chi-square distributed with
 #'   degrees of freedom equal to the number of ability groups minus the number
-#'   of item parameters (Ames et al., 2015).
+#'   of item parameters (Ames & Penfield, 2015).
 #' - The \eqn{G^2} statistic is approximately chi-square distributed with
-#'   degrees of freedom equal to the number of ability groups (Ames et al., 2015;
+#'   degrees of freedom equal to the number of ability groups (Ames & Penfield, 2015;
 #'   Muraki & Bock, 2003).
 #'
 #'   Note that if `"DRM"` is specified for an item in the item metadata set,
@@ -138,23 +138,23 @@
 #' @seealso [irtQ::plot.irtfit()], [irtQ::shape_df()], [irtQ::est_irt()],
 #' [irtQ::est_item()]
 #'
-#' @references Ames, A. J., & Penfield, R. D. (2015). An NCME Instructional
-#' Module on Item-Fit Statistics for Item Response Theory Models.
-#' *Educational Measurement: Issues and Practice, 34*(3), 39-48.
+#' @references Ames, A. J., & Penfield, R. D. (2015). An NCME instructional
+#'   module on item-fit statistics for item response theory models. *Educational
+#'   Measurement: Issues and Practice, 34*(3), 39-48.
 #'
-#' Bock, R.D. (1960), *Methods and applications of optimal scaling*. Chapel
-#' Hill, NC: L.L. Thurstone Psychometric Laboratory.
+#'   Bock, R. D. (1960). *Methods and applications of optimal scaling*. Chapel
+#'   Hill, NC: L. L. Thurstone Psychometric Laboratory.
 #'
-#' Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991).*Fundamentals of
-#' item response theory*. Newbury Park, CA: Sage.
+#'   Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991). *Fundamentals of
+#'   item response theory*. Newbury Park, CA: Sage.
 #'
 #' McKinley, R., & Mills, C. (1985). A comparison of several goodness-of-fit
 #' statistics.
 #' *Applied Psychological Measurement, 9*, 49-57.
 #'
-#' Muraki, E. & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
-#' scoring for rating scale data (Computer Software). Chicago, IL: Scientific
-#' Software International. URL http://www.ssicentral.com
+#'   Muraki, E., & Bock, R. D. (2003). PARSCALE 4: IRT item analysis and test
+#'   scoring for rating scale data (Computer software). Chicago, IL: Scientific
+#'   Software International. URL http://www.ssicentral.com
 #'
 #' Wells, C. S., & Bolt, D. M. (2008). Investigation of a nonparametric
 #' procedure for assessing goodness-of-fit in item response theory. *Applied

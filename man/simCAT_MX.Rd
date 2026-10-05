@@ -7,16 +7,20 @@
 \format{
 A list of length three:
 \describe{
-\item{item_pool}{A data frame in item metadata format consisting of 200
+\item{item.prm}{A data frame in item metadata format consisting of 200
 dichotomous items and 30 polytomous items.
 \itemize{
-\item Dichotomous items: Calibrated using the IRT 3PL model.
+\item Dichotomous items: Calibrated using the IRT 2PL model.
 \item Polytomous items: Calibrated using the Generalized Partial Credit Model
-(GPCM), with three score categories (0, 1, 2).}
+(GPCM), with four score categories (0, 1, 2, 3).}
 }
 
-\item{response_data}{A sparse matrix of item responses from 30,000 examinees.}
-\item{theta_estimates}{A numeric vector of ability estimates for the 30,000
+\item{res.dat}{A matrix of item responses from 30,000 examinees (rows) to 230
+items (columns). \code{NA} marks an item that was not administered to the examinee.
+The columns are named \code{Item.dc.1} to \code{Item.dc.200} and \code{Item.py.1} to
+\code{Item.py.30}, not by the \code{id} column of \code{item.prm} (\code{V1} to \code{V230}); the
+columns follow the row order of \code{item.prm}.}
+\item{score}{A numeric vector of ability estimates for the 30,000
 examinees.}
 }
 }
@@ -27,6 +31,22 @@ simCAT_MX
 A simulated dataset for computerized adaptive testing (CAT), containing an
 item pool, sparse response data, and examinee ability estimates. The item
 pool includes both dichotomous and polytomous items.
+}
+\examples{
+# structure of the data
+str(simCAT_MX, max.level = 1)
+
+\donttest{
+# item fit of three dichotomous items and two polytomous items
+loc <- c(1:3, 201:202)
+x <- simCAT_MX$item.prm[loc, ]
+data <- simCAT_MX$res.dat[, loc]
+irtfit(
+  x = x, score = simCAT_MX$score, data = data, group.method = "equal.freq",
+  n.width = 10, loc.theta = "average", range.score = c(-4, 4), D = 1
+)
+}
+
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

@@ -151,7 +151,7 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
                           nstd, fix.a = FALSE, fix.g = TRUE, a.val = 1, g.val = .2, n.1PLM = NULL,
                           aprior = list(dist = "lnorm", params = c(1, 0.5)),
                           bprior = list(dist = "norm", params = c(0.0, 1.0)),
-                          gprior = list(dist = "beta", params = c(5, 17)),
+                          gprior = list(dist = "beta", params = c(5, 16)),
                           use.aprior = FALSE,
                           use.bprior = FALSE,
                           use.gprior = TRUE,
@@ -161,7 +161,7 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
   # across loglike_drm / grad_item_drm / hess_item_drm at the same
   # (item_par, theta) - saving 2 of the 3 drm() calls per nlminb point.
   # When NULL (e.g. callers outside the optim factory), each branch
-  # falls back to drm() exactly as before.
+  # calls drm() directly.
   # count the number of item parameters to be estimated
   n.par <- length(item_par)
 
@@ -172,8 +172,7 @@ grad_item_drm <- function(item_par, f_i, r_i, s_i, theta, mod = c("1PLM", "2PLM"
     b <- item_par[-1]
 
     # compute the probabilities of correct and incorrect
-    # (reuse the cached P matrix when available; bit-exact equivalent
-    # to recomputing drm() with the same (a, b, g) parameters)
+    # use the cached P matrix when supplied
     p <- if (is.null(p_cache)) drm(theta = theta, a = a, b = b, g = 0, D = D) else p_cache
 
     # compute the component values
@@ -446,7 +445,7 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
   #   GPCM -> $theta_d, $numer, $denom, $P
   # Using the cache skips the most expensive matrix operations (drm() for GRM;
   # exp(cumsum) + rowsums for GPCM) that loglike_prm already paid for.
-  #   # count the number of item parameters to be estimated
+  # count the number of item parameters to be estimated
   n.par <- length(item_par)
 
   ## -------------------------------------------------------------------------
@@ -461,7 +460,7 @@ grad_item_prm <- function(item_par, r_i, theta, pr.mod, D = 1, nstd, fix.a = FAL
     m <- length(d)
 
     # calculate all the probabilities greater than equal to each threshold;
-    # reuse cached allPst when supplied - bit-exact equivalent to drm()
+    # reuse cached allPst when supplied
     if (is.null(prob_cache)) {
       allPst <- drm(theta = theta, a = rep(a, m), b = d, g = 0, D = D)
       allQst <- 1 - allPst[, , drop = FALSE]

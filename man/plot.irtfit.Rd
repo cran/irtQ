@@ -190,15 +190,15 @@ plot(x = fit, item.loc = 3, type = "sr", ci.method = "wald",
 
 }
 \references{
-Hambleton, R. K., Swaminathan, H., & Rogers, H. J.
-(1991).\emph{Fundamentals of item response theory}. Newbury Park, CA: Sage.
+Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991).
+\emph{Fundamentals of item response theory}. Newbury Park, CA: Sage.
 
-Laplace, P. S. (1820).\emph{Theorie analytique des probabilites} (in French).
+Laplace, P. S. (1820). \emph{Theorie analytique des probabilites} (in French).
 Courcier.
 
 Newcombe, R. G. (1998). Two-sided confidence intervals for the single
-proportion: comparison of seven methods.
-\emph{Statistics in medicine, 17}(8), 857-872.
+proportion: comparison of seven methods. \emph{Statistics in Medicine, 17}(8),
+857-872.
 
 Wilson, E. B. (1927). Probable inference, the law of succession, and
 statistical inference.

@@ -64,6 +64,16 @@ test_that("est_mg() top-level slots are present", {
   expect_true(all(expected_slots %in% names(fit)))
 })
 
+test_that("getirt() returns the documented posterior.dist and scale.D for est_mg objects", {
+  dat <- make_two_groups(x_drm10)
+  fit <- run_mg(x_drm10, dat)
+  expect_identical(getirt(fit, what = "posterior.dist"), fit$posterior.dist)
+  expect_identical(getirt(fit, what = "scale.D"), fit$scale.D)
+  expect_identical(getirt(fit, what = "scale.D"), 1)
+  expect_true(is.matrix(getirt(fit, what = "posterior.dist")))
+  expect_true(is.numeric(getirt(fit, what = "scale.D")))
+})
+
 test_that("est_mg() par.est is a list with 'overall' and per-group elements", {
   dat <- make_two_groups(x_drm10)
   fit <- run_mg(x_drm10, dat)
@@ -267,10 +277,7 @@ test_that("est_mg() EmpHist=TRUE produces non-uniform weights for G2", {
 # This section exercises the est_mg() FIPC code path -- the multi-group
 # analogue of the FIPC branch tested for est_irt().  est_mg_fipc()
 # calls the same divide_data() / Estep_fipc() / Mstep / info_xpd()
-# pipeline as est_irt_fipc(), so the test guards regression in any of
-# the shared helpers when they are exercised through the multi-group
-# code path (e.g. the freq.cat construction at est_mg.R lines ~1797-
-# 1803, which is otherwise uncovered by the test suite).
+# pipeline as est_irt_fipc() through the multi-group code path.
 
 test_that("est_mg() FIPC (MEM) estimates pretest items on fixed-item scale", {
   # build a small fixed-item bank: 8 dichotomous (3PLM) items taken
@@ -330,6 +337,49 @@ test_that("est_mg() FIPC (MEM) estimates pretest items on fixed-item scale", {
   # small relative to the population shift)
   mu_g2 <- fit$group.par$G2$mu[!is.na(fit$group.par$G2$mu)][1]
   expect_false(isTRUE(all.equal(mu_g2, 0, tolerance = 0.05)))
+})
+
+test_that("est_mg() FIPC (OEM) does not warn about convergence criteria", {
+  # same fixed-item bank and metadata as the MEM test above
+  x_fix_bank <- x_full[1:8, ]
+  meta_fipc <- shape_df_fipc(
+    x       = x_fix_bank,
+    fix.loc = 1:8,
+    item.id = paste0("NI", 1:4),
+    cats    = c(2L, 2L, 5L, 5L),
+    model   = c("3PLM", "3PLM", "GRM", "GRM")
+  )
+
+  set.seed(901)
+  data_list <- list(
+    G1 = simdat(x = meta_fipc, theta = rnorm(300, mean = 0.0, sd = 1.0), D = 1),
+    G2 = simdat(x = meta_fipc, theta = rnorm(300, mean = 0.4, sd = 1.1), D = 1)
+  )
+
+  # collect every warning message; other warnings are allowed
+  warns <- character(0)
+  fit <- withCallingHandlers(
+    do.call(est_mg, c(
+      list(x          = list(meta_fipc, meta_fipc),
+           data       = data_list,
+           group.name = c("G1", "G2"),
+           free.group = "G2",
+           fipc       = TRUE,
+           fipc.method = "OEM",
+           fix.loc    = list(1:8, 1:8),
+           use.gprior = TRUE,
+           gprior     = list(dist = "beta", params = c(5, 16))),
+      MG_ARGS
+    )),
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_equal(fit$niter, 1L)
+  expect_false(any(grepl("Convergence criteria are not satisfied", warns)))
+  expect_identical(fit$test.1, "Convergence criteria are satisfied.")
 })
 
 

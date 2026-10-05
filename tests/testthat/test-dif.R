@@ -229,6 +229,28 @@ test_that("catsib() dif_stat contains beta and p-value columns", {
   expect_true(any(grepl("^p\\b|pvalue|p_value", cols)))
 })
 
+test_that("catsib() runs with weight.group = 'foc' and 'ref' and gives finite beta", {
+  for (wg in c("foc", "ref")) {
+    # the short fixture gives a low reliability of the corrected scores, which
+    # raises an expected warning
+    res <- suppressWarnings(catsib(
+      x            = x_dif,
+      data         = resp_all,
+      score        = score_all$est.theta,
+      se           = score_all$se.theta,
+      group        = group_vec,
+      focal.name   = 1L,
+      D            = 1,
+      weight.group = wg,
+      verbose      = FALSE
+    ))
+    # one row per item and a finite beta statistic for every item
+    expect_equal(nrow(res$no_purify$dif_stat), nrow(x_dif))
+    beta_col <- grep("beta", colnames(res$no_purify$dif_stat), ignore.case = TRUE)[1]
+    expect_true(all(is.finite(res$no_purify$dif_stat[[beta_col]])))
+  }
+})
+
 test_that("catsib() alpha slot matches supplied alpha", {
   res <- catsib(
     x          = x_dif,

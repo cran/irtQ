@@ -65,10 +65,10 @@
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'
-#' @references Hambleton, R. K., & Swaminathan, H. (1985) *Item response theory:
-#'   Principles and applications*. Boston, MA: Kluwer.
+#' @references Hambleton, R. K., & Swaminathan, H. (1985). *Item response
+#'   theory: Principles and applications*. Boston, MA: Kluwer.
 #'
-#'   Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991) *Fundamentals of
+#'   Hambleton, R. K., Swaminathan, H., & Rogers, H. J. (1991). *Fundamentals of
 #'   item response theory*. Newbury Park, CA: Sage.
 #'
 #' @seealso [irtQ::plot.info()], [irtQ::shape_df()], [irtQ::est_irt()],

@@ -1,5 +1,69 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
+
+# irtQ 1.3.0
+
+## New Features
+
+- New classical test theory (CTT) functions: `ctt()` for item- and
+  test-level statistics, with `print()` and `summary()` methods;
+  `freq_score()` for a total-score frequency table; `ctt_distr()` for
+  option or score-category distributions with point-biserial
+  correlations; and `score_resp()` for scoring raw selected-response
+  data with an answer key. Item-total and option-total correlations are
+  reported both with and without the item.
+
+- Added a vignette, "Introduction to irtQ" (`vignette("irtQ")`), that
+  walks through calibration, scoring, and model-fit evaluation.
+
+## Bug Fixes
+
+- Fixed the EM convergence check in `est_irt()` and `est_mg()`. It used
+  the largest signed change instead of the largest absolute change, so
+  the EM could stop before the `Etol` criterion was met, most often when
+  some parameters were held constant (for example, the guessing
+  parameter of 1PLM and 2PLM items, or slopes fixed by `fix.a.1pl` or
+  `fix.a.gpcm`). Refitting a model can change the estimates and take
+  more EM cycles. A fit from an earlier version that reported
+  `maxpar.diff` equal to 0 most likely stopped early.
+
+- `est_irt()` and `est_mg()` no longer warn that the convergence
+  criteria are not satisfied when `fipc.method = "OEM"` or when the EM
+  converges at the `MaxE`-th cycle. In these cases, `test.2` can now
+  report a possible local maximum.
+
+- `est_item()` now uses Beta(5, 16) as the default prior for the
+  guessing parameter, as in `est_irt()` and `est_mg()`.
+
+- `getirt()` now returns `posterior.dist` and `scale.D` for objects from
+  `est_irt()` and `est_mg()`, as documented.
+
+## Minor Improvements
+
+- `find_cut()` now uses `D = 1` by default, like the other functions in
+  the package (previously 1.702). Supply `D = 1.702` to reproduce
+  earlier results.
+
+- `shape_df_fipc()` now accepts a single value of `cats` or `model` for
+  all new items.
+
+- The mirt package moved from Imports to Suggests. Only `bring.mirt()`
+  uses it, and it now stops with an informative message when mirt is not
+  installed.
+
+## Documentation
+
+- Added examples to `print.ctt()`, `summary.ctt()`,
+  `print.summary.ctt()`, and the data sets.
+
+- Corrected the descriptions of `Etol`, `test.1`, `test.2`, and
+  `maxpar.diff`, the return class of `est_mg()`, `dif_item` in the
+  purified results of `rdif()`, `crdif()`, and `grdif()`, and the
+  component names of `simCAT_DC` and `simCAT_MX`.
+
+- Corrected bibliographic details, added DOIs, cited the polytomous RDIF
+  extensions in `rdif()` and `crdif()`, and listed every reference cited
+  in the help pages on the package help page (`?irtQ`).
 
 # irtQ 1.2.0
 
@@ -50,12 +114,12 @@
   purification procedure. Also added a `\donttest{}` example
   demonstrating a complete CAT-based IPD detection workflow using the
   `simIPD` dataset. Updated `@references` to include Lim & Choe (2023)
-  and replaced the previous conference paper citation with the in-press
-  journal reference (Lim & Han, in press).
+  and replaced the previous conference paper citation with the journal
+  reference (Lim & Han, 2026).
 
 - Added a `\donttest{}` example to `pcd2()` demonstrating CAT-based IPD
   detection using the `simIPD` dataset, including the bootstrap critical
-  value procedure described in Lim & Han (in press).
+  value procedure described in Lim & Han (2026).
 
 - Updated the *MST Panel Evaluation and Simulation* article
   (`vignettes/articles/mst-panel-evaluation.Rmd`) to introduce

@@ -61,7 +61,10 @@ columns represent quadrature points.}
 \item{scale.D}{The scaling constant (usually 1 or 1.7) used in the IRT model.}
 \item{ncase}{The number of unique response patterns.}
 \item{nitem}{The number of items included in the dataset.}
-\item{Etol}{The convergence criterion used for the E-step in the EM algorithm.}
+\item{Etol}{The convergence criterion for the E-step of the EM algorithm:
+the largest absolute change in the item parameter estimates between
+consecutive cycles. For FIPC with all items fixed, it applies to the
+change in the mean and variance of the prior distribution.}
 \item{MaxE}{The maximum number of E-steps allowed during EM estimation.}
 \item{aprior}{A list describing the prior distribution for item slope parameters.}
 \item{bprior}{A list describing the prior distribution for item difficulty
@@ -69,12 +72,12 @@ columns represent quadrature points.}
 \item{gprior}{A list describing the prior distribution for item guessing parameters.}
 \item{npar.est}{The total number of parameters estimated.}
 \item{niter}{The number of EM cycles completed.}
-\item{maxpar.diff}{The maximum change in parameter estimates at convergence.}
+\item{maxpar.diff}{The largest absolute change in the estimates in the last EM cycle.}
 \item{EMtime}{Computation time (in seconds) for the EM algorithm.}
 \item{SEtime}{Computation time (in seconds) for estimating standard errors.}
 \item{TotalTime}{Total computation time (in seconds) for model estimation.}
-\item{test.1}{Result of the first-order test indicating whether the gradients
-were sufficiently close to zero.}
+\item{test.1}{A message indicating whether the convergence criteria were met
+(M-step convergence and the EM criterion).}
 \item{test.2}{Result of the second-order test indicating whether the
 information matrix was positive definite (a condition for maximum likelihood).}
 \item{var.note}{A note indicating whether the variance-covariance matrix was
@@ -131,18 +134,23 @@ examinee response data.}
 number of response patterns in each.}
 \item{nitem}{A list with \code{overall} and \code{group} components indicating the
 number of items in the respective response sets.}
-\item{Etol}{Convergence criterion used for the E-step in the EM algorithm.}
+\item{Etol}{The convergence criterion for the E-step of the EM algorithm:
+the largest absolute change in the item parameter estimates between
+consecutive cycles. For FIPC with all items fixed, it applies to the
+change in the mean and variance of the prior distribution.}
 \item{MaxE}{Maximum number of E-steps allowed in the EM algorithm.}
 \item{aprior}{A list describing the prior distribution for item slope parameters.}
+\item{bprior}{A list describing the prior distribution for item difficulty
+parameters.}
 \item{gprior}{A list describing the prior distribution for item guessing parameters.}
 \item{npar.est}{Total number of parameters estimated across all unique items.}
 \item{niter}{Number of EM cycles completed.}
-\item{maxpar.diff}{Maximum change in item parameter estimates at convergence.}
+\item{maxpar.diff}{The largest absolute change in the estimates in the last EM cycle.}
 \item{EMtime}{Computation time (in seconds) for EM estimation.}
 \item{SEtime}{Computation time (in seconds) for estimating standard errors.}
 \item{TotalTime}{Total computation time (in seconds) for model estimation.}
-\item{test.1}{First-order condition test result indicating whether gradients
-converged sufficiently.}
+\item{test.1}{A message indicating whether the convergence criteria were met
+(M-step convergence and the EM criterion).}
 \item{test.2}{Second-order condition test result indicating whether the
 information matrix is positive definite.}
 \item{var.note}{A note indicating whether the variance-covariance matrix

@@ -29,6 +29,29 @@ simMG
 \description{
 This data set has a list consisting of item metadata, item response data, and group names of three simulated groups.
 }
+\examples{
+# structure of the data
+str(simMG, max.level = 1)
+
+\donttest{
+# multiple-group calibration of the three groups (see est_mg() for details)
+x <- simMG$item.prm
+fit <- est_mg(
+  data = simMG$res.dat, group.name = simMG$group.name,
+  model = list(x$Group1$model, x$Group2$model, x$Group3$model),
+  cats = list(x$Group1$cats, x$Group2$cats, x$Group3$cats),
+  item.id = list(x$Group1$id, x$Group2$id, x$Group3$id),
+  D = 1, free.group = c(2, 3), use.gprior = TRUE,
+  gprior = list(dist = "beta", params = c(5, 16)),
+  group.mean = 0, group.var = 1, EmpHist = TRUE, Etol = 0.001, MaxE = 500,
+  verbose = FALSE
+)
+
+# group means and variances
+fit$group.par
+}
+
+}
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}
 }

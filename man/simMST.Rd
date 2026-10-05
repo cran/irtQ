@@ -44,14 +44,22 @@ structure, assembled using module-level target test information functions
 (TIFs) and design constraints similar to those used in the simulation study
 by Lim et al. (2021).
 }
-\references{
-Magis, D., Yan, D., & von Davier, A. A. (2017). \emph{Computerized
-adaptive and multistage testing with R: Using packages catR and mstR}.
-Springer.
+\examples{
+# structure of the data
+str(simMST, max.level = 1)
 
-Lim, H., Davey, T., & Wells, C. S. (2021). A recursion-based analytical
-approach to evaluate the performance of MST. \emph{Journal of Educational
-Measurement, 58}(2), 154-178.
+# item metadata of the first three items
+head(simMST$item_bank, 3)
+
+}
+\references{
+Lim, H., Davey, T., & Wells, C. S. (2021). A recursion-based
+analytical approach to evaluate the performance of MST. \emph{Journal of
+Educational Measurement, 58}(2), 154-178. \doi{10.1111/jedm.12276}.
+
+Magis, D., Yan, D., & von Davier, A. A. (2017). \emph{Computerized adaptive and
+multistage testing with R: Using packages catR and mstR}. Springer.
+\doi{10.1007/978-3-319-69218-0}.
 }
 \author{
 Hwanggyu Lim \email{hglim83@gmail.com}

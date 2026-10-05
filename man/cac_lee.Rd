@@ -138,9 +138,9 @@ print(cac_3)
 
 }
 \references{
-Lee, W. C. (2010). Classification consistency and accuracy for
+Lee, W.-C. (2010). Classification consistency and accuracy for
 complex assessments using item response theory. \emph{Journal of Educational
-Measurement, 47}(1), 1-17.
+Measurement, 47}(1), 1-17. \doi{10.1111/j.1745-3984.2009.00096.x}.
 }
 \seealso{
 \code{\link[=gen.weight]{gen.weight()}}, \code{\link[=est_score]{est_score()}}, \code{\link[=cac_rud]{cac_rud()}}
