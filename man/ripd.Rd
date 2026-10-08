@@ -257,8 +257,8 @@ original RDIF framework estimates item parameters once from the pooled data
 of both groups, the RIPD framework uses the \emph{original, pre-calibrated}
 item parameters from the CAT pool directly, eliminating the need for item
 recalibration. This makes RIPD practically scalable for operational CAT
-programs where recalibration is often infeasible due to sparse and
-non-ignorably missing response data.
+programs, where the response data are sparse and recalibration is often
+impractical.
 
 IPD in CAT can be viewed as a special case of DIF across time (Lord, 1980;
 Veerkamp & Glas, 2000): the focal group represents current test-takers whose

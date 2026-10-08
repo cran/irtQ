@@ -592,7 +592,7 @@ irtfit.est_irt <- function(x,
 
 
 
-#' @importFrom janitor adorn_totals adorn_percentages
+#' @importFrom janitor adorn_totals
 #' @importFrom tibble rownames_to_column remove_rownames column_to_rownames
 #' @import dplyr
 itemfit <- function(x_item, score, resp, group.method = c("equal.width", "equal.freq"),
@@ -635,9 +635,10 @@ itemfit <- function(x_item, score, resp, group.method = c("equal.width", "equal.
   obs.freq <- obs.freq[!delrow.lg, ]
 
   # create a contingency table for the category proportions
-  obs.prop <-
-    obs.freq %>%
-    janitor::adorn_percentages(denominator = "row")
+  obs.prop <- obs.freq
+
+  # divide the category frequencies by the row totals
+  obs.prop[, 2:(cats + 1)] <- obs.freq[, 2:(cats + 1)] / obs.freq$total
 
   # find a theta point for each score group
   loc.theta <- tolower(loc.theta)

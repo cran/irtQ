@@ -128,3 +128,43 @@ test_that("ctt_distr() respects an explicit character opt= for a letter-coded it
   expect_equal(sort(unique(out$distr$option[out$distr$item == "V1"])),
                c("A", "B", "C", "D"))
 })
+
+test_that("ctt_distr() matches a key data frame by item number for a character item column", {
+  # twelve items so that string order differs from numeric order
+  set.seed(12)
+  n_item <- 12
+  raw <- as.data.frame(
+    matrix(sample(as.character(1:4), 30 * n_item, replace = TRUE), 30, n_item)
+  )
+  key_vec <- rep(c(1, 4, 3, 2), length.out = n_item)
+  out_vec <- ctt_distr(data = raw, key = key_vec)
+
+  # the same key rows in a shuffled order, with character and factor item
+  # columns
+  shuffled <- c(5, 12, 1, 9, 3, 11, 7, 2, 10, 6, 8, 4)
+  key_chr <- data.frame(item = as.character(shuffled), key = key_vec[shuffled])
+  key_fct <- data.frame(item = factor(shuffled), key = key_vec[shuffled])
+  expect_identical(ctt_distr(data = raw, key = key_chr)$distr$is_key,
+                   out_vec$distr$is_key)
+  expect_identical(ctt_distr(data = raw, key = key_fct)$distr$is_key,
+                   out_vec$distr$is_key)
+})
+
+test_that("ctt_distr() scored-category mode stops when a score is out of range", {
+  dat <- data.frame(I1 = c(0, 1, 1, 0, 1), I2 = c(1, 0, 3, 1, 0))
+  expect_error(ctt_distr(data = dat, cats = c(2, 2)), "between 0 and cats - 1")
+  dat$I2[3] <- -1
+  expect_error(ctt_distr(data = dat), "V2")
+  dat$I2[3] <- 0.5
+  expect_error(ctt_distr(data = dat), "whole numbers")
+  expect_error(ctt_distr(data = data.frame(I1 = c(0, 1, 1), I2 = c(1, 0, 1)),
+                         cats = c(2, 1)), "at least 2")
+})
+
+test_that("ctt_distr() scored-category mode gives an all-zero item two categories", {
+  dat <- data.frame(I1 = c(0, 1, 1, 0, 1, 1), I2 = c(0, 0, 0, 0, 0, 0))
+  out <- ctt_distr(data = dat)$distr
+  out_i2 <- out[out$item == "V2", ]
+  expect_equal(out_i2$option, c(0, 1))
+  expect_equal(out_i2$freq, c(6L, 0L))
+})

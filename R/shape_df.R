@@ -133,6 +133,15 @@ shape_df <- function(par.drm = list(a = NULL, b = NULL, g = NULL),
       stop("The number of score categories and IRT models must be specified.", call. = FALSE)
     }
 
+    # count the items from the longest of cats, model, and item.id
+    n_item_default <- max(length(cats), length(model), length(item.id))
+
+    # replicate a single cats value across all items
+    if (length(cats) == 1) cats <- rep(cats, n_item_default)
+
+    # replicate a single model name across all items
+    if (length(model) == 1) model <- rep(model, n_item_default)
+
     # find the index of drm items
     idx.drm <- which(cats == 2)
     if (sum(idx.drm) == 0) idx.drm <- NULL
@@ -243,6 +252,15 @@ startval_df <- function(cats, model, item.id = NULL) {
       "Available model names are 1PLM, 2PLM, 3PLM, DRM, GRM, and GPCM"
     ), call. = FALSE)
   }
+
+  # count the items from the longest of cats, model, and item.id
+  n_item_start <- max(length(cats), length(model), length(item.id))
+
+  # replicate a single cats value across all items
+  if (length(cats) == 1) cats <- rep(cats, n_item_start)
+
+  # replicate a single model name across all items
+  if (length(model) == 1) model <- rep(model, n_item_start)
 
   # find the index of drm items
   idx.drm <- which(cats == 2)

@@ -35,7 +35,9 @@ its own key value, so items using different option formats may be
 freely mixed within the same vector or data frame; letter (and other
 case-bearing) values are matched case-insensitively. When a data frame
 is supplied, it is internally sorted by \code{item} before use, so its row
-order does not need to match the column order of \code{data}.}
+order does not need to match the column order of \code{data}. The \code{item}
+column may be numeric, character, or factor; it is matched by item
+number.}
 
 \item{missing}{A value indicating missing (omitted) responses in \code{data},
 analogous to the \code{missing} argument in \code{\link[=est_irt]{est_irt()}} and

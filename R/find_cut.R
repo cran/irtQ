@@ -89,7 +89,8 @@
 #' as theta increases. This crossing point is the natural boundary between
 #' the two modules: below it, the easier module is more informative; above it,
 #' the harder module is more informative. Using this point as a fixed cut
-#' score pre-empts the path reversal problem entirely.
+#' score pre-empts the path reversals that MFI routing produces at the extremes
+#' of the scale.
 #' }
 #'
 #' \subsection{Proper vs. anomalous crossings}{
@@ -181,7 +182,8 @@
 #' ## cut_score[[2]]: cut scores for the stage-2 -> stage-3 transition
 #' cut_result$cut_score
 #'
-#' ## Compare with the manually specified cut scores stored in simMST
+#' ## Compare with the cut scores stored in simMST, which were obtained the
+#' ## same way; the two sets of values are identical
 #' simMST$cut_score
 #'
 #' ## -- Use the cut scores in run_mst() --------------------------------------
@@ -497,7 +499,8 @@ find_cut <- function(x,
 
     # -- 3f. Store stage-level results -----------------------------------------
     # Cut scores must be sorted ascending: give_path() uses them as breaks in
-    # cut(x, breaks = c(-Inf, cut_sc, Inf)), so ascending order is required.
+    # cut(x, breaks = c(-Inf, cut_sc, Inf), right = FALSE), so ascending order
+    # is required.
     cut_list[[s - 1L]] <- sort(pair_cuts)
 
     # Collect diagnostic information for this stage
@@ -781,8 +784,7 @@ plot.find_cut <- function(x,
         color       = "black",
         linetype    = "solid",
         linewidth   = 1.0,
-        alpha       = 0.8,
-        inherit.aes = FALSE
+        alpha       = 0.8
       )
     }
 
@@ -795,8 +797,7 @@ plot.find_cut <- function(x,
         color       = "grey50",
         linetype    = "dashed",
         linewidth   = 0.7,
-        alpha       = 0.8,
-        inherit.aes = FALSE
+        alpha       = 0.8
       )
     }
 
@@ -809,8 +810,7 @@ plot.find_cut <- function(x,
         color       = "firebrick",
         linetype    = "dashed",
         linewidth   = 0.7,
-        alpha       = 0.8,
-        inherit.aes = FALSE
+        alpha       = 0.8
       )
     }
   }

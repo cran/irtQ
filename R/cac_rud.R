@@ -220,6 +220,8 @@ cac_rud <- function(x = NULL,
     # compute the marginal accuracy and consistency
     margin_tb <-
       cond_tb %>%
+      # keep empty performance levels by fixing the factor levels
+      dplyr::mutate(level = factor(.data$level, levels = seq_len(n.lev))) %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
         accuracy = sum(.data$accuracy * .data$weights),
@@ -238,6 +240,8 @@ cac_rud <- function(x = NULL,
     # create a cross table between true and expected levels
     cross_tb <-
       ps_tb2 %>%
+      # keep empty performance levels by fixing the factor levels
+      dplyr::mutate(level = factor(.data$level, levels = seq_len(n.lev))) %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
         dplyr::across(
@@ -312,6 +316,8 @@ cac_rud <- function(x = NULL,
     # compute the marginal accuracy and consistency
     margin_tb <-
       cond_tb %>%
+      # keep empty performance levels by fixing the factor levels
+      dplyr::mutate(level = factor(.data$level, levels = seq_len(n.lev))) %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
         accuracy = sum(.data$accuracy * .data$weights),
@@ -330,6 +336,8 @@ cac_rud <- function(x = NULL,
     # create a cross table between true and expected levels
     cross_tb <-
       ps_tb2 %>%
+      # keep empty performance levels by fixing the factor levels
+      dplyr::mutate(level = factor(.data$level, levels = seq_len(n.lev))) %>%
       dplyr::group_by(.data$level, .drop = FALSE) %>%
       dplyr::summarise(
         dplyr::across(

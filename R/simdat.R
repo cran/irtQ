@@ -279,6 +279,9 @@ simdat_drm <- function(theta, a, b, g, D) {
   # check the item guessing parameters
   if (is.null(g)) g <- rep(0, nitem)
 
+  # treat NA guessing parameters of 1PL and 2PL items as zeros
+  g[is.na(g)] <- 0
+
   # calculate probability of correct answer
   z <- (D * a) * Rfast::Outer(x = theta, y = b, oper = "-")
   sim <- t(g + (1 - g) / (1 + exp(-z)))

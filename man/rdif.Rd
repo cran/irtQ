@@ -237,7 +237,7 @@ used in hypothesis testing for RDIF statistics.}
 }
 \description{
 This function computes three RDIF statistics for each item: \eqn{RDIF_{R}},
-\eqn{RDIF_{S}}, and \eqn{RDIF_{RS}} (Lim & Choe, 2023; Lim, et al., 2022).
+\eqn{RDIF_{S}}, and \eqn{RDIF_{RS}} (Lim & Choe, 2023; Lim et al., 2022).
 \eqn{RDIF_{R}} primarily captures differences in raw residuals between two
 groups, which are typically associated with uniform DIF. \eqn{RDIF_{S}}
 primarily captures differences in squared residuals, which are typically

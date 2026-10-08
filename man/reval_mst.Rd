@@ -56,8 +56,8 @@ on performance. Further examples and explanations are available below.}
 
 \item{theta}{A vector of ability levels (theta) at which the MST panel's
 performance is assessed. This allows for the evaluation of measurement
-precision and bias across a continuum of ability levels. The default range
-is \code{theta = seq(-5, 5, 0.1)}.}
+precision and bias across a continuum of ability levels. The default is
+\code{theta = seq(-5, 5, 1)}.}
 
 \item{intpol}{A logical value to enable linear interpolation in the inverse
 test characteristic curve (TCC) scoring, facilitating ability estimate
@@ -76,8 +76,7 @@ scoring. For the inverse TCC scoring, the bisection method is used for
 optimization. Default is 1e-4.}
 }
 \value{
-This function returns a list of seven internal objects. The four
-objects are:
+This function returns a list of seven internal objects. These are:
 
 \item{panel.info}{A list of several sub-objects containing detailed information
 about the MST panel configuration, including:
@@ -172,6 +171,23 @@ enables the computation of conditional biases and CSEMs efficiently,
 bypassing the need for extensive simulations traditionally required for MST
 evaluation.
 
+The recursion of Lim et al. (2021) is built on inverse TCC ability
+estimates. At each stage, the sum score accumulated over all modules
+administered so far is converted to an ability estimate by inverse TCC
+scoring, this estimate is compared with the cut scores to route the test
+taker to the next module, and the final ability estimate is also the
+inverse TCC estimate of the total sum score. Accordingly, the function
+supports inverse TCC scoring with cut-score routing only. To evaluate
+other scoring or routing methods, use \code{\link[=run_mst]{run_mst()}}, which runs a
+Monte Carlo simulation. With \code{route_method = NULL}, a \code{cut_score} list, and
+\code{route_score = list(method = "INV.TCC")}, \code{\link[=run_mst]{run_mst()}} follows the
+same design that this function evaluates analytically.
+
+All modules in the same stage must have the same maximum sum score (the
+sum of the maximum item scores), for example the same number of items when
+all items are dichotomous. The function stops with an error when this
+condition is not met.
+
 The \code{module} argument, used in conjunction with the item bank metadata \code{x},
 systematically organizes items into modules for MST panel evaluation. Each
 row of \code{x} corresponds to an item, detailing its characteristics like score
@@ -200,9 +216,9 @@ MST configuration, the list \code{cut_score = list(c(-0.5, 0.5), c(-0.6, 0.6))}
 operates as a decision guide at each stage. Initially, all test takers
 start in the first module. Upon completion, their scores determine their
 next stage module: scores below -0.5 route to the first module of the next
-stage, between -0.5 and 0.5 to the second, and above 0.5 to the third. This
-pattern allows for dynamic adaptation, tailoring the test path to
-individual performance levels.
+stage, scores from -0.5 up to but not including 0.5 to the second, and
+scores of 0.5 or above to the third. This pattern allows for dynamic
+adaptation, tailoring the test path to individual performance levels.
 }
 \examples{
 \donttest{

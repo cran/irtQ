@@ -192,3 +192,32 @@ test_that("score_resp() scores a full five-option (A-E) letter item, case-insens
   out5 <- score_resp(data = raw5, key = c("C"))
   expect_equal(out5$scored$V1, c(0L, 0L, 1L, 0L, 0L, 1L))
 })
+
+test_that("score_resp() matches a key data frame by item number for any item column type", {
+  # twelve items so that string order differs from numeric order
+  set.seed(11)
+  n_item <- 12
+  raw <- as.data.frame(
+    matrix(sample(as.character(1:4), 30 * n_item, replace = TRUE), 30, n_item)
+  )
+  key_vec <- rep(c(1, 4, 3, 2), length.out = n_item)
+  out_vec <- score_resp(data = raw, key = key_vec)
+
+  # the same key rows in a shuffled order, with a numeric, character, and
+  # factor item column
+  shuffled <- c(5, 12, 1, 9, 3, 11, 7, 2, 10, 6, 8, 4)
+  key_num <- data.frame(item = shuffled, key = key_vec[shuffled])
+  key_chr <- data.frame(item = as.character(shuffled), key = key_vec[shuffled])
+  key_fct <- data.frame(item = factor(shuffled), key = key_vec[shuffled])
+  expect_identical(score_resp(data = raw, key = key_num)$scored, out_vec$scored)
+  expect_identical(score_resp(data = raw, key = key_chr)$scored, out_vec$scored)
+  expect_identical(score_resp(data = raw, key = key_fct)$scored, out_vec$scored)
+})
+
+test_that("score_resp() invalid-response warning does not refer to option numbers", {
+  # a letter-coded item with an unrecognized token
+  raw <- data.frame(V1 = c("A", "B", "7", "A"))
+  expect_warning(out <- score_resp(data = raw, key = "A"),
+                 "neither a valid option for this item")
+  expect_equal(out$resp_summary$n_invalid, 1L)
+})

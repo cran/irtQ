@@ -221,8 +221,8 @@ plot.irtfit <- function(x,
   # extract standardize the raw residuals
   std.rsd <- dplyr::select(ctg.tb, dplyr::starts_with("std.rsd"), theta = "point")
 
-  # find a z-score corresponding to significance level
-  zscore <- stats::qnorm(1 - alpha)
+  # find a z-score corresponding to the two-sided significance level
+  zscore <- stats::qnorm(1 - alpha / 2)
 
   # a data.frame including the standardized residuals and and information
   # to see if the standardized residuals are greater than a specified SR criterion.

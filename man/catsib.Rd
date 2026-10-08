@@ -49,7 +49,8 @@ for more information on scoring methods. Default is \code{NULL}.}
 
 \item{se}{A vector of standard errors corresponding to the ability estimates.
 The order of the standard errors must match the order of the ability
-estimates provided in the \code{score} argument. Default is \code{NULL}.}
+estimates provided in the \code{score} argument. It must be supplied when
+\code{score} is supplied. Default is \code{NULL}.}
 
 \item{group}{A numeric or character vector indicating examinees' group
 membership. The length of the vector must match the number of rows in the

@@ -350,3 +350,25 @@ test_that("catsib() min.binsize is enforced in the final bin filter, not just th
   }, logical(1L))
   expect_true(all(all_ok))
 })
+
+test_that("catsib() gives the same results for se given as a vector, a matrix, or a data frame", {
+  args <- list(
+    x = x_dif, data = resp_all, score = score_all$est.theta,
+    group = group_vec, focal.name = 1L, D = 1
+  )
+  res_vec <- suppressWarnings(do.call(catsib, c(args, list(se = score_all$se.theta))))
+  res_mat <- suppressWarnings(do.call(catsib, c(args, list(se = matrix(score_all$se.theta, ncol = 1)))))
+  res_df <- suppressWarnings(do.call(catsib, c(args, list(se = data.frame(se = score_all$se.theta)))))
+  expect_identical(res_mat$no_purify$dif_stat, res_vec$no_purify$dif_stat)
+  expect_identical(res_df$no_purify$dif_stat, res_vec$no_purify$dif_stat)
+})
+
+test_that("catsib() stops with an informative message when score is given without se", {
+  expect_error(
+    catsib(
+      x = x_dif, data = resp_all, score = score_all$est.theta,
+      group = group_vec, focal.name = 1L, D = 1
+    ),
+    "must be supplied in the argument 'se'"
+  )
+})

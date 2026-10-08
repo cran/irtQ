@@ -6,10 +6,12 @@
 #' item parameter drift efficiently without requiring item recalibration, making
 #' it especially valuable in computerized adaptive testing (CAT) environments.
 #' This method compares observed and expected response frequencies across
-#' quadrature points, which represent latent ability levels. The expected
-#' frequencies are computed using the posterior distribution of each examinee's
-#' ability (Stone, 2000), providing a robust and sensitive measure of item
-#' parameter drift, ensuring the stability and accuracy of the test over time.
+#' quadrature points, which represent latent ability levels. The observed
+#' pseudo-frequencies are computed using the posterior distribution of each
+#' examinee's ability, whereas the expected frequencies are the response
+#' probabilities implied by the item parameters in the item bank (Stone, 2000).
+#' This provides a sensitive measure of item parameter drift, helping to
+#' ensure the stability and accuracy of the test over time.
 #'
 #' @inheritParams rdif
 #' @inheritParams est_irt
@@ -39,16 +41,19 @@
 #'   This value is fixed to resolve the indeterminacy of the item parameter
 #'   scale during calibration.
 #' @param crit.val A critical value applied in hypothesis testing using
-#'   the Pseudo-count \eqn{D^{2}} statistic. Default is `NULL`.
+#'   the Pseudo-count \eqn{D^{2}} statistic. The user must supply it; no
+#'   default threshold is built in. If `NULL` (default), the statistic is
+#'   reported but no item is flagged and purification is not performed.
 #' @param min.resp A positive integer specifying the minimum required number of
 #'   responses for each evaluated item. Defaults to `NULL`.
 #'
 #' @details
 #' The Pseudo-count \eqn{D^{2}} statistic quantifies item parameter drift (IPD) by
 #' computing the weighted squared differences between the observed and expected
-#' response frequencies for each score category across ability levels. The expected
-#' frequencies are determined using the posterior distribution of each examinee's
-#' ability (Stone, 2000).
+#' response frequencies for each score category across ability levels. The
+#' observed pseudo-frequencies are obtained from the posterior distribution of
+#' each examinee's ability, and the expected frequencies are the category
+#' probabilities computed from the item bank parameters (Stone, 2000).
 #'
 #' The Pseudo-count \eqn{D^{2}} statistic is calculated as:
 #' \deqn{

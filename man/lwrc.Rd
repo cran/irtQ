@@ -60,8 +60,9 @@ matrix specified in \code{prob}.
 \examples{
 ## Example 1: Using a matrix of category probabilities
 ## This example is from Kolen and Brennan (2004, p. 183)
-# Create a matrix of probabilities for correct and incorrect responses to three items
-probs <- matrix(c(.74, .73, .82, .26, .27, .18), nrow = 3, ncol = 2, byrow = FALSE)
+# Create a matrix of probabilities for three items
+# (column 1: incorrect responses, column 2: correct responses)
+probs <- matrix(c(.26, .27, .18, .74, .73, .82), nrow = 3, ncol = 2, byrow = FALSE)
 
 # Create a vector specifying the number of score categories for each item
 cats <- c(2, 2, 2)

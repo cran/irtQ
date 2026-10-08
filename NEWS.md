@@ -1,6 +1,123 @@
 
 <!-- NEWS.md is generated from NEWS.Rmd. Please edit that file -->
 
+# irtQ 1.3.1
+
+## Bug Fixes
+
+- Fixed the routing in `run_mst()`. The ability estimate used to choose
+  the next module was computed from the responses to the current module
+  only. It is now computed from the responses to all modules
+  administered so far, as intended. This applies to every routing method
+  (`"bmat"`, `"mfi"`, and cut scores) and every `route_score` method, so
+  simulated paths and results can differ from earlier versions, in
+  particular from stage 3 onward.
+
+- Fixed cut-score routing in `run_mst()` for route maps in which a
+  module reaches only some modules of the next stage. The examinee could
+  be sent to a module that did not match the cut scores. Only the cut
+  scores that separate the reachable modules are now used, which is the
+  rule applied by `reval_mst()`. Results are unchanged when every module
+  of a stage can be reached.
+
+- Fixed the final estimate of `run_mst()` for responses with missing
+  values (`response` argument). The ML, WL, MLF, MAP, and EAP estimates
+  used the parameters of other items instead of those of the observed
+  items.
+
+- `score_resp()` and `ctt_distr()` now match a data frame `key` to the
+  item columns by item number when its `item` column is character or
+  factor. Before, keys for tests with 10 or more items could be assigned
+  to the wrong items.
+
+- `shape_df()` with `default.par = TRUE` now repeats a single value of
+  `cats` or `model` for all items. Before, a single `cats` value gave
+  item IDs of "V1" for every item and a guessing parameter of 0 instead
+  of 0.2 for 3PLM items.
+
+- `irtfit()` now computes the observed category proportions directly
+  from the frequencies. Before, they came from
+  `janitor::adorn_percentages()`, which can include the total column in
+  the denominator in some environments and halve the proportions, the
+  residuals, and `overSR.prop`. Results are unchanged when the
+  proportions were computed correctly.
+
+- `catsib()` no longer overwrites `score` with `se` when `se` is given
+  as a matrix or data frame.
+
+- `cac_rud()` no longer stops with a dimnames error when a performance
+  level has no examinees, and the label of the total row of `marginal`
+  is now "marginal", as in `cac_lee()`.
+
+- `simdat()` treats NA values in `g.drm` as zeros, as the item metadata
+  input does. Before, the responses to those items were all NA.
+
+- The Wald confidence intervals in `plot.irtfit()` now use the two-sided
+  critical value, `qnorm(1 - alpha / 2)`. Before, they used
+  `qnorm(1 - alpha)` and were 90% intervals at the default
+  `alpha = 0.05`, while the Wilson intervals were 95% intervals.
+
+## Minor Improvements
+
+- `reval_mst()` now stops with an informative message when the modules
+  in a stage differ in maximum sum score.
+
+- In `run_mst()` and `reval_mst()`, an ability estimate equal to a cut
+  score is now routed to the higher module, as in the classification
+  rule of `cac_lee()` and `cac_rud()`. Results change only when an
+  estimate equals a cut score exactly.
+
+- `ctt()`, `ctt_distr()` (scored-category mode), and the CTT helper
+  functions now stop with an informative error when an item score is not
+  a whole number between 0 and `cats - 1`. When `cats` is inferred,
+  every item has at least two categories, so an item that every examinee
+  scores 0 on gets a difficulty of 0 and is flagged.
+
+- `ctt()` reports the listwise deletion of incomplete rows once, and the
+  item table has default row names.
+
+- `plot.find_cut()` no longer passes an unused `inherit.aes` argument to
+  `geom_vline()`, which caused warnings with some ggplot2 versions.
+
+- `catsib()` now stops with an informative message when `score` is
+  supplied without `se`. Before, it failed with a "missing value where
+  TRUE/FALSE needed" error.
+
+## Documentation
+
+- Stated in `?reval_mst` that the recursion is based on inverse TCC
+  estimates, that only inverse TCC scoring with cut-score routing is
+  supported, and that modules in a stage must have the same maximum sum
+  score; corrected the documented default of `theta` and the description
+  of the returned list.
+
+- In `?run_mst`, described the cumulative routing estimate and the
+  relation to `reval_mst()`, and stated that `"EAP.SUM"` and `"INV.TCC"`
+  count a missing response as 0 in the final sum score.
+
+- Corrected the interpretation of alpha with the item removed in `?ctt`.
+  The `ctt()` examples and the CTT article now use simulated IRT data.
+
+- Corrected the description of the expected frequencies in `pcd2()` and
+  stated that `crit.val = NULL` flags no items.
+
+- Reworded the motivation of `ripd()`.
+
+- In `?simMST`, noted that the item parameters are on the D = 1.702
+  scale. In `?find_cut`, clarified that the cut scores in `simMST` were
+  obtained with `find_cut()` and softened the statement about path
+  reversals.
+
+- Corrected the probability matrix of the first example in `?lwrc`, the
+  GPCM formula note in `?irtQ`, and the class of `prob.cats` in
+  `?traceline`. Corrected statements in the README, the vignette
+  overview, and the articles (shrinkage of MAP and EAP, `range.score` in
+  `irtfit()`, `fix.id` in `est_mg()`, the effect of `EmpHist` in FIPC,
+  the fixed-slope 1PLM, fixed guessing, the CATSIB regression
+  correction, the purification procedure, and the usage notes of the
+  utility functions). The DIF article now simulates item difficulties in
+  a narrower range so that the pooled calibrations converge.
+
 # irtQ 1.3.0
 
 ## New Features

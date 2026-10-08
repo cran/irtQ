@@ -19,7 +19,8 @@
 #'   for more information on scoring methods. Default is `NULL`.
 #' @param se A vector of standard errors corresponding to the ability estimates.
 #'   The order of the standard errors must match the order of the ability
-#'   estimates provided in the `score` argument. Default is `NULL`.
+#'   estimates provided in the `score` argument. It must be supplied when
+#'   `score` is supplied. Default is `NULL`.
 #' @param n.bin A numeric vector of two positive integers specifying the maximum
 #'   and minimum numbers of bins (or intervals) on the ability scale. The first
 #'   and second values represent the maximum and minimum numbers of bins,
@@ -345,6 +346,15 @@ catsib <- function(x = NULL,
     stop("The current version only supports dichotomous response data.", call. = FALSE)
   }
 
+  # stop when the ability estimates are given without their standard errors
+  if (!is.null(score) && is.null(se)) {
+    stop(
+      "The standard errors of the ability estimates must be supplied in the argument 'se' ",
+      "when 'score' is supplied.",
+      call. = FALSE
+    )
+  }
+
   # create an item id
   if (is.null(x)) {
     item.id <- paste0("item.", 1:ncol(data))
@@ -360,7 +370,7 @@ catsib <- function(x = NULL,
     }
     # transform scores to a vector form
     if (is.matrix(se) | is.data.frame(se)) {
-      score <- as.numeric(data.matrix(se))
+      se <- as.numeric(data.matrix(se))
     }
   } else {
     # if min.resp is not NULL, find the examinees who have the number of responses

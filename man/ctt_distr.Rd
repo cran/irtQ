@@ -23,8 +23,9 @@ of \code{\link[=score_resp]{score_resp()}} (a selected option number, a missing-
 indicator, or a comma-separated string such as \code{"1,5"} for a
 double-marked response). In scored-category mode (\code{key = NULL}), a data
 frame or matrix of already-scored item responses with scores 0 to
-\code{cats[j] - 1} for each item j. Either way, examinees are rows and items
-are columns.}
+\code{cats[j] - 1} for each item j; an error is raised when a score is not a
+whole number between 0 and \code{cats[j] - 1}. Either way, examinees are rows
+and items are columns.}
 
 \item{item.id}{A character vector of item identifiers, in the same order
 as the columns of \code{data}. If \code{NULL} (default), item IDs are generated
@@ -59,7 +60,8 @@ for what happens if items actually differ.}
 item, following the same convention as \code{\link[=ctt]{ctt()}}. Only used in
 scored-category mode (\code{key = NULL}); silently ignored when \code{key} is
 supplied. If \code{NULL} (default), inferred per item as the observed maximum
-score plus one.}
+score plus one, with a minimum of two. Each value must be a whole number
+of at least 2.}
 
 \item{total}{An optional numeric vector of total scores, one per
 examinee, aligned with the rows of \code{data}. If \code{NULL} (default), the

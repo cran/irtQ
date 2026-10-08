@@ -38,9 +38,9 @@ used for this purpose. Default is 1.}
 This function returns an object of class \code{traceline}, which is a list
 containing the following components:
 
-\item{prob.cats}{A list of data frames containing the category response
-probabilities for each item across the specified theta values. Each data
-frame corresponds to an item, with rows representing theta values and
+\item{prob.cats}{A list of matrices containing the category response
+probabilities for each item across the specified theta values. Each
+matrix corresponds to an item, with rows representing theta values and
 columns representing response categories (e.g., \code{"resp.0"}, \code{"resp.1"}, ...).}
 
 \item{icc}{A numeric matrix representing ICCs. Each column corresponds to

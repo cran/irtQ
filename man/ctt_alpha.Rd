@@ -10,7 +10,8 @@ ctt_alpha(data, item.id = NULL, cats = NULL, correct = FALSE, missing = NA)
 \item{data}{A data frame or matrix of already-scored item responses, with
 examinees in rows and items in columns. Item scores must range from 0 to
 \code{cats[j] - 1} for each item j (0/1 for a dichotomous item; 0, 1, 2, ...
-for a polytomous/partial-credit item).}
+for a polytomous/partial-credit item). An error is raised when a score
+is not a whole number between 0 and \code{cats[j] - 1}.}
 
 \item{item.id}{A character vector of item identifiers, in the same order
 as the columns of \code{data}. If \code{NULL} (default), item IDs are generated
@@ -24,8 +25,10 @@ any other identifier scheme.}
 each item (e.g., 2 for a dichotomous item), following the \code{cats}
 convention used elsewhere in irtQ (see, e.g., \code{\link[=shape_df]{shape_df()}}). If
 \code{NULL} (default), the number of categories for each item is inferred
-from the observed maximum score in \code{data} (i.e., \code{max(data[, j], na.rm = TRUE) + 1}); supply \code{cats} explicitly whenever the maximum possible score
-may not have been observed in the sample.}
+from the observed maximum score in \code{data} plus one, with a minimum of
+two (i.e., \code{max(max(data[, j]) + 1, 2)}); supply \code{cats} explicitly
+whenever the maximum possible score may not have been observed in the
+sample. Each value must be a whole number of at least 2.}
 
 \item{correct}{Logical. Both the raw (uncorrected) item-total correlation -
 where an item (or, in \code{\link[=ctt_distr]{ctt_distr()}}, a response option/category) is
@@ -113,15 +116,14 @@ so \code{correct} has no further effect here beyond being passed through to
 
 Because \code{mean_difficulty}/\code{mean_discrimination_raw}/
 \code{mean_discrimination_corrected} are averaged with \code{na.rm = TRUE}, they
-inherit \code{\link[=ctt_item]{ctt_item()}}'s \code{cats}-auto-inference caveat: an item whose observed
-score range never reaches its true maximum (most notably, an item that
-every examinee scores 0 on) will have its difficulty silently excluded
-from the average rather than contributing a \code{0}, which can bias the
-reported mean upward in extreme/degenerate samples. This is unlikely to
-matter with a reasonably large, non-degenerate sample, but supplying
-\code{cats} explicitly avoids the issue entirely. If every item in \code{data} is
-degenerate in this way, these means will be \code{NaN} (mean of an empty/all-
-\code{NA} vector) rather than \code{NA}.
+inherit \code{\link[=ctt_item]{ctt_item()}}'s \code{cats}-auto-inference rule: when \code{cats} is not
+supplied, it is inferred as the observed maximum score plus one, with a
+minimum of two. An item that every examinee scores 0 on therefore enters
+the average with a difficulty of 0 and is flagged as "difficulty too low"
+by \code{\link[=ctt_item]{ctt_item()}}. For a polytomous item whose highest score category is not
+observed in the sample, however, \code{cats} is inferred too small and the
+difficulty is biased upward, so supply \code{cats} explicitly whenever the
+maximum possible score may not have been observed.
 }
 \references{
 Cronbach, L. J. (1951). Coefficient alpha and the internal structure of

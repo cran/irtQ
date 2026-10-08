@@ -35,7 +35,10 @@
 #'   This 1-3-3 MST panel includes 7 modules across 3 stages, drawn from
 #'   56 unique items (8 per module) with no item shared across modules. Each
 #'   module contains 8 dichotomously scored items calibrated under the IRT
-#'   3-parameter logistic (3PL) model.
+#'   3-parameter logistic (3PL) model. The item parameters are on the D = 1.702
+#'   scale, so pass \code{D = 1.702} to \code{\link{find_cut}()},
+#'   \code{\link{reval_mst}()}, and \code{\link{run_mst}()} when using this
+#'   panel.
 #'
 #' @author Hwanggyu Lim \email{hglim83@@gmail.com}
 #'

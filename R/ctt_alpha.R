@@ -55,15 +55,14 @@
 #'
 #' Because `mean_difficulty`/`mean_discrimination_raw`/
 #' `mean_discrimination_corrected` are averaged with `na.rm = TRUE`, they
-#' inherit [ctt_item()]'s `cats`-auto-inference caveat: an item whose observed
-#' score range never reaches its true maximum (most notably, an item that
-#' every examinee scores 0 on) will have its difficulty silently excluded
-#' from the average rather than contributing a `0`, which can bias the
-#' reported mean upward in extreme/degenerate samples. This is unlikely to
-#' matter with a reasonably large, non-degenerate sample, but supplying
-#' `cats` explicitly avoids the issue entirely. If every item in `data` is
-#' degenerate in this way, these means will be `NaN` (mean of an empty/all-
-#' `NA` vector) rather than `NA`.
+#' inherit [ctt_item()]'s `cats`-auto-inference rule: when `cats` is not
+#' supplied, it is inferred as the observed maximum score plus one, with a
+#' minimum of two. An item that every examinee scores 0 on therefore enters
+#' the average with a difficulty of 0 and is flagged as "difficulty too low"
+#' by [ctt_item()]. For a polytomous item whose highest score category is not
+#' observed in the sample, however, `cats` is inferred too small and the
+#' difficulty is biased upward, so supply `cats` explicitly whenever the
+#' maximum possible score may not have been observed.
 #'
 #' @return A one-row data frame containing:
 #' \item{n_examinee}{number of examinees included (after listwise deletion).}
@@ -130,6 +129,9 @@ ctt_alpha <- function(data, item.id = NULL, cats = NULL, correct = FALSE,
             "excluded listwise from ctt_alpha().", call. = FALSE)
     data <- data[complete_rows, , drop = FALSE]
   }
+
+  # stop when a score or a `cats` value is not valid
+  check_ctt_scores(data, cats, item.id)
   n_examinee <- nrow(data)
 
   # per-item variances and the total-score variance, used in the alpha
@@ -157,7 +159,9 @@ ctt_alpha <- function(data, item.id = NULL, cats = NULL, correct = FALSE,
   # if every pairwise correlation is NA (e.g., all items constant), r_bar and
   # therefore alpha_std are NaN, mirroring alpha's own NA-when-undefined
   # behavior above.
-  item_cor <- stats::cor(data)                       # k x k item correlation matrix
+  # the zero-standard-deviation warning for a constant item is suppressed
+  # because its NA correlations are handled by na.rm = TRUE below
+  item_cor <- suppressWarnings(stats::cor(data))     # k x k item correlation matrix
   r_bar <- mean(item_cor[upper.tri(item_cor)], na.rm = TRUE)  # mean off-diagonal r
   alpha_std <- (n_item * r_bar) / (1 + (n_item - 1) * r_bar)
 

@@ -18,7 +18,8 @@
 #' @param data A data frame or matrix of already-scored item responses, with
 #'   examinees in rows and items in columns. Item scores must range from 0 to
 #'   `cats[j] - 1` for each item j (0/1 for a dichotomous item; 0, 1, 2, ...
-#'   for a polytomous/partial-credit item).
+#'   for a polytomous/partial-credit item). An error is raised when a score
+#'   is not a whole number between 0 and `cats[j] - 1`.
 #' @param item.id A character vector of item identifiers, in the same order
 #'   as the columns of `data`. If `NULL` (default), item IDs are generated
 #'   automatically as `paste0("V", 1:ncol(data))`, following the convention
@@ -30,9 +31,10 @@
 #'   each item (e.g., 2 for a dichotomous item), following the `cats`
 #'   convention used elsewhere in irtQ (see, e.g., [irtQ::shape_df()]). If
 #'   `NULL` (default), the number of categories for each item is inferred
-#'   from the observed maximum score in `data` (i.e., `max(data[, j], na.rm =
-#'   TRUE) + 1`); supply `cats` explicitly whenever the maximum possible score
-#'   may not have been observed in the sample.
+#'   from the observed maximum score in `data` plus one, with a minimum of
+#'   two (i.e., `max(max(data[, j]) + 1, 2)`); supply `cats` explicitly
+#'   whenever the maximum possible score may not have been observed in the
+#'   sample. Each value must be a whole number of at least 2.
 #' @param correct Logical. Both the raw (uncorrected) item-total correlation -
 #'   where an item is correlated with the total score that includes its own
 #'   contribution - and the corrected item-total correlation - excluding its
@@ -79,8 +81,9 @@
 #' `raw.r` and the corrected version as `r.drop`).
 #'
 #' Alpha-with-item-removed for item j is Cronbach's alpha (see below)
-#' recomputed using only the remaining items, so that a low value flags an
-#' item whose removal would increase the overall reliability of the test.
+#' recomputed using only the remaining items, so that a value above the
+#' overall alpha identifies an item whose removal would increase the
+#' reliability of the test.
 #'
 #' At the test level, two forms of Cronbach's alpha are always computed and
 #' reported. Raw alpha uses the standard variance-based formula
@@ -149,9 +152,15 @@
 #'   \doi{10.1037/1082-989X.5.3.343}.
 #'
 #' @examples
-#' # A small dichotomous example
+#' # A dichotomous example: simulate the responses of 300 examinees to 15
+#' # 3PLM items, then run ctt() on the simulated data
 #' set.seed(1)
-#' dat <- data.frame(matrix(rbinom(300 * 8, 1, 0.6), nrow = 300))
+#' x_bin <- shape_df(
+#'   par.drm = list(a = rep(1.5, 15), b = seq(-1.5, 1.5, length.out = 15),
+#'                  g = rep(0.2, 15)),
+#'   cats = 2, model = "3PLM"
+#' )
+#' dat <- simdat(x = x_bin, theta = rnorm(300), D = 1)
 #' out <- ctt(data = dat)
 #' out
 #' summary(out)
@@ -178,33 +187,43 @@ ctt <- function(data, item.id = NULL, cats = NULL, correct = FALSE,
   call <- match.call()
 
   # coerce to a plain data frame so column-wise access behaves consistently
-  # for matrix/tibble/data.frame input alike, and so the local re-derivation
-  # of the total score below matches what ctt_item()/ctt_alpha() operate on
+  # for matrix/tibble/data.frame input alike
   data <- as.data.frame(data, stringsAsFactors = FALSE)
 
+  # recode a user-specified missing-value sentinel to NA before analysis
+  if (!is.na(missing)) {
+    data[data == missing] <- NA
+  }
+
+  # listwise-delete any examinee with a remaining missing response, warning
+  # once, so every statistic below uses the same set of examinees
+  complete_rows <- stats::complete.cases(data)
+  n_dropped <- sum(!complete_rows)
+  if (n_dropped > 0L) {
+    warning(n_dropped, " examinee(s) with missing item responses were ",
+            "excluded listwise from ctt().", call. = FALSE)
+  }
+  data <- data[complete_rows, , drop = FALSE]
+
+  # at least one examinee with complete responses is required
+  if (nrow(data) == 0L) {
+    stop("No examinee has complete item responses.", call. = FALSE)
+  }
+
   # item-level statistics: difficulty, raw/corrected discrimination,
-  # alpha-with-item-removed, and flagging
+  # alpha-with-item-removed, and flagging; `data` has no missing values left
   item_out <- ctt_item(data = data, item.id = item.id, cats = cats,
-                        correct = correct, missing = missing, flag = flag,
+                        correct = correct, missing = NA, flag = flag,
                         crit.p = crit.p, crit.dis = crit.dis)
 
   # test-level reliability summary (alpha, SEM, mean difficulty/discrimination)
   alpha_out <- ctt_alpha(data = data, item.id = item.id, cats = cats,
-                          correct = correct, missing = missing)
+                          correct = correct, missing = NA)
 
-  # re-derive the total score using the same missing-recode + listwise-
-  # deletion steps used inside ctt_item()/ctt_alpha(), so freq_score() below
-  # tabulates the identical set of examinees and the identical score
-  # definition as the rest of this function's output
-  data_clean <- data
-  if (!is.na(missing)) {
-    data_clean[data_clean == missing] <- NA
-  }
-  data_clean <- data_clean[stats::complete.cases(data_clean), , drop = FALSE]
-  total <- rowSums(data_clean)
+  # total score of the retained examinees, which freq_score() tabulates
+  total <- rowSums(data)
 
-  # total-score frequency distribution (no further missing values remain,
-  # since data_clean has already been listwise-deleted above)
+  # total-score frequency distribution (no missing values remain)
   freq_out <- freq_score(score = total, missing = NA)
 
   # bundle all three module results together under a single S3-classed object

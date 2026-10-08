@@ -36,8 +36,9 @@ IRT software output. The function calls \code{confirm_df(x)} internally
 to validate and normalise the metadata.}
 
 \item{route_map}{A binary square matrix defining the MST transition
-structure. A 1 at row \emph{i}, column \emph{j} means that a test taker
-can be routed from module \emph{i} to module \emph{j}. Equivalent to the
+structure. An entry of 1 in row \emph{i} and column \emph{j} means that a
+test taker can be routed from module \emph{i} to module \emph{j}.
+Equivalent to the
 \code{transMatrix} argument in \code{randomMST()} from \pkg{mstR}
 (Magis et al., 2017). See \code{\link{reval_mst}} for details.}
 
@@ -105,9 +106,9 @@ used when \code{route_method = NULL}. The list should have
 contains the cut scores for routing from stage \emph{s} to stage
 \emph{s}+1. For example, in a 1-3-3 MST, \code{cut_score = list(c(-0.5,
 0.5), c(-0.6, 0.6))} routes examinees whose stage-1 score is below
-\eqn{-0.5} to the easiest stage-2 module, between \eqn{-0.5} and
-\eqn{0.5} to the medium module, and above \eqn{0.5} to the hardest
-module. Ignored when \code{route_method} is \code{"bmat"} or
+\eqn{-0.5} to the easiest stage-2 module, from \eqn{-0.5} up to but not
+including \eqn{0.5} to the medium module, and \eqn{0.5} or above to the
+hardest module. Ignored when \code{route_method} is \code{"bmat"} or
 \code{"mfi"}. Default is \code{NULL}.}
 
 \item{route_score}{A named list specifying the scoring method and options
@@ -121,8 +122,9 @@ a posteriori), \code{"EAP"} (expected a posteriori; Bock & Mislevy,
 1982), \code{"EAP.SUM"} (EAP summed scoring; Thissen et al., 1995),
 or \code{"INV.TCC"} (inverse test characteristic curve scoring; Lim
 et al., 2021). For \code{"EAP.SUM"} and \code{"INV.TCC"}, a
-sum-score-to-theta lookup table is pre-computed once per module before
-the simulation loop; routing theta is then obtained by a single
+sum-score-to-theta lookup table is pre-computed once per partial
+pathway (the modules of stages 1 to \emph{s}) before the simulation
+loop; routing theta is then obtained by a single
 named-vector lookup, making the approach efficient for large \eqn{N}.
 Default: \code{"ML"}.}
 \item{\code{range}}{Numeric vector of length 2: lower and upper bounds
@@ -154,21 +156,8 @@ Example: \code{route_score = list(method = "INV.TCC", range.tcc = c(-5, 5))}.}
 
 \item{final_score}{A named list specifying the scoring method and options
 for the final ability estimate (applied to all items accumulated across
-the entire administered pathway). Supports all fields in
-\code{route_score} plus:
-\describe{
-\item{\code{method}}{Character. Supports all \code{route_score} methods,
-plus \code{"EAP.SUM"} (EAP summed scoring; Thissen et al., 1995) and
-\code{"INV.TCC"} (inverse test characteristic curve scoring; Lim et
-al., 2021). Default: \code{"ML"}.}
-\item{\code{intpol}}{Logical: enable linear interpolation for
-\code{"INV.TCC"}. Default: \code{TRUE}.}
-\item{\code{range.tcc}}{Numeric vector of length 2: theta search range
-for \code{"INV.TCC"}. Default: \code{c(-7, 7)}.}
-\item{\code{max.it}}{Integer: maximum bisection iterations for
-\code{"INV.TCC"}. Default: \code{500}.}
-}
-The full default is equivalent to
+the entire administered pathway). It takes the same fields, methods, and
+defaults as \code{route_score}. The full default is equivalent to
 \code{list(method = "ML", range = c(-5, 5), norm.prior = c(0, 1),}
 \code{nquad = 41L, tol = 1e-4, max.iter = 100L, fence.a = 3.0, fence.b = NULL,}
 \code{intpol = TRUE, range.tcc = c(-7, 7), max.it = 500L)}.}
@@ -216,9 +205,10 @@ pre-computed lookup table. \code{NA} when \code{se = FALSE}, when all
 responses are missing, or when the sum score falls outside the
 estimable range.}
 \item{\code{theta.route}}{An \emph{N} x \code{n.stage} numeric matrix
-of ability estimates. Columns 1 to \code{n.stage - 1} are the
-intermediate routing estimates; column \code{n.stage} is the final
-estimate (equal to \code{est.theta}).}
+of ability estimates. Column \emph{s} (\emph{s} < \code{n.stage}) is the
+cumulative routing estimate after stage \emph{s}, computed from the
+responses to all modules administered in stages 1 to \emph{s}; column
+\code{n.stage} is the final estimate (equal to \code{est.theta}).}
 \item{\code{path}}{An \emph{N} x \code{n.stage} integer matrix of
 administered module indices.}
 \item{\code{true.theta}}{The \code{theta} argument (true abilities), or
@@ -273,9 +263,9 @@ booklet-based allocation used in operational testing. When \code{ini_mod}
 is an integer, all examinees start at the specified stage-1 module.
 
 \strong{Routing (stages 1 to n.stage - 1)}: After each non-final stage,
-an intermediate ability estimate is obtained from the current stage's
-responses using the \code{route_score} method. This estimate is used to
-select the next-stage module:
+an intermediate ability estimate is obtained from the responses to all
+modules administered so far using the \code{route_score} method. This
+estimate is used to select the next-stage module:
 \itemize{
 \item \code{"bmat"}: the reachable module (via \code{route_map}) whose
 mean item location is closest to the routing estimate is selected.
@@ -285,14 +275,31 @@ GRM/GPCM items, it is the mean of the threshold / step parameters.
 information at the routing estimate is selected.
 \item \code{NULL}: the routing estimate is compared against the cut
 scores in \code{cut_score[[s]]} (for the transition from stage
-\emph{s} to stage \emph{s}+1) to assign a rank, and the rank-th
-reachable module (ordered by module index) is administered. If the
-rank exceeds the number of reachable modules, the last module is used.
+\emph{s} to stage \emph{s}+1). The cut scores are tied to the modules
+of stage \emph{s}+1 in order of module index: cut score \emph{k}
+separates the \emph{k}-th and the (\emph{k}+1)-th module of the stage.
+When only some modules of the stage can be reached from the current
+module, only the cut scores that separate the reachable modules are
+used, as in \code{\link{reval_mst}}, and the module whose interval
+contains the estimate is administered. An estimate equal to a cut
+score is assigned to the higher module. When every module of the next
+stage is reachable, all cut scores are used.
 }
 
 \strong{Final scoring}: Responses from all administered stages are
 concatenated, and the final ability estimate is computed using the
-\code{final_score} method.
+\code{final_score} method. With \code{"EAP.SUM"} or \code{"INV.TCC"}, a
+missing response is counted as 0 in the sum score, as in
+\code{\link{est_score}}, but no warning is issued.
+
+\strong{Relation to \code{reval_mst()}}: With \code{route_method = NULL}, a
+\code{cut_score} list, and \code{route_score = list(method = "INV.TCC")},
+the routing rule is the one that \code{\link{reval_mst}} evaluates
+analytically: cut scores are applied to the inverse TCC estimate of the
+cumulative sum score. With \code{final_score = list(method = "INV.TCC")} as
+well, the simulated bias and conditional standard error of measurement
+approach the \code{reval_mst()} values as the number of simulated examinees
+grows.
 }
 \examples{
 \donttest{
@@ -440,8 +447,9 @@ plot(cut_result)
 ## ---------------------------------------------------------
 # INV.TCC can be used as both the routing and final scoring method.
 # Before the examinee loop, run_mst() pre-computes a sum_score -> theta
-# lookup table for every module (routing) and for every unique complete
-# pathway (final scoring), consistent with the reval_mst() approach.
+# lookup table for every unique partial pathway (routing) and for every
+# unique complete pathway (final scoring), consistent with the reval_mst()
+# approach.
 # SE is taken from the pre-computed lookup table.
 
 result_inv <- run_mst(

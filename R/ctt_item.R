@@ -9,7 +9,8 @@
 #' @param data A data frame or matrix of already-scored item responses, with
 #'   examinees in rows and items in columns. Item scores must range from 0 to
 #'   `cats[j] - 1` for each item j (0/1 for a dichotomous item; 0, 1, 2, ...
-#'   for a polytomous/partial-credit item).
+#'   for a polytomous/partial-credit item). An error is raised when a score
+#'   is not a whole number between 0 and `cats[j] - 1`.
 #' @param item.id A character vector of item identifiers, in the same order
 #'   as the columns of `data`. If `NULL` (default), item IDs are generated
 #'   automatically as `paste0("V", 1:ncol(data))`, following the convention
@@ -21,9 +22,10 @@
 #'   each item (e.g., 2 for a dichotomous item), following the `cats`
 #'   convention used elsewhere in irtQ (see, e.g., [irtQ::shape_df()]). If
 #'   `NULL` (default), the number of categories for each item is inferred
-#'   from the observed maximum score in `data` (i.e., `max(data[, j], na.rm =
-#'   TRUE) + 1`); supply `cats` explicitly whenever the maximum possible score
-#'   may not have been observed in the sample.
+#'   from the observed maximum score in `data` plus one, with a minimum of
+#'   two (i.e., `max(max(data[, j]) + 1, 2)`); supply `cats` explicitly
+#'   whenever the maximum possible score may not have been observed in the
+#'   sample. Each value must be a whole number of at least 2.
 #' @param correct Logical. Both the raw (uncorrected) item-total correlation -
 #'   where an item (or, in [ctt_distr()], a response option/category) is
 #'   correlated with the total score that includes its own contribution -
@@ -146,14 +148,14 @@ ctt_item <- function(data, item.id = NULL, cats = NULL, correct = FALSE,
     data <- data[complete_rows, , drop = FALSE]
   }
 
+  # stop when a score or a `cats` value is not valid
+  check_ctt_scores(data, cats, item_names)
+
   # infer the number of score categories per item from the observed maximum
-  # score, when not supplied explicitly (cats[j] = observed max score + 1)
+  # score, when not supplied explicitly (cats[j] = observed max score + 1,
+  # with a minimum of two categories)
   if (is.null(cats)) {
-    cats <- vapply(data, function(x) max(x, na.rm = TRUE) + 1, numeric(1))
-  }
-  if (length(cats) != n_item) {
-    stop("length(cats) must equal ncol(data): one value per item.",
-         call. = FALSE)
+    cats <- pmax(vapply(data, function(x) max(x) + 1, numeric(1)), 2)
   }
 
   # total score across all items (row sums), used for item-total correlations
@@ -222,7 +224,7 @@ ctt_item <- function(data, item.id = NULL, cats = NULL, correct = FALSE,
   # assemble the per-item result data frame, rounding for readable reporting
   item_df <- data.frame(
     item = item_names,
-    cats = cats,
+    cats = unname(cats),
     difficulty = round(difficulty, 3),
     discrimination_raw = round(discrimination_raw, 3),
     discrimination_corrected = round(discrimination_corrected, 3),
@@ -252,4 +254,68 @@ ctt_item <- function(data, item.id = NULL, cats = NULL, correct = FALSE,
 
   # return the per-item statistics and the thresholds used to flag them
   list(item = item_df, crit = list(crit.p = crit.p, crit.dis = crit.dis))
+}
+
+# validates scored item responses and the `cats` vector for the CTT functions.
+# `data` is a data frame with missing values already removed, `cats` is NULL
+# or one number of categories per item, and `item_names` labels the items in
+# the error messages. returns NULL invisibly and stops on the first problem
+check_ctt_scores <- function(data, cats = NULL, item_names = NULL) {
+
+  # number of items and default item labels for the messages
+  n_item <- ncol(data)
+  if (is.null(item_names)) {
+    item_names <- paste0("V", seq_len(n_item))
+  }
+
+  # every column must hold numeric or logical scores
+  not_numeric <- !vapply(data, function(x) is.numeric(x) || is.logical(x),
+                         logical(1))
+  if (any(not_numeric)) {
+    stop("Item scores must be numeric. Non-numeric item(s): ",
+         paste(item_names[not_numeric], collapse = ", "), ".", call. = FALSE)
+  }
+
+  # at least one examinee must remain after the missing-data handling
+  if (nrow(data) == 0L) {
+    stop("No examinee has complete item responses.", call. = FALSE)
+  }
+
+  # every score must be a finite whole number of at least 0
+  not_whole <- vapply(data, function(x) {
+    any(!is.finite(x) | x < 0 | abs(x - round(x)) > 1e-8)
+  }, logical(1))
+  if (any(not_whole)) {
+    stop("Item scores must be whole numbers between 0 and cats - 1. ",
+         "Invalid score(s) in item(s): ",
+         paste(item_names[not_whole], collapse = ", "), ".", call. = FALSE)
+  }
+
+  # nothing more to check when `cats` is not supplied
+  if (is.null(cats)) {
+    return(invisible(NULL))
+  }
+
+  # one `cats` value per item, each a whole number of at least 2
+  if (length(cats) != n_item) {
+    stop("length(cats) must equal ncol(data): one value per item.",
+         call. = FALSE)
+  }
+  if (!is.numeric(cats) || any(!is.finite(cats)) || any(cats < 2) ||
+      any(abs(cats - round(cats)) > 1e-8)) {
+    stop("`cats` must contain whole numbers of at least 2, one per item.",
+         call. = FALSE)
+  }
+
+  # no score may exceed the maximum score implied by `cats`
+  too_high <- vapply(seq_len(n_item), function(j) {
+    max(data[[j]]) > cats[j] - 1 + 1e-8
+  }, logical(1))
+  if (any(too_high)) {
+    stop("Item scores must be whole numbers between 0 and cats - 1. ",
+         "Score(s) above cats - 1 in item(s): ",
+         paste(item_names[too_high], collapse = ", "), ".", call. = FALSE)
+  }
+
+  invisible(NULL)
 }

@@ -19,7 +19,8 @@ ctt(
 \item{data}{A data frame or matrix of already-scored item responses, with
 examinees in rows and items in columns. Item scores must range from 0 to
 \code{cats[j] - 1} for each item j (0/1 for a dichotomous item; 0, 1, 2, ...
-for a polytomous/partial-credit item).}
+for a polytomous/partial-credit item). An error is raised when a score
+is not a whole number between 0 and \code{cats[j] - 1}.}
 
 \item{item.id}{A character vector of item identifiers, in the same order
 as the columns of \code{data}. If \code{NULL} (default), item IDs are generated
@@ -33,8 +34,10 @@ any other identifier scheme.}
 each item (e.g., 2 for a dichotomous item), following the \code{cats}
 convention used elsewhere in irtQ (see, e.g., \code{\link[=shape_df]{shape_df()}}). If
 \code{NULL} (default), the number of categories for each item is inferred
-from the observed maximum score in \code{data} (i.e., \code{max(data[, j], na.rm = TRUE) + 1}); supply \code{cats} explicitly whenever the maximum possible score
-may not have been observed in the sample.}
+from the observed maximum score in \code{data} plus one, with a minimum of
+two (i.e., \code{max(max(data[, j]) + 1, 2)}); supply \code{cats} explicitly
+whenever the maximum possible score may not have been observed in the
+sample. Each value must be a whole number of at least 2.}
 
 \item{correct}{Logical. Both the raw (uncorrected) item-total correlation -
 where an item is correlated with the total score that includes its own
@@ -123,8 +126,9 @@ how, e.g., \code{psych::alpha()} reports the raw item-total correlation as
 \code{raw.r} and the corrected version as \code{r.drop}).
 
 Alpha-with-item-removed for item j is Cronbach's alpha (see below)
-recomputed using only the remaining items, so that a low value flags an
-item whose removal would increase the overall reliability of the test.
+recomputed using only the remaining items, so that a value above the
+overall alpha identifies an item whose removal would increase the
+reliability of the test.
 
 At the test level, two forms of Cronbach's alpha are always computed and
 reported. Raw alpha uses the standard variance-based formula
@@ -161,9 +165,15 @@ exported separately, for callers who only need a frequency distribution
 for an arbitrary vector of integer total scores.
 }
 \examples{
-# A small dichotomous example
+# A dichotomous example: simulate the responses of 300 examinees to 15
+# 3PLM items, then run ctt() on the simulated data
 set.seed(1)
-dat <- data.frame(matrix(rbinom(300 * 8, 1, 0.6), nrow = 300))
+x_bin <- shape_df(
+  par.drm = list(a = rep(1.5, 15), b = seq(-1.5, 1.5, length.out = 15),
+                 g = rep(0.2, 15)),
+  cats = 2, model = "3PLM"
+)
+dat <- simdat(x = x_bin, theta = rnorm(300), D = 1)
 out <- ctt(data = dat)
 out
 summary(out)

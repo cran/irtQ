@@ -31,11 +31,12 @@ parameters by marginal maximum likelihood with the EM algorithm
 parameters or fixed abilities (`est_irt()`, `est_item()`), estimating
 examinees' abilities (`est_score()`), evaluating model-data fit (`irtfit()`,
 `sx2_fit()`), and detecting differential item functioning (`rdif()`,
-`crdif()`, `grdif()`, `catsib()`). It also provides functions for item and
-test information (`info()`), item response curves (`traceline()`),
-classification accuracy and consistency (`cac_lee()`, `cac_rud()`), multistage
-test panels (`panel_info()`, `reval_mst()`, `run_mst()`), and classical test
-theory (`ctt()`).
+`crdif()`, `grdif()`, `catsib()`) and item parameter drift (`ripd()`,
+`pcd2()`). It also provides functions for item and test information
+(`info()`), item response curves (`traceline()`), classification accuracy and
+consistency (`cac_lee()`, `cac_rud()`), multistage test panels
+(`panel_info()`, `find_cut()`, `reval_mst()`, `run_mst()`), and classical test
+theory (`ctt()`, `freq_score()`, `ctt_distr()`, `score_resp()`).
 
 This vignette walks through a short workflow: read item parameters, simulate
 responses, calibrate the items, estimate abilities, check fit, and compute test

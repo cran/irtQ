@@ -19,7 +19,8 @@ ctt_item(
 \item{data}{A data frame or matrix of already-scored item responses, with
 examinees in rows and items in columns. Item scores must range from 0 to
 \code{cats[j] - 1} for each item j (0/1 for a dichotomous item; 0, 1, 2, ...
-for a polytomous/partial-credit item).}
+for a polytomous/partial-credit item). An error is raised when a score
+is not a whole number between 0 and \code{cats[j] - 1}.}
 
 \item{item.id}{A character vector of item identifiers, in the same order
 as the columns of \code{data}. If \code{NULL} (default), item IDs are generated
@@ -33,8 +34,10 @@ any other identifier scheme.}
 each item (e.g., 2 for a dichotomous item), following the \code{cats}
 convention used elsewhere in irtQ (see, e.g., \code{\link[=shape_df]{shape_df()}}). If
 \code{NULL} (default), the number of categories for each item is inferred
-from the observed maximum score in \code{data} (i.e., \code{max(data[, j], na.rm = TRUE) + 1}); supply \code{cats} explicitly whenever the maximum possible score
-may not have been observed in the sample.}
+from the observed maximum score in \code{data} plus one, with a minimum of
+two (i.e., \code{max(max(data[, j]) + 1, 2)}); supply \code{cats} explicitly
+whenever the maximum possible score may not have been observed in the
+sample. Each value must be a whole number of at least 2.}
 
 \item{correct}{Logical. Both the raw (uncorrected) item-total correlation -
 where an item (or, in \code{\link[=ctt_distr]{ctt_distr()}}, a response option/category) is

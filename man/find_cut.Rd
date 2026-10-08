@@ -99,7 +99,8 @@ module's TIF first overtakes the easier module's TIF \emph{from below}
 as theta increases. This crossing point is the natural boundary between
 the two modules: below it, the easier module is more informative; above it,
 the harder module is more informative. Using this point as a fixed cut
-score pre-empts the path reversal problem entirely.
+score pre-empts the path reversals that MFI routing produces at the extremes
+of the scale.
 }
 
 \subsection{Proper vs. anomalous crossings}{
@@ -186,7 +187,8 @@ plot(cut_result, show_anomalous = FALSE) # hide anomalous crossing markers
 ## cut_score[[2]]: cut scores for the stage-2 -> stage-3 transition
 cut_result$cut_score
 
-## Compare with the manually specified cut scores stored in simMST
+## Compare with the cut scores stored in simMST, which were obtained the
+## same way; the two sets of values are identical
 simMST$cut_score
 
 ## -- Use the cut scores in run_mst() --------------------------------------

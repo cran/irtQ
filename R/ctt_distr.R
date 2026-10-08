@@ -38,8 +38,9 @@
 #'   indicator, or a comma-separated string such as `"1,5"` for a
 #'   double-marked response). In scored-category mode (`key = NULL`), a data
 #'   frame or matrix of already-scored item responses with scores 0 to
-#'   `cats[j] - 1` for each item j. Either way, examinees are rows and items
-#'   are columns.
+#'   `cats[j] - 1` for each item j; an error is raised when a score is not a
+#'   whole number between 0 and `cats[j] - 1`. Either way, examinees are rows
+#'   and items are columns.
 #' @param key `NULL` (default) for scored-category mode, or - to use
 #'   selected-response mode - either a vector of correct options in item
 #'   order, or a data frame with columns `item` and `key`, exactly as
@@ -63,7 +64,8 @@
 #'   item, following the same convention as [ctt()]. Only used in
 #'   scored-category mode (`key = NULL`); silently ignored when `key` is
 #'   supplied. If `NULL` (default), inferred per item as the observed maximum
-#'   score plus one.
+#'   score plus one, with a minimum of two. Each value must be a whole number
+#'   of at least 2.
 #' @param total An optional numeric vector of total scores, one per
 #'   examinee, aligned with the rows of `data`. If `NULL` (default), the
 #'   total score is computed internally: via [irtQ::score_resp()] in
@@ -256,7 +258,10 @@ ctt_distr <- function(data, item.id = NULL, key = NULL, opt = NULL,
     # to item column order - mirrors irtQ::score_resp()'s own key resolution
     # exactly, so both functions agree on what a given `key` means
     if (is.data.frame(key)) {
-      key_vec <- trimws(as.character(key[order(key$item), ]$key))
+      # order by the numeric item number so character or factor item columns
+      # are matched by item number, as in score_resp()
+      item_order <- order(as.integer(as.character(key$item)))
+      key_vec <- trimws(as.character(key$key[item_order]))
     } else {
       key_vec <- trimws(as.character(key))
     }
@@ -432,6 +437,9 @@ ctt_distr <- function(data, item.id = NULL, key = NULL, opt = NULL,
     }
     data <- data[complete_rows, , drop = FALSE]
 
+    # stop when a score or a `cats` value is not valid
+    check_ctt_scores(data, cats, item_names)
+
     # resolve the total score: use the caller-supplied vector (subset to the
     # same complete rows, so it stays aligned with `data` after deletion) if
     # given, otherwise compute it as the row sums of the scored data
@@ -446,13 +454,10 @@ ctt_distr <- function(data, item.id = NULL, key = NULL, opt = NULL,
     }
 
     # infer the number of score categories per item, when not supplied
-    # explicitly (cats[j] = observed max score + 1), as in ctt_item()
+    # explicitly (cats[j] = observed max score + 1, with a minimum of two
+    # categories), as in ctt_item()
     if (is.null(cats)) {
-      cats <- vapply(data, function(x) max(x, na.rm = TRUE) + 1, numeric(1))
-    }
-    if (length(cats) != n_item) {
-      stop("length(cats) must equal ncol(data): one value per item.",
-           call. = FALSE)
+      cats <- pmax(vapply(data, function(x) max(x) + 1, numeric(1)), 2)
     }
 
     n_examinee <- nrow(data)
